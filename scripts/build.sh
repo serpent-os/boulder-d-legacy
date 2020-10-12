@@ -18,7 +18,7 @@ function buildProject()
 if [[ "$MODE" == "release" ]]; then
     COMPILER="ldc2"
     buildProject
-    strip bin/moss
+    strip bin/boulder
 elif [[ "$MODE" == "optimized" ]]; then
     MODE="release"
     buildProject
