@@ -20,8 +20,8 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-module moss.build;
+module boulder.build;
 
-public import moss.build.builder;
-public import moss.build.profile;
-public import moss.build.stage;
+public import boulder.build.builder;
+public import boulder.build.profile;
+public import boulder.build.stage;

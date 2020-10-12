@@ -20,12 +20,12 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-module moss.build.profile;
+module boulder.build.profile;
 
 import moss.format.source.spec;
 import moss.format.source.script;
-import moss.build.context;
-import moss.build.stage;
+import boulder.build.context;
+import boulder.build.stage;
 
 import std.path : buildPath;
 

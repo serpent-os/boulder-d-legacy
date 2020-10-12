@@ -24,7 +24,9 @@ module moss.cli.processor;
 
 import moss.cli : Command, ExitStatus;
 import moss.cli.helpCommand;
-import moss.cli.versionCommand;;
+import moss.cli.versionCommand;
+
+;
 
 import std.stdio;
 import std.getopt;
@@ -48,7 +50,7 @@ private:
     /**
      * Builtin list of handlers
      */
-    static const Command*[] handlers = [ &helpCommand, &versionCommand ];
+    static const Command*[] handlers = [&helpCommand, &versionCommand];
 
 public:
 

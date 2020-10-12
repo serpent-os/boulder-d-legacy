@@ -20,9 +20,9 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-module moss.build.stage;
+module boulder.build.stage;
 
-import moss.build.profile : BuildProfile;
+import boulder.build.profile : BuildProfile;
 
 /**
  * Valid stage types.

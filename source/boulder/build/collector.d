@@ -20,7 +20,7 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-module moss.build.collector;
+module boulder.build.collector;
 
 import std.path;
 import std.file;
