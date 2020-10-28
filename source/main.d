@@ -23,10 +23,13 @@
 module main;
 
 import std.stdio;
-import moss.cli;
+import boulder.cli;
 
 int main(string[] args)
 {
-    auto p = Processor(args);
-    return p.process();
+    auto clip = cliProcessor!BoulderCLI(args);
+    clip.addCommand!BuildCommand;
+    clip.addCommand!VersionCommand;
+    clip.addCommand!HelpCommand;
+    return clip.process(args);
 }
