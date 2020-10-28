@@ -44,18 +44,39 @@ public final struct BuildCommand
 
     @CommandEntry() int run(ref string[] argv)
     {
-        if (argv.length != 1)
+        import std.algorithm;
+        import std.file : exists;
+        import std.exception : enforce;
+        import std.string : format;
+
+        /* We only want a unique set of paths built */
+        auto buildPaths = argv.uniq;
+
+        /* Ensure each path exists.. */
+        void validatePath(const(string) p)
         {
-            stderr.writeln("Requires an argument");
+            enforce(p.exists, "Path does not exist: %s".format(p));
+        }
+
+        /* Build each passed path */
+        void buildPath(const(string) p)
+        {
+            auto builder = Builder(p);
+            writeln(
+                    "Building " ~ builder.specFile.source.name ~ " "
+                    ~ builder.specFile.source.versionIdentifier);
+
+            builder.build();
+        }
+
+        if (argv.length < 1)
+        {
+            writeln("No source packages provided to build CLI");
             return ExitStatus.Failure;
         }
 
-        auto builder = Builder(argv[0]);
-        writeln(
-                "Building " ~ builder.specFile.source.name ~ " "
-                ~ builder.specFile.source.versionIdentifier);
-
-        builder.build();
+        buildPaths.each!((e) => validatePath(e));
+        buildPaths.each!((e) => buildPath(e));
 
         return ExitStatus.Success;
     }
