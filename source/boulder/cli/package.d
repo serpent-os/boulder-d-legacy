@@ -30,9 +30,14 @@ public import boulder.cli.versionCommand;
  * The BoulderCLI type holds some global configuration bits
  */
 @RootCommand @CommandName("boulder")
-@CommandHelp("[command]", "Boulder is used to build software packages from source")
+@CommandHelp("boulder - the Serpent OS package build tool",
+        "Build software packages from source, with sanity retained")
+@CommandUsage("[--args] [command]")
 public final struct BoulderCLI
 {
     BaseCommand pt;
     alias pt this;
+
+    @Option("o", "output", "Directory to store build results") string outputDirectory = ".";
+    @Option("d", "debug", "Enable debugging output") bool debugMode = false;
 }
