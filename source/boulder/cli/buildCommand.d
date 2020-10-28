@@ -62,10 +62,9 @@ public final struct BuildCommand
         void buildPath(const(string) p)
         {
             auto builder = Builder(p);
-            writeln(
-                    "Building " ~ builder.specFile.source.name ~ " "
-                    ~ builder.specFile.source.versionIdentifier);
-
+            auto name = "%s %s".format(builder.specFile.source.name,
+                    builder.specFile.source.versionIdentifier);
+            writefln("Building ", name);
             builder.build();
         }
 
