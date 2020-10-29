@@ -62,6 +62,7 @@ public final struct BuildCommand
         void buildPath(const(string) p)
         {
             auto builder = Builder(p);
+            builder.context.jobs = jobs;
             auto name = "%s %s".format(builder.specFile.source.name,
                     builder.specFile.source.versionIdentifier);
             writefln("Building ", name);
@@ -79,4 +80,6 @@ public final struct BuildCommand
 
         return ExitStatus.Success;
     }
+
+    @Option("j", "jobs", "Set the number of parallel build jobs (0 = automatic)") int jobs = 0;
 }

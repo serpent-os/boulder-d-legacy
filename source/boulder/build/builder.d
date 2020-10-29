@@ -50,7 +50,7 @@ public:
         specFile.parse();
 
         auto buildRoot = getBuildRoot();
-        context = BuildContext(&_specFile, buildRoot);
+        _context = BuildContext(&_specFile, buildRoot);
 
         auto plat = platform();
 
@@ -75,6 +75,11 @@ public:
         collector.addRule("*", _specFile.source.name);
     }
 
+    pure final @property ref BuildContext context() @safe @nogc nothrow
+    {
+        return _context;
+    }
+
     /**
      * Return the underlying spec file
      */
@@ -89,7 +94,7 @@ public:
     final void addArchitecture(string name)
     {
         architectures ~= name;
-        profiles ~= new BuildProfile(&context, name);
+        profiles ~= new BuildProfile(&_context, name);
     }
 
     /**
@@ -242,6 +247,6 @@ private:
     Spec _specFile;
     string[] architectures;
     BuildProfile*[] profiles;
-    BuildContext context;
+    BuildContext _context;
     BuildCollector collector;
 }

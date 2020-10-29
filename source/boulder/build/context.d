@@ -47,7 +47,7 @@ struct BuildContext
         this._rootDir = rootDir;
         this._sourceDir = rootDir.buildPath("sources");
 
-        jobs = totalCPUs();
+        jobs = 0;
 
         this.loadMacros();
     }
@@ -86,6 +86,12 @@ struct BuildContext
      */
     final @property void jobs(int j) @safe @nogc nothrow
     {
+        if (j < 1)
+        {
+            _jobs = totalCPUs();
+            return;
+        }
+
         _jobs = j;
     }
 
@@ -199,5 +205,5 @@ private:
     Spec* _spec;
     MacroFile*[string] defFiles;
     MacroFile*[] actionFiles;
-    int _jobs = 1;
+    uint _jobs = 0;
 }
