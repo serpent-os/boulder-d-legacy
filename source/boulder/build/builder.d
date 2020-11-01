@@ -70,9 +70,6 @@ public:
         {
             addArchitecture(plat.name);
         }
-
-        /* Need a fallback rule for the main package */
-        collector.addRule("*", _specFile.source.name);
     }
 
     pure final @property ref BuildContext context() @safe @nogc nothrow

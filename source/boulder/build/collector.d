@@ -111,6 +111,7 @@ private:
         import std.string : format;
         import std.algorithm;
         import std.range;
+        import std.exception : enforce;
 
         auto targetPath = e.name.relativePath(rootDir);
 
@@ -122,7 +123,10 @@ private:
 
         auto fullPath = e.name;
         /* Find out whre it goes */
-        auto matching = rules.filter!((r) => r.match(targetPath)).takeOne().front;
+        auto matchingSet = rules.filter!((r) => r.match(targetPath)).takeOne();
+        enforce(!matchingSet.empty,
+                "analysePath: No matching rule for path: %s".format(targetPath));
+        auto matching = matchingSet.front;
         writefln("%s = %s", fullPath, matching.target);
     }
 
