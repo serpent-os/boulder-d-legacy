@@ -266,7 +266,7 @@ packages          :
             Install this package if you need the 32-bit versions of the
             %(name) package libraries.
         paths:
-            - /usr/lib32/*
+            - /usr/lib32
 
     # 32-bit development files
     - "%(name)-32bit-devel":
@@ -276,6 +276,7 @@ packages          :
             the 32-bit version of %(name), %(name)-32bit.
         paths:
             - /usr/lib32/lib*.so.*
+            - /usr/lib32/pkgconfig
 
     # 32-bit debug symbols
     - "%(name)-32bit-dbginfo":
