@@ -292,7 +292,7 @@ private:
     {
         import std.algorithm;
 
-        emitter.emit();
+        emitter.emit(context.outputDirectory);
     }
 
     /**

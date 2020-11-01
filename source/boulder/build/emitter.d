@@ -24,6 +24,7 @@ module boulder.build.emitter;
 
 import moss.format.source.packageDefinition;
 import moss.format.source.sourceDefinition;
+import moss.format.binary.writer;
 
 /**
  * Resulting Package is only buildable once it contains
@@ -102,17 +103,39 @@ public:
     /**
      * Now emit the collected packages
      */
-    final void emit() @system
+    final void emit(const(string) outputDirectory) @system
     {
         import std.stdio;
         import std.algorithm;
 
         packages.values
             .filter!((p) => !p.empty)
-            .each!((p) => writeln(p.filename));
+            .each!((p) => emitPackage(outputDirectory, p));
     }
 
 private:
+
+    /**
+     * Emit a single package into the given working directory
+     */
+    final void emitPackage(const(string) outputDirectory, scope Package* pkg) @trusted
+    {
+        import std.stdio;
+        import std.path : buildPath;
+
+        auto finalPath = outputDirectory.buildPath(pkg.filename);
+
+        /* Open the output file */
+        auto fp = File(finalPath, "wb");
+        auto writer = Writer(fp);
+        writer.flush();
+        scope (exit)
+        {
+            writer.close();
+        }
+
+        writefln("Creating package %s...", finalPath);
+    }
 
     Package*[string] packages;
 }
