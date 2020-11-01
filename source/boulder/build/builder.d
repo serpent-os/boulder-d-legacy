@@ -26,6 +26,7 @@ import moss.format.source.spec;
 import boulder.build.context;
 import boulder.build.collector;
 import boulder.build.profile;
+import boulder.build.emitter;
 import moss.platform;
 
 /**
@@ -132,6 +133,9 @@ private:
         inclusionPriority += 1000;
         addDefinition(_specFile.rootPackage);
         _specFile.subPackages.values.each!((p) => addDefinition(p));
+
+        /* Fully baked definitions, pass to the emitter */
+        packages.values.each!((p) => emitter.addPackage(_specFile.source, p));
     }
 
     /**
@@ -278,7 +282,7 @@ private:
 
         profiles.map!((ref p) => p.installRoot)
             .uniq
-            .each!((const s) => this.collector.collect(s));
+            .each!((const s) => this.collector.collect(this.emitter, s));
     }
 
     /**
@@ -288,7 +292,7 @@ private:
     {
         import std.algorithm;
 
-        packages.values.each!((p) => this.collector.emit(context, p, context.outputDirectory));
+        emitter.emit();
     }
 
     /**
@@ -321,6 +325,7 @@ private:
     BuildProfile*[] profiles;
     BuildContext _context;
     BuildCollector collector;
+    BuildEmitter emitter;
     PackageDefinition[string] packages;
     int inclusionPriority = 0;
 }

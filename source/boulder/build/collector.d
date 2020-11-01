@@ -26,6 +26,7 @@ import std.path;
 import std.file;
 import std.algorithm : startsWith;
 import moss.format.source.packageDefinition;
+import boulder.build.emitter : BuildEmitter;
 import boulder.build.context : BuildContext;
 
 /**
@@ -75,13 +76,13 @@ public:
      * Begin collection on the given root directory, considered to be
      * the "/" root filesystem of the target package.
      */
-    final void collect(const(string) rootDir) @system
+    final void collect(ref BuildEmitter em, const(string) rootDir) @system
     {
         import std.algorithm;
 
         _rootDir = rootDir;
 
-        dirEntries(rootDir, SpanMode.depth, false).each!((ref e) => this.analysePath(e));
+        dirEntries(rootDir, SpanMode.depth, false).each!((ref e) => this.analysePath(em, e));
     }
 
     /**
@@ -104,31 +105,12 @@ public:
         rules.sort!((a, b) => a.priority > b.priority);
     }
 
-    /**
-     * Emit the given package by the given output directory.
-     */
-    final void emit(ref BuildContext context, ref PackageDefinition pd,
-            const(string) outputDirectory) @system
-    {
-        import std.path : buildPath;
-        import std.stdio : writeln;
-        import moss.platform;
-
-        auto plat = platform();
-        import std.string : format;
-
-        auto filename = "%s-%s-%d-%s.stone".format(pd.name,
-                context.spec.source.versionIdentifier, context.spec.source.release, plat.name);
-        auto fp = outputDirectory.buildPath(filename);
-        writeln(fp);
-    }
-
 private:
 
     /**
      * Analyse a given path and start acting on it
      */
-    final void analysePath(ref DirEntry e) @system
+    final void analysePath(ref BuildEmitter em, ref DirEntry e) @system
     {
         import std.stdio;
         import std.string : format;
@@ -152,11 +134,7 @@ private:
         auto matching = matchingSet.front;
         writefln("%s = %s", fullPath, matching.target);
 
-        /* Store hashes only for regular files */
-        if (e.isFile && !e.isSymlink)
-        {
-            storeHash(fullPath);
-        }
+        em.addFile(matching.target, targetPath);
     }
 
     /**
