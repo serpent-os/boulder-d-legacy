@@ -145,7 +145,10 @@ private:
         manager.add(new DownloadStore(StoreType.User));
 
         /* Only work with plain sources for now */
-        auto plains = _specFile.upstreams.values.filter!((u) => u.type == UpstreamType.Plain);
+        auto plains = _specFile.upstreams
+            .values
+            .map!((u) => _specFile.expand(u))
+            .filter!((u) => u.type == UpstreamType.Plain);
 
         /* Unfetched sources */
         auto fetchables = plains.filter!((u) => !manager.contains(u.plain.hash));
