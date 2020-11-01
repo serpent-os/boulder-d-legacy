@@ -284,11 +284,11 @@ private:
     /**
      * Emit all binary packages
      */
-    final void emitPackages() @safe
+    final void emitPackages() @system
     {
-        import std.stdio;
+        import std.algorithm;
 
-        writeln("Emitting packages");
+        packages.values.each!((p) => this.collector.emit(context, p, context.outputDirectory));
     }
 
     /**

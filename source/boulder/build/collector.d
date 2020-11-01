@@ -25,6 +25,8 @@ module boulder.build.collector;
 import std.path;
 import std.file;
 import std.algorithm : startsWith;
+import moss.format.source.packageDefinition;
+import boulder.build.context : BuildContext;
 
 /**
  * A CollectionRule simply defines a pattern to match against (glob style)
@@ -100,6 +102,25 @@ public:
         /* Sort ahead of time */
         rules ~= CollectionRule(pattern, target, priority);
         rules.sort!((a, b) => a.priority > b.priority);
+    }
+
+    /**
+     * Emit the given package by the given output directory.
+     */
+    final void emit(ref BuildContext context, ref PackageDefinition pd,
+            const(string) outputDirectory) @system
+    {
+        import std.path : buildPath;
+        import std.stdio : writeln;
+        import moss.platform;
+
+        auto plat = platform();
+        import std.string : format;
+
+        auto filename = "%s-%s-%d-%s.stone".format(pd.name,
+                context.spec.source.versionIdentifier, context.spec.source.release, plat.name);
+        auto fp = outputDirectory.buildPath(filename);
+        writeln(fp);
     }
 
 private:

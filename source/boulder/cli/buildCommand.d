@@ -26,6 +26,7 @@ public import moss.cli;
 import moss;
 import std.stdio;
 import boulder.build;
+import boulder.cli : BoulderCLI;
 
 /**
  * The BoulderCLI type holds some global configuration bits
@@ -63,6 +64,7 @@ public final struct BuildCommand
         {
             auto builder = Builder(p);
             builder.context.jobs = jobs;
+            builder.context.outputDirectory = pt.findAncestor!BoulderCLI.outputDirectory;
             auto name = "%s %s".format(builder.specFile.source.name,
                     builder.specFile.source.versionIdentifier);
             writefln("Building ", name);

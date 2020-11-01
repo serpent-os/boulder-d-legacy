@@ -95,6 +95,16 @@ struct BuildContext
         _jobs = j;
     }
 
+    pure final @property const(string) outputDirectory() @safe @nogc nothrow
+    {
+        return _outputDirectory;
+    }
+
+    pure final @property void outputDirectory(const(string) s) @safe @nogc nothrow
+    {
+        _outputDirectory = s;
+    }
+
     /**
      * Prepare a ScriptBuilder
      */
@@ -208,4 +218,5 @@ package:
     MacroFile*[string] defFiles;
     MacroFile*[] actionFiles;
     uint _jobs = 0;
+    string _outputDirectory = ".";
 }
