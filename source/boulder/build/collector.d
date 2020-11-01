@@ -24,6 +24,7 @@ module boulder.build.collector;
 
 import std.path;
 import std.file;
+import std.algorithm : startsWith;
 
 /**
  * A CollectionRule simply defines a pattern to match against (glob style)
@@ -50,7 +51,8 @@ package final struct CollectionRule
 
     pure bool match(const(string) inp) @safe
     {
-        return globMatch!(CaseSensitive.yes)(inp, pattern);
+        return (inp == pattern || inp.startsWith(pattern)
+                || globMatch!(CaseSensitive.yes)(inp, pattern));
     }
 }
 

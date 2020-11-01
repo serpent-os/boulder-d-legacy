@@ -203,6 +203,8 @@ private:
     string _rootDir;
     string _sourceDir;
     Spec* _spec;
+
+package:
     MacroFile*[string] defFiles;
     MacroFile*[] actionFiles;
     uint _jobs = 0;

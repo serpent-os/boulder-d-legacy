@@ -70,6 +70,8 @@ public:
         {
             addArchitecture(plat.name);
         }
+
+        preparePackageDefinitions();
     }
 
     pure final @property ref BuildContext context() @safe @nogc nothrow
@@ -108,6 +110,79 @@ public:
     }
 
 private:
+
+    /**
+     * Load all package definitions in
+     */
+    final void preparePackageDefinitions() @system
+    {
+        import std.algorithm;
+        import std.array;
+        import std.range;
+
+        string[] arches = ["base"];
+        arches ~= architectures;
+
+        /* Insert core package definitions */
+        arches.map!((a) => context.defFiles[a].packages)
+            .joiner
+            .each!((p) => addDefinition(p));
+
+        /* Insert custom package definitions */
+        inclusionPriority += 1000;
+        addDefinition(_specFile.rootPackage);
+        _specFile.subPackages.values.each!((p) => addDefinition(p));
+    }
+
+    /**
+     * Insert a definition to allow matching file paths to a proper
+     * PackageDefinition merged object. This comes from the spec and
+     * our base definitions.
+     */
+    final void addDefinition(PackageDefinition pd)
+    {
+        import std.range;
+        import std.algorithm;
+
+        pd = _specFile.expand(pd);
+
+        void insertPaths()
+        {
+            pd.paths.each!((p) => collector.addRule(p, pd.name, inclusionPriority));
+            ++inclusionPriority;
+        }
+
+        /* Insert new package if needed */
+        if (!(pd.name in packages))
+        {
+            packages[pd.name] = pd;
+            insertPaths();
+            return;
+        }
+
+        /* Merge rules */
+        auto oldPkg = &packages[pd.name];
+        oldPkg.runtimeDependencies = oldPkg.runtimeDependencies.chain(pd.runtimeDependencies)
+            .uniq.array;
+        oldPkg.paths = oldPkg.paths.chain(pd.paths).uniq.array;
+
+        sort(oldPkg.runtimeDependencies);
+        sort(oldPkg.paths);
+
+        /* Merge details */
+        if (oldPkg.summary is null)
+        {
+            oldPkg.summary = pd.summary;
+        }
+        if (oldPkg.description is null)
+        {
+            oldPkg.description = pd.description;
+        }
+
+        /* Copy to the struct, and go */
+        pd = *oldPkg;
+        insertPaths();
+    }
 
     /**
      * Prepare our root filesystem for building on
@@ -249,4 +324,6 @@ private:
     BuildProfile*[] profiles;
     BuildContext _context;
     BuildCollector collector;
+    PackageDefinition[string] packages;
+    int inclusionPriority = 0;
 }
