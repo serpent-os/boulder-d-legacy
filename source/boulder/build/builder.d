@@ -144,19 +144,20 @@ private:
         import std.range;
         import std.algorithm;
 
+        /* Always insert paths as they're encountered */
         pd = _specFile.expand(pd);
-
-        void insertPaths()
+        void insertRule(const(string) name)
         {
-            pd.paths.each!((p) => collector.addRule(p, pd.name, inclusionPriority));
+            collector.addRule(name, pd.name, inclusionPriority);
             ++inclusionPriority;
         }
+
+        pd.paths.each!((p) => insertRule(p));
 
         /* Insert new package if needed */
         if (!(pd.name in packages))
         {
             packages[pd.name] = pd;
-            insertPaths();
             return;
         }
 
@@ -178,10 +179,6 @@ private:
         {
             oldPkg.description = pd.description;
         }
-
-        /* Copy to the struct, and go */
-        pd = *oldPkg;
-        insertPaths();
     }
 
     /**
