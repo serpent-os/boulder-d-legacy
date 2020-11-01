@@ -130,8 +130,50 @@ private:
                 "analysePath: No matching rule for path: %s".format(targetPath));
         auto matching = matchingSet.front;
         writefln("%s = %s", fullPath, matching.target);
+
+        /* Store hashes only for regular files */
+        if (e.isFile && !e.isSymlink)
+        {
+            storeHash(fullPath);
+        }
+    }
+
+    /**
+     * Compute and store the hash for the file
+     * We use the dupeStoreHash to ensure all identical files
+     * are only added once
+     */
+    final void storeHash(const(string) p) @system
+    {
+        auto hash = checkHash(p);
+        if (hash in dupeHashStore)
+        {
+            return;
+        }
+        dupeHashStore[hash] = p;
+    }
+
+    /**
+     * Ugly utility to check a hash
+     */
+    final string checkHash(const(string) path)
+    {
+        import std.stdio;
+        import std.digest.sha;
+        import std.string : toLower;
+
+        auto sha = new SHA256Digest();
+        auto input = File(path, "rb");
+        foreach (ubyte[] buffer; input.byChunk(16 * 1024 * 1024))
+        {
+            sha.put(buffer);
+        }
+        return toHexString(sha.finish()).toLower();
     }
 
     string _rootDir = null;
     CollectionRule[] rules;
+
+    /* Store hash -> source path here to only store once */
+    string[string] dupeHashStore;
 }
