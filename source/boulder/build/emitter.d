@@ -25,6 +25,9 @@ module boulder.build.emitter;
 import moss.format.source.packageDefinition;
 import moss.format.source.sourceDefinition;
 import moss.format.binary.writer;
+import moss.format.binary.payload;
+import moss.format.binary.metaPayload;
+import moss.format.binary.record;
 
 /**
  * Resulting Package is only buildable once it contains
@@ -128,13 +131,26 @@ private:
         /* Open the output file */
         auto fp = File(finalPath, "wb");
         auto writer = Writer(fp);
-        writer.flush();
         scope (exit)
         {
             writer.close();
         }
 
         writefln("Creating package %s...", finalPath);
+
+        /* Encode metapayload */
+        auto meta = MetaPayload();
+        meta.compression = PayloadCompression.None;
+
+        /* Add relevant entries */
+        meta.addRecord(RecordTag.Name, pkg.pd.name);
+        meta.addRecord(RecordTag.Version, pkg.source.versionIdentifier);
+        meta.addRecord(RecordTag.Release, pkg.source.release);
+        meta.addRecord(RecordTag.Summary, pkg.pd.summary);
+        meta.addRecord(RecordTag.Description, pkg.pd.description);
+        meta.addRecord(RecordTag.Homepage, pkg.source.homepage);
+        writer.addPayload(cast(Payload*)&meta);
+        writer.flush();
     }
 
     Package*[string] packages;
