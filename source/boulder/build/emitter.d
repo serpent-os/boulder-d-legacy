@@ -27,6 +27,8 @@ import moss.format.source.sourceDefinition;
 import moss.format.binary.writer;
 import moss.format.binary.payload;
 import moss.format.binary.contentPayload;
+import moss.format.binary.index;
+import moss.format.binary.indexPayload;
 import moss.format.binary.metaPayload;
 import moss.format.binary.record;
 
@@ -200,11 +202,27 @@ private:
         auto content = ContentPayload();
         content.compression = PayloadCompression.Zstd;
 
+        auto indexes = IndexPayload();
+        indexes.compression = PayloadCompression.None;
+
         writefln("Encoding content");
+        import std.file : getSize;
+
+        ulong startOffset = 0;
+
         foreach (hash, source; pkg.dupeHashStore)
         {
+            auto size = source.getSize();
+            auto endOffset = startOffset + size;
             content.addFile(hash, source);
+            auto idx = IndexEntry();
+            idx.size = size;
+            idx.start = startOffset;
+            idx.end = endOffset;
+            indexes.addEntry(idx, hash);
+            startOffset = endOffset;
         }
+        writer.addPayload(cast(Payload*)&indexes);
         writer.addPayload(cast(Payload*)&content);
 
         writer.flush();
