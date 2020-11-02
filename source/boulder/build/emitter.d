@@ -65,8 +65,7 @@ package final struct Package
 
         import std.file;
 
-        auto attrs = getAttributes(p);
-        if (attrs.attrIsFile && !attrs.attrIsSymlink)
+        if (p.isFile && !p.isSymlink)
         {
             storeHash(p);
         }
@@ -187,7 +186,7 @@ private:
 
         /* Encode metapayload */
         auto meta = MetaPayload();
-        meta.compression = PayloadCompression.None;
+        meta.compression = PayloadCompression.Zstd;
 
         /* Add relevant entries */
         meta.addRecord(RecordTag.Name, pkg.pd.name);
@@ -203,7 +202,7 @@ private:
         content.compression = PayloadCompression.Zstd;
 
         auto indexes = IndexPayload();
-        indexes.compression = PayloadCompression.None;
+        indexes.compression = PayloadCompression.Zstd;
 
         writefln("Encoding content");
         import std.file : getSize;
