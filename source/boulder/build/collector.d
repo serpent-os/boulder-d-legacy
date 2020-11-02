@@ -134,45 +134,9 @@ private:
         auto matching = matchingSet.front;
         writefln("%s = %s", fullPath, matching.target);
 
-        em.addFile(matching.target, targetPath);
-    }
-
-    /**
-     * Compute and store the hash for the file
-     * We use the dupeStoreHash to ensure all identical files
-     * are only added once
-     */
-    final void storeHash(const(string) p) @system
-    {
-        auto hash = checkHash(p);
-        if (hash in dupeHashStore)
-        {
-            return;
-        }
-        dupeHashStore[hash] = p;
-    }
-
-    /**
-     * Ugly utility to check a hash
-     */
-    final string checkHash(const(string) path)
-    {
-        import std.stdio;
-        import std.digest.sha;
-        import std.string : toLower;
-
-        auto sha = new SHA256Digest();
-        auto input = File(path, "rb");
-        foreach (ubyte[] buffer; input.byChunk(16 * 1024 * 1024))
-        {
-            sha.put(buffer);
-        }
-        return toHexString(sha.finish()).toLower();
+        em.addFile(matching.target, targetPath, fullPath);
     }
 
     string _rootDir = null;
     CollectionRule[] rules;
-
-    /* Store hash -> source path here to only store once */
-    string[string] dupeHashStore;
 }

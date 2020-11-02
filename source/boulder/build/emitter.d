@@ -55,10 +55,18 @@ package final struct Package
     /**
      * Add a file to the Package
      */
-    final void addFile(const(string) p) @safe
+    final void addFile(const(string) relativePath, const(string) p) @safe
     {
-        files ~= p;
+        files ~= relativePath;
         _empty = false;
+
+        import std.file;
+
+        auto attrs = getAttributes(p);
+        if (attrs.attrIsFile && !attrs.attrIsSymlink)
+        {
+            storeHash(p);
+        }
     }
 
     /**
@@ -69,10 +77,46 @@ package final struct Package
         return _empty;
     }
 
+    /**
+     * Compute and store the hash for the file
+     * We use the dupeStoreHash to ensure all identical files
+     * are only added once
+     */
+    final void storeHash(const(string) p) @safe
+    {
+        auto hash = checkHash(p);
+        if (hash in dupeHashStore)
+        {
+            return;
+        }
+        dupeHashStore[hash] = p;
+    }
+
+    /**
+     * Ugly utility to check a hash
+     */
+    final string checkHash(const(string) path) @trusted
+    {
+        import std.stdio;
+        import std.digest.sha;
+        import std.string : toLower;
+
+        auto sha = new SHA256Digest();
+        auto input = File(path, "rb");
+        foreach (ubyte[] buffer; input.byChunk(16 * 1024 * 1024))
+        {
+            sha.put(buffer);
+        }
+        return toHexString(sha.finish()).toLower();
+    }
+
 private:
 
     bool _empty = true;
     string[] files;
+
+    /* Store hash -> source path here to only store once */
+    string[string] dupeHashStore;
 }
 
 /**
@@ -97,10 +141,10 @@ public:
         packages[pd.name] = pkg;
     }
 
-    final void addFile(const(string) pkgName, const(string) fp) @safe
+    final void addFile(const(string) pkgName, const(string) rp, const(string) fp) @safe
     {
         auto pkg = packages[pkgName];
-        pkg.addFile(fp);
+        pkg.addFile(rp, fp);
     }
 
     /**
