@@ -26,6 +26,7 @@ import moss.format.source.packageDefinition;
 import moss.format.source.sourceDefinition;
 import moss.format.binary.writer;
 import moss.format.binary.payload;
+import moss.format.binary.contentPayload;
 import moss.format.binary.metaPayload;
 import moss.format.binary.record;
 
@@ -194,6 +195,18 @@ private:
         meta.addRecord(RecordTag.Description, pkg.pd.description);
         meta.addRecord(RecordTag.Homepage, pkg.source.homepage);
         writer.addPayload(cast(Payload*)&meta);
+
+        /* Add content payload */
+        auto content = ContentPayload();
+        content.compression = PayloadCompression.Zstd;
+
+        writefln("Encoding content");
+        foreach (hash, source; pkg.dupeHashStore)
+        {
+            content.addFile(hash, source);
+        }
+        writer.addPayload(cast(Payload*)&content);
+
         writer.flush();
     }
 
