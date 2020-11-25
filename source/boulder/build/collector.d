@@ -97,6 +97,10 @@ public:
         _rootDir = rootDir;
 
         dirEntries(rootDir, SpanMode.depth, false).each!((ref e) => this.collectPath(e));
+
+        import std.stdio;
+
+        writeln(results.values);
     }
 
     /**
@@ -169,12 +173,7 @@ private:
         }
 
         auto fullPath = e.name;
-
         auto an = FileAnalysis(targetPath, fullPath);
-
-        import std.stdio;
-
-        writeln("ANALYSIS: ", an);
 
         /* Stash the FileOrigin for regular files */
         if (an.type == FileType.Regular)
@@ -190,9 +189,10 @@ private:
                 or.originPath = an.fullPath;
                 origins[an.data] = or;
             }
-
-            writeln("ORIGIN: ", origins[an.data]);
         }
+
+        /* Stash the results. */
+        results[an.fullPath] = an;
     }
 
     /* Root directory for collection */
@@ -203,4 +203,7 @@ private:
 
     /* Track file origins for deduplication */
     FileOrigin[string] origins;
+
+    /* Collection of every encountered file */
+    FileAnalysis[string] results;
 }
