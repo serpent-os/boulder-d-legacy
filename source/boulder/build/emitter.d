@@ -152,7 +152,6 @@ private:
         auto indexes = IndexPayload();
         indexes.compression = PayloadCompression.Zstd;
 
-        writefln("Encoding content");
         import std.file : getSize;
 
         ulong startOffset = 0;
@@ -166,8 +165,6 @@ private:
             {
                 continue;
             }
-
-            writefln("ENCODING (REFCOUNT: %d) : %s", origin.refcount, hash);
 
             auto size = source.getSize();
             auto endOffset = startOffset + size;
@@ -184,6 +181,9 @@ private:
         auto layouts = LayoutPayload();
         layouts.compression = PayloadCompression.Zstd;
 
+        /**
+         * Convert a FileAnalysis into a LayoutEntry struct
+         */
         LayoutEntry fromAnalysis(ref FileAnalysis fa)
         {
             LayoutEntry ret;
@@ -199,6 +199,9 @@ private:
             return ret;
         }
 
+        /**
+         * Push a layout entry
+         */
         void pushLayout(ref FileAnalysis fa)
         {
             auto le = fromAnalysis(fa);
@@ -215,8 +218,6 @@ private:
             default:
                 assert(0, "Unsupported filetype");
             }
-
-            writeln(fa.path, " ", le);
         }
 
         fileSet.each!((ref fa) => pushLayout(fa));

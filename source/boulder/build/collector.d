@@ -97,10 +97,6 @@ public:
         _rootDir = rootDir;
 
         dirEntries(rootDir, SpanMode.depth, false).each!((ref e) => this.collectPath(e));
-
-        import std.stdio;
-
-        writeln(results.values);
     }
 
     /**
