@@ -42,6 +42,7 @@ package:
         import std.exception : enforce;
 
         _path = relativePath;
+        _fullPath = fullPath;
         auto z = fullPath.toStringz;
         auto ret = lstat(z, &statResult);
         enforce(ret == 0, "CollectionResult: unable to stat() %s".format(fullPath));
@@ -134,6 +135,14 @@ package:
         return _path;
     }
 
+    /**
+     * Return the full path to the file on the host disk
+     */
+    pure final const(string) fullPath() @safe @nogc nothrow
+    {
+        return _fullPath;
+    }
+
 private:
 
     /**
@@ -157,5 +166,6 @@ private:
     FileType _type = FileType.Unknown;
     string _data = null;
     string _path = null;
+    string _fullPath = null;
     stat_t statResult;
 }

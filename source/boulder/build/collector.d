@@ -28,6 +28,20 @@ import std.algorithm : startsWith;
 import moss.format.source.packageDefinition;
 import boulder.build.emitter : BuildEmitter;
 import boulder.build.context : BuildContext;
+import boulder.build.analysis;
+
+/**
+ * A FileOrigin is used by the Collector to track the original file
+ * origin of a given **hash** to assist in deduplication. We also store
+ * a reference count to keep track of statistics, which will be employed
+ * in future to know how well we're actually deduplicating and how much
+ * space we're saving the user.
+ */
+package final struct FileOrigin
+{
+    uint refcount = 0;
+    string originPath;
+}
 
 /**
  * A CollectionRule simply defines a pattern to match against (glob style)
@@ -82,7 +96,7 @@ public:
 
         _rootDir = rootDir;
 
-        dirEntries(rootDir, SpanMode.depth, false).each!((ref e) => this.analysePath(em, e));
+        dirEntries(rootDir, SpanMode.depth, false).each!((ref e) => this.collectPath(e));
     }
 
     /**
@@ -137,6 +151,52 @@ private:
         em.addFile(matching.target, targetPath, fullPath);
     }
 
+    /**
+     * Collect the path here into our various buckets, so that it
+     * may be post-processed.
+     */
+    final void collectPath(ref DirEntry e) @system
+    {
+        import std.string : format;
+        import moss.format.binary : FileType;
+
+        auto targetPath = e.name.relativePath(rootDir);
+
+        /* Ensure full "local" path */
+        if (targetPath[0] != '/')
+        {
+            targetPath = "/%s".format(targetPath);
+        }
+
+        auto fullPath = e.name;
+
+        auto an = FileAnalysis(targetPath, fullPath);
+
+        import std.stdio;
+
+        writeln("ANALYSIS: ", an);
+
+        /* Stash the FileOrigin for regular files */
+        if (an.type == FileType.Regular)
+        {
+            if (an.data in origins)
+            {
+                FileOrigin* or = &origins[an.data];
+                or.refcount++;
+            }
+            else
+            {
+                FileOrigin or;
+                or.originPath = an.fullPath;
+                origins[an.data] = or;
+            }
+
+            writeln("ORIGIN: ", origins[an.data]);
+        }
+    }
+
     string _rootDir = null;
     CollectionRule[] rules;
+
+    FileOrigin[string] origins;
 }
