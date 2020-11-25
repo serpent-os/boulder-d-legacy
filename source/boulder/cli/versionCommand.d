@@ -22,8 +22,8 @@
 
 module boulder.cli.versionCommand;
 
-public import moss.cli;
-import moss;
+public import moss.core.cli;
+import moss.core;
 
 /**
  * The BoulderCLI type holds some global configuration bits
@@ -39,7 +39,7 @@ public final struct VersionCommand
     {
         import std.stdio;
 
-        writefln("boulder, version %s", moss.Version);
+        writefln("boulder, version %s", moss.core.Version);
         writeln("\nCopyright © 2020 Serpent OS Developers");
         writeln("Available under the terms of the ZLib license");
         return ExitStatus.Success;

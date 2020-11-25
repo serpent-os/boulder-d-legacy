@@ -22,7 +22,7 @@
 
 module boulder.cli;
 
-public import moss.cli;
+public import moss.core.cli;
 public import boulder.cli.buildCommand;
 public import boulder.cli.versionCommand;
 

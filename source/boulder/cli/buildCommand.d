@@ -22,8 +22,8 @@
 
 module boulder.cli.buildCommand;
 
-public import moss.cli;
-import moss;
+public import moss.core.cli;
+import moss.core;
 import std.stdio;
 import boulder.build;
 import boulder.cli : BoulderCLI;

@@ -27,7 +27,7 @@ import boulder.build.context;
 import boulder.build.collector;
 import boulder.build.profile;
 import boulder.build.emitter;
-import moss.platform;
+import moss.core.platform;
 
 /**
  * The Builder is responsible for the full build of a source package
@@ -210,7 +210,7 @@ private:
     final void prepareSources() @system
     {
         import std.stdio;
-        import moss.download;
+        import moss.core.download;
         import std.algorithm;
 
         auto manager = new DownloadManager();

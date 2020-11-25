@@ -142,7 +142,7 @@ private:
     {
         import std.file;
         import std.path : buildPath, dirName, baseName;
-        import moss.platform;
+        import moss.core.platform;
         import std.string : format;
         import std.exception : enforce;
 

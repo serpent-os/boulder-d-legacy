@@ -51,7 +51,7 @@ package final struct Package
      */
     final const(string) filename() @safe
     {
-        import moss.platform : platform;
+        import moss.core.platform : platform;
         import std.string : format;
 
         auto plat = platform();
