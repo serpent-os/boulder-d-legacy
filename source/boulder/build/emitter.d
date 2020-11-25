@@ -32,6 +32,8 @@ import moss.format.binary.contentPayload;
 import moss.format.binary.index;
 import moss.format.binary.indexPayload;
 import moss.format.binary.metaPayload;
+import moss.format.binary.layout;
+import moss.format.binary.layoutPayload;
 import moss.format.binary.record;
 
 /**
@@ -172,8 +174,12 @@ private:
             startOffset = endOffset;
         }
 
+        /* Apply layout to disk */
+        auto layouts = LayoutPayload();
+
         writer.addPayload(cast(Payload*)&indexes);
         writer.addPayload(cast(Payload*)&content);
+        writer.addPayload(cast(Payload*)&layouts);
 
         writer.flush();
     }
