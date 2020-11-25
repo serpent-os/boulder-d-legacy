@@ -130,8 +130,9 @@ public:
     final auto filesForTarget(string target) @system
     {
         import std.algorithm;
+        import std.array;
 
-        return results.values.filter!((r) => r.target == target);
+        return results.values.filter!((r) => r.target == target).array;
     }
 
     /**

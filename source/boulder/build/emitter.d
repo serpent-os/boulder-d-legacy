@@ -105,6 +105,7 @@ private:
         import std.path : buildPath;
         import std.algorithm;
         import moss.format.binary : FileType;
+        import std.array;
 
         auto finalPath = outputDirectory.buildPath(pkg.filename);
 
@@ -114,9 +115,12 @@ private:
         {
             return;
         }
+        fileSet.sort!((a, b) => a.path < b.path);
 
         auto dupeSet = fileSet.filter!((ref m) => m.type == FileType.Regular)
-            .map!((ref m) => col.originForFile(m));
+            .map!((ref m) => col.originForFile(m))
+            .array;
+        dupeSet.sort!((a, b) => a.hash < b.hash);
 
         /* Open the output file */
         auto fp = File(finalPath, "wb");
