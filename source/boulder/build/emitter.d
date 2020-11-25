@@ -187,9 +187,13 @@ private:
         LayoutEntry fromAnalysis(ref FileAnalysis fa)
         {
             LayoutEntry ret;
-            ret.uid = 0;
-            ret.gid = 0;
-            ret.time = 0;
+            auto st = fa.stat;
+            ret.uid = st.st_uid;
+            ret.gid = st.st_gid;
+            ret.mode = st.st_mode;
+
+            /* TODO: Set global timestamp */
+            ret.time = st.st_mtime;
             ret.type = fa.type;
 
             return ret;

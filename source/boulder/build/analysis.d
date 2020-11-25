@@ -159,6 +159,14 @@ package:
         _target = t;
     }
 
+    /**
+     * Return underlying stat buffer
+     */
+    pure final stat_t stat() @safe @nogc nothrow
+    {
+        return statResult;
+    }
+
 private:
 
     /**
