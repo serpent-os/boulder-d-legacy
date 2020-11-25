@@ -123,37 +123,31 @@ public:
         rules.sort!((a, b) => a.priority > b.priority);
     }
 
-private:
+    /**
+     * Return all FileAnalysis structs that we have matching the given
+     * target
+     */
+    final auto filesForTarget(string target) @system
+    {
+        import std.algorithm;
+
+        return results.values.filter!((r) => r.target == target);
+    }
 
     /**
-     * Analyse a given path and start acting on it
+     * Return the FileOrigin for a given path to assist in deduplication
+     * matters.
      */
-    final void analysePath(ref BuildEmitter em, ref DirEntry e) @system
+    final FileOrigin originForFile(ref FileAnalysis a) @system
     {
-        import std.stdio;
-        import std.string : format;
-        import std.algorithm;
-        import std.range;
         import std.exception : enforce;
+        import std.string : format;
 
-        auto targetPath = e.name.relativePath(rootDir);
-
-        /* Ensure full "local" path */
-        if (targetPath[0] != '/')
-        {
-            targetPath = "/%s".format(targetPath);
-        }
-
-        auto fullPath = e.name;
-        /* Find out whre it goes */
-        auto matchingSet = rules.filter!((r) => r.match(targetPath)).takeOne();
-        enforce(!matchingSet.empty,
-                "analysePath: No matching rule for path: %s".format(targetPath));
-        auto matching = matchingSet.front;
-        writefln("%s = %s", fullPath, matching.target);
-
-        em.addFile(matching.target, targetPath, fullPath);
+        enforce(a.fullPath in origins, "Path %s origin unknown!".format(a.fullPath));
+        return origins[a.fullPath];
     }
+
+private:
 
     /**
      * Collect the path here into our various buckets, so that it
@@ -163,6 +157,9 @@ private:
     {
         import std.string : format;
         import moss.format.binary : FileType;
+        import std.algorithm;
+        import std.range;
+        import std.exception : enforce;
 
         auto targetPath = e.name.relativePath(rootDir);
 
@@ -190,6 +187,11 @@ private:
                 origins[an.data] = or;
             }
         }
+
+        auto matchingSet = rules.filter!((r) => r.match(targetPath)).takeOne();
+        enforce(!matchingSet.empty,
+                "analysePath: No matching rule for path: %s".format(targetPath));
+        an.target = matchingSet.front.target;
 
         /* Stash the results. */
         results[an.fullPath] = an;

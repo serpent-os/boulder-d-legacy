@@ -143,6 +143,22 @@ package:
         return _fullPath;
     }
 
+    /**
+     * Return the target for this file
+     */
+    pure final const(string) target() @safe @nogc nothrow
+    {
+        return _target;
+    }
+
+    /**
+     * Set the target for this analysis
+     */
+    pure final void target(const(string) t) @safe @nogc nothrow
+    {
+        _target = t;
+    }
+
 private:
 
     /**
@@ -167,5 +183,6 @@ private:
     string _data = null;
     string _path = null;
     string _fullPath = null;
+    string _target = null;
     stat_t statResult;
 }
