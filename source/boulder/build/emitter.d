@@ -22,6 +22,7 @@
 
 module boulder.build.emitter;
 
+import boulder.build.analysis;
 import boulder.build.collector : BuildCollector;
 
 import moss.format.source.packageDefinition;
@@ -152,6 +153,7 @@ private:
 
         ulong startOffset = 0;
 
+        /* Encode content in deduplicated fashion */
         foreach (ref origin; dupeSet)
         {
             auto hash = origin.hash;
@@ -176,6 +178,40 @@ private:
 
         /* Apply layout to disk */
         auto layouts = LayoutPayload();
+        layouts.compression = PayloadCompression.Zstd;
+
+        LayoutEntry fromAnalysis(ref FileAnalysis fa)
+        {
+            LayoutEntry ret;
+            ret.uid = 0;
+            ret.gid = 0;
+            ret.time = 0;
+            ret.type = fa.type;
+
+            return ret;
+        }
+
+        void pushLayout(ref FileAnalysis fa)
+        {
+            auto le = fromAnalysis(fa);
+
+            switch (fa.type)
+            {
+            case FileType.Regular:
+            case FileType.Symlink:
+                layouts.addEntry(le, fa.data, fa.path);
+                break;
+            case FileType.Directory:
+                layouts.addEntry(le, fa.path);
+                break;
+            default:
+                assert(0, "Unsupported filetype");
+            }
+
+            writeln(fa.path, " ", le);
+        }
+
+        fileSet.each!((ref fa) => pushLayout(fa));
 
         writer.addPayload(cast(Payload*)&indexes);
         writer.addPayload(cast(Payload*)&content);
