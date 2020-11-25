@@ -22,6 +22,8 @@
 
 module boulder.build.emitter;
 
+import boulder.build.collector : BuildCollector;
+
 import moss.format.source.packageDefinition;
 import moss.format.source.sourceDefinition;
 import moss.format.binary.writer;
@@ -54,71 +56,6 @@ package final struct Package
         return "%s-%s-%d-%s.stone".format(pd.name, source.versionIdentifier,
                 source.release, plat.name);
     }
-
-    /**
-     * Add a file to the Package
-     */
-    final void addFile(const(string) relativePath, const(string) p) @safe
-    {
-        files ~= relativePath;
-        _empty = false;
-
-        import std.file;
-
-        if (p.isFile && !p.isSymlink)
-        {
-            storeHash(p);
-        }
-    }
-
-    /**
-     * Return true if this is an empty (skippable) package
-     */
-    pure final @property bool empty() @safe @nogc nothrow
-    {
-        return _empty;
-    }
-
-    /**
-     * Compute and store the hash for the file
-     * We use the dupeStoreHash to ensure all identical files
-     * are only added once
-     */
-    final void storeHash(const(string) p) @safe
-    {
-        auto hash = checkHash(p);
-        if (hash in dupeHashStore)
-        {
-            return;
-        }
-        dupeHashStore[hash] = p;
-    }
-
-    /**
-     * Ugly utility to check a hash
-     */
-    final string checkHash(const(string) path) @trusted
-    {
-        import std.stdio;
-        import std.digest.sha;
-        import std.string : toLower;
-
-        auto sha = new SHA256Digest();
-        auto input = File(path, "rb");
-        foreach (ubyte[] buffer; input.byChunk(16 * 1024 * 1024))
-        {
-            sha.put(buffer);
-        }
-        return toHexString(sha.finish()).toLower();
-    }
-
-private:
-
-    bool _empty = true;
-    string[] files;
-
-    /* Store hash -> source path here to only store once */
-    string[string] dupeHashStore;
 }
 
 /**
@@ -143,23 +80,15 @@ public:
         packages[pd.name] = pkg;
     }
 
-    final void addFile(const(string) pkgName, const(string) rp, const(string) fp) @safe
-    {
-        auto pkg = packages[pkgName];
-        pkg.addFile(rp, fp);
-    }
-
     /**
      * Now emit the collected packages
      */
-    final void emit(const(string) outputDirectory) @system
+    final void emit(const(string) outputDirectory, ref BuildCollector col) @system
     {
         import std.stdio;
         import std.algorithm;
 
-        packages.values
-            .filter!((p) => !p.empty)
-            .each!((p) => emitPackage(outputDirectory, p));
+        packages.values.each!((p) => emitPackage(outputDirectory, p, col));
     }
 
 private:
@@ -167,12 +96,24 @@ private:
     /**
      * Emit a single package into the given working directory
      */
-    final void emitPackage(const(string) outputDirectory, scope Package* pkg) @trusted
+    final void emitPackage(const(string) outputDirectory, scope Package* pkg, ref BuildCollector col) @trusted
     {
         import std.stdio;
         import std.path : buildPath;
+        import std.algorithm;
+        import moss.format.binary : FileType;
 
         auto finalPath = outputDirectory.buildPath(pkg.filename);
+
+        /* No files, no package. */
+        auto fileSet = col.filesForTarget(pkg.pd.name);
+        if (fileSet.empty)
+        {
+            return;
+        }
+
+        auto dupeSet = fileSet.filter!((ref m) => m.type == FileType.Regular)
+            .map!((ref m) => col.originForFile(m));
 
         /* Open the output file */
         auto fp = File(finalPath, "wb");
@@ -209,8 +150,17 @@ private:
 
         ulong startOffset = 0;
 
-        foreach (hash, source; pkg.dupeHashStore)
+        foreach (ref origin; dupeSet)
         {
+            auto hash = origin.hash;
+            auto source = origin.originPath;
+            if (content.hasFile(hash))
+            {
+                continue;
+            }
+
+            writefln("ENCODING (REFCOUNT: %d) : %s", origin.refcount, hash);
+
             auto size = source.getSize();
             auto endOffset = startOffset + size;
             content.addFile(hash, source);
@@ -221,6 +171,7 @@ private:
             indexes.addEntry(idx, hash);
             startOffset = endOffset;
         }
+
         writer.addPayload(cast(Payload*)&indexes);
         writer.addPayload(cast(Payload*)&content);
 

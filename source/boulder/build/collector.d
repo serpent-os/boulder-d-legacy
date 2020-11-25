@@ -26,7 +26,6 @@ import std.path;
 import std.file;
 import std.algorithm : startsWith;
 import moss.format.source.packageDefinition;
-import boulder.build.emitter : BuildEmitter;
 import boulder.build.context : BuildContext;
 import boulder.build.analysis;
 
@@ -39,8 +38,9 @@ import boulder.build.analysis;
  */
 package final struct FileOrigin
 {
-    uint refcount = 0;
-    string originPath;
+    uint refcount = 1;
+    string originPath = null;
+    string hash = null;
 }
 
 /**
@@ -90,7 +90,7 @@ public:
      * Begin collection on the given root directory, considered to be
      * the "/" root filesystem of the target package.
      */
-    final void collect(ref BuildEmitter em, const(string) rootDir) @system
+    final void collect(const(string) rootDir) @system
     {
         import std.algorithm;
 
@@ -143,8 +143,8 @@ public:
         import std.exception : enforce;
         import std.string : format;
 
-        enforce(a.fullPath in origins, "Path %s origin unknown!".format(a.fullPath));
-        return origins[a.fullPath];
+        enforce(a.data in origins, "Hash %s origin unknown!".format(a.data));
+        return origins[a.data];
     }
 
 private:
@@ -184,6 +184,7 @@ private:
             {
                 FileOrigin or;
                 or.originPath = an.fullPath;
+                or.hash = an.data;
                 origins[an.data] = or;
             }
         }

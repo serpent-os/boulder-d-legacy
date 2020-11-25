@@ -282,7 +282,7 @@ private:
 
         profiles.map!((ref p) => p.installRoot)
             .uniq
-            .each!((const s) => this.collector.collect(this.emitter, s));
+            .each!((const s) => this.collector.collect(s));
     }
 
     /**
@@ -292,7 +292,7 @@ private:
     {
         import std.algorithm;
 
-        emitter.emit(context.outputDirectory);
+        emitter.emit(context.outputDirectory, this.collector);
     }
 
     /**
