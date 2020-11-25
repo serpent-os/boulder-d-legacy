@@ -195,8 +195,12 @@ private:
         }
     }
 
+    /* Root directory for collection */
     string _rootDir = null;
+
+    /* Map file glob patterns to target packages */
     CollectionRule[] rules;
 
+    /* Track file origins for deduplication */
     FileOrigin[string] origins;
 }
