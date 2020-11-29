@@ -124,7 +124,7 @@ private:
 
         /* Open the output file */
         auto fp = File(finalPath, "wb");
-        auto writer = Writer(fp);
+        auto writer = new Writer(fp);
         scope (exit)
         {
             writer.close();
