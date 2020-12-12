@@ -1,13 +1,13 @@
 name        : nano
-version     : 5.2
-release     : 12
+version     : 5.4
+release     : 1
 summary     : GNU Text Editor
 license     : GPL-3.0-or-later
 homepage    : https://www.nano-editor.org/
 description : |
     The GNU Text Editor
 upstreams   :
-    - https://www.nano-editor.org/dist/v5/nano-5.2.tar.xz: 32c2da43e1ae9a5e43437d8c6e1ec0388af870c7762c479e5bffb5f292bda7e1
+    - https://www.nano-editor.org/dist/v5/nano-5.4.tar.xz: fe993408b22286355809ce48ebecc4444d19af8203ed4959d269969112ed86e9
 setup       : |
     %configure
 build       : |
