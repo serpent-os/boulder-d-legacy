@@ -33,7 +33,7 @@ public import boulder.cli.versionCommand;
 @CommandHelp("boulder - the Serpent OS package build tool",
         "Build software packages from source, with sanity retained")
 @CommandUsage("[--args] [command]")
-public final struct BoulderCLI
+public struct BoulderCLI
 {
     BaseCommand pt;
     alias pt this;

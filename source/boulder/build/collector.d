@@ -36,7 +36,7 @@ import boulder.build.analysis;
  * in future to know how well we're actually deduplicating and how much
  * space we're saving the user.
  */
-package final struct FileOrigin
+package struct FileOrigin
 {
     uint refcount = 1;
     string originPath = null;
@@ -49,7 +49,7 @@ package final struct FileOrigin
  *
  * Increased priority numbers lead to the rule running before other rules.
  */
-package final struct CollectionRule
+package struct CollectionRule
 {
     /**
      * A glob style pattern to match againt
@@ -81,7 +81,7 @@ package final struct CollectionRule
  * By default, all files will end up in the main package unless explicitly
  * overridden by a pattern.
  */
-final struct BuildCollector
+struct BuildCollector
 {
 
 public:
@@ -90,7 +90,7 @@ public:
      * Begin collection on the given root directory, considered to be
      * the "/" root filesystem of the target package.
      */
-    final void collect(const(string) rootDir) @system
+    void collect(const(string) rootDir) @system
     {
         import std.algorithm;
 
@@ -102,7 +102,7 @@ public:
     /**
      * Return the root directory for our current operational set
      */
-    pragma(inline, true) pure final @property string rootDir() @safe @nogc nothrow
+    pragma(inline, true) pure @property string rootDir() @safe @nogc nothrow
     {
         return _rootDir;
     }
@@ -110,7 +110,7 @@ public:
     /**
      * Add a priority based rule to the system which can of course be overridden.
      */
-    final void addRule(string pattern, string target, uint priority = 0) @safe
+    void addRule(string pattern, string target, uint priority = 0) @safe
     {
         import std.algorithm;
 
@@ -123,7 +123,7 @@ public:
      * Return all FileAnalysis structs that we have matching the given
      * target
      */
-    final auto filesForTarget(string target) @system
+    auto filesForTarget(string target) @system
     {
         import std.algorithm;
         import std.array;
@@ -135,7 +135,7 @@ public:
      * Return the FileOrigin for a given path to assist in deduplication
      * matters.
      */
-    final FileOrigin originForFile(ref FileAnalysis a) @system
+    FileOrigin originForFile(ref FileAnalysis a) @system
     {
         import std.exception : enforce;
         import std.string : format;
@@ -150,7 +150,7 @@ private:
      * Collect the path here into our various buckets, so that it
      * may be post-processed.
      */
-    final void collectPath(ref DirEntry e) @system
+    void collectPath(ref DirEntry e) @system
     {
         import std.string : format;
         import moss.format.binary : FileType;

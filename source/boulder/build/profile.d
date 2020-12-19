@@ -118,7 +118,7 @@ public:
     /**
      * Return the underlying context
      */
-    pure final @property BuildContext* context() @safe @nogc nothrow
+    pure @property BuildContext* context() @safe @nogc nothrow
     {
         return _context;
     }
@@ -126,7 +126,7 @@ public:
     /**
      * Return the architecture for this Build Context
      */
-    pure final @property string architecture() @safe @nogc nothrow
+    pure @property string architecture() @safe @nogc nothrow
     {
         return _architecture;
     }
@@ -134,7 +134,7 @@ public:
     /**
      * Return the build root directory for this profile
      */
-    pure final @property string buildRoot() @safe @nogc nothrow
+    pure @property string buildRoot() @safe @nogc nothrow
     {
         return _buildRoot;
     }
@@ -142,7 +142,7 @@ public:
     /**
      * Return the installation root directory for this profile
      */
-    pure final @property string installRoot() @safe @nogc nothrow
+    pure @property string installRoot() @safe @nogc nothrow
     {
         return _installRoot;
     }
@@ -150,7 +150,7 @@ public:
     /**
      * Write the temporary script to disk, then execute it.
      */
-    final void runStage(ExecutionStage* stage, string workDir, ref string script) @system
+    void runStage(ExecutionStage* stage, string workDir, ref string script) @system
     {
         import core.sys.posix.stdlib;
         import std.stdio;
@@ -197,7 +197,7 @@ public:
     /**
      * Request for this profile to now build
      */
-    final void build()
+    void build()
     {
         import std.stdio;
         import std.array;
@@ -248,7 +248,7 @@ public:
     /**
      * Throw an error if script building fails
      */
-    final void validate()
+    void validate()
     {
         foreach (ref e; stages)
         {
@@ -263,7 +263,7 @@ public:
     /**
      * Prepare a script builder for use
      */
-    final void prepareScripts(ref ScriptBuilder sbuilder, string workdir)
+    void prepareScripts(ref ScriptBuilder sbuilder, string workdir)
     {
         sbuilder.addDefinition("installdir", installRoot);
         sbuilder.addDefinition("builddir", buildRoot);
@@ -301,7 +301,7 @@ private:
      * Specialist function to work with the ScriptBuilder in enabling a sane
      * set of build flags
      */
-    final void bakeFlags(ref ScriptBuilder sbuilder) @safe
+    void bakeFlags(ref ScriptBuilder sbuilder) @safe
     {
         import moss.format.source.tuningFlag;
         import std.array : join;
@@ -370,7 +370,7 @@ private:
      * Unless explicitly specified, it will be the first directory
      * entry within the build root
      */
-    final string getWorkDir() @system
+    string getWorkDir() @system
     {
         import std.file : dirEntries, SpanMode;
         import std.path : buildPath, baseName;
@@ -393,7 +393,7 @@ private:
     /**
      * Return true if a PGO workload is found for this architecture
      */
-    final bool hasPGOWorkload() @safe
+    bool hasPGOWorkload() @safe
     {
         import std.string : startsWith;
 
@@ -417,7 +417,7 @@ private:
      * and doing so will result in parent traversal of profiles (i.e. root namespace
      * and emul32 namespace)
      */
-    final void insertStage(StageType t)
+    void insertStage(StageType t)
     {
         import std.string : startsWith;
 
@@ -481,7 +481,7 @@ private:
      * The sole purpose of this internal script is to make the sources
      * available to the current build in their extracted/exploded form
      */
-    final string genPrepareScript() @system
+    string genPrepareScript() @system
     {
         import std.string : endsWith;
         import std.path : baseName;

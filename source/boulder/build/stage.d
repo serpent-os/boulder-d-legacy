@@ -124,7 +124,7 @@ public:
     /**
      * Return the name for this stage
      */
-    pure final @property string name() @safe @nogc nothrow
+    pure @property string name() @safe @nogc nothrow
     {
         return _name;
     }
@@ -132,7 +132,7 @@ public:
     /**
      * Return the parent build profile
      */
-    pure final @property BuildProfile* parent() @safe @nogc nothrow
+    pure @property BuildProfile* parent() @safe @nogc nothrow
     {
         return _parent;
     }
@@ -140,7 +140,7 @@ public:
     /**
      * Return the underlying script.
      */
-    pure final @property string script() @safe nothrow
+    pure @property string script() @safe nothrow
     {
         return _script;
     }
@@ -148,7 +148,7 @@ public:
     /**
      * Set the script to a new string
      */
-    final @property void script(in string sc) @safe
+    @property void script(in string sc) @safe
     {
         import std.string : strip;
 
@@ -158,7 +158,7 @@ public:
     /**
      * Return type of stage
      */
-    pure final @property StageType type() @safe @nogc nothrow
+    pure @property StageType type() @safe @nogc nothrow
     {
         return _type;
     }

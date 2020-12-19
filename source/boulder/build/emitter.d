@@ -41,7 +41,7 @@ import moss.format.binary.record;
  * Resulting Package is only buildable once it contains
  * actual files.
  */
-package final struct Package
+package struct Package
 {
     PackageDefinition pd;
     SourceDefinition source;
@@ -65,7 +65,7 @@ package final struct Package
  * The BuildEmitter is used to emit build assets from the build, collection +
  * analysis routines, into an actual package.
  */
-final struct BuildEmitter
+struct BuildEmitter
 {
 
 public:
@@ -75,7 +75,7 @@ public:
      * a package will actually be emitted until such point as files are
      * added to it.
      */
-    final void addPackage(ref SourceDefinition sd, ref PackageDefinition pd) @safe
+    void addPackage(ref SourceDefinition sd, ref PackageDefinition pd) @safe
     {
         auto pkg = new Package();
         pkg.pd = pd;
@@ -86,7 +86,7 @@ public:
     /**
      * Now emit the collected packages
      */
-    final void emit(const(string) outputDirectory, ref BuildCollector col) @system
+    void emit(const(string) outputDirectory, ref BuildCollector col) @system
     {
         import std.stdio;
         import std.algorithm;
@@ -99,7 +99,7 @@ private:
     /**
      * Emit a single package into the given working directory
      */
-    final void emitPackage(const(string) outputDirectory, scope Package* pkg, ref BuildCollector col) @trusted
+    void emitPackage(const(string) outputDirectory, scope Package* pkg, ref BuildCollector col) @trusted
     {
         import std.stdio;
         import std.path : buildPath;

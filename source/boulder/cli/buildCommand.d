@@ -38,7 +38,7 @@ be built using the locally available build dependencies and the resulting
 binary packages (.stone) will be emitted to the output directory, which
 defaults to the current working directory.")
 @CommandUsage("[spec]")
-public final struct BuildCommand
+public struct BuildCommand
 {
     BaseCommand pt;
     alias pt this;

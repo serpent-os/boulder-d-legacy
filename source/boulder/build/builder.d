@@ -75,7 +75,7 @@ public:
         preparePackageDefinitions();
     }
 
-    pure final @property ref BuildContext context() @safe @nogc nothrow
+    pure @property ref BuildContext context() @safe @nogc nothrow
     {
         return _context;
     }
@@ -83,7 +83,7 @@ public:
     /**
      * Return the underlying spec file
      */
-    pure final @property ref Spec specFile()
+    pure @property ref Spec specFile()
     {
         return _specFile;
     }
@@ -91,7 +91,7 @@ public:
     /**
      * Add an architecture to the build list
      */
-    final void addArchitecture(string name)
+    void addArchitecture(string name)
     {
         architectures ~= name;
         profiles ~= new BuildProfile(&_context, name);
@@ -100,7 +100,7 @@ public:
     /**
      * Full build cycle
      */
-    final void build()
+    void build()
     {
         prepareRoot();
         validateProfiles();
@@ -115,7 +115,7 @@ private:
     /**
      * Load all package definitions in
      */
-    final void preparePackageDefinitions() @system
+    void preparePackageDefinitions() @system
     {
         import std.algorithm;
         import std.array;
@@ -143,7 +143,7 @@ private:
      * PackageDefinition merged object. This comes from the spec and
      * our base definitions.
      */
-    final void addDefinition(PackageDefinition pd)
+    void addDefinition(PackageDefinition pd)
     {
         import std.range;
         import std.algorithm;
@@ -188,7 +188,7 @@ private:
     /**
      * Prepare our root filesystem for building on
      */
-    final void prepareRoot() @system
+    void prepareRoot() @system
     {
         import std.stdio;
         import std.file;
@@ -207,7 +207,7 @@ private:
     /**
      * Prepare and fetch any required sources
      */
-    final void prepareSources() @system
+    void prepareSources() @system
     {
         import std.stdio;
         import moss.core.download;
@@ -255,7 +255,7 @@ private:
     /**
      * Ensure all profile builds will compile ahead of time
      */
-    final void validateProfiles() @system
+    void validateProfiles() @system
     {
         import std.algorithm.iteration : each;
 
@@ -265,7 +265,7 @@ private:
     /**
      * Build all of the given profiles
      */
-    final void buildProfiles() @system
+    void buildProfiles() @system
     {
         import std.algorithm.iteration : each;
 
@@ -276,7 +276,7 @@ private:
      * Collect and analyse all assets using the
      * given collector
      */
-    final void collectAssets() @system
+    void collectAssets() @system
     {
         import std.algorithm;
 
@@ -288,7 +288,7 @@ private:
     /**
      * Emit all binary packages
      */
-    final void emitPackages() @system
+    void emitPackages() @system
     {
         import std.algorithm;
 
@@ -298,7 +298,7 @@ private:
     /**
      * Safely get the home root tree
      */
-    final string getBuildRoot() @safe
+    string getBuildRoot() @safe
     {
         import std.path;
         import std.file : exists;
@@ -315,7 +315,7 @@ private:
     /**
      * Update the underlying spec file
      */
-    final @property void specFile(ref Spec s)
+    @property void specFile(ref Spec s)
     {
         _specFile = s;
     }

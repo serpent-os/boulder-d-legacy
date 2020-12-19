@@ -55,12 +55,12 @@ struct BuildContext
     /**
      * Return the root directory
      */
-    pure final @property const string rootDir() @safe @nogc nothrow
+    pure @property const string rootDir() @safe @nogc nothrow
     {
         return _rootDir;
     }
 
-    pure final @property const string sourceDir() @safe @nogc nothrow
+    pure @property const string sourceDir() @safe @nogc nothrow
     {
         return _sourceDir;
     }
@@ -68,7 +68,7 @@ struct BuildContext
     /**
      * Return the underlying specfile
      */
-    pure final @property Spec* spec() @safe @nogc nothrow
+    pure @property Spec* spec() @safe @nogc nothrow
     {
         return _spec;
     }
@@ -76,7 +76,7 @@ struct BuildContext
     /**
      * Return the number of build jobs
      */
-    pure final @property int jobs() @safe @nogc nothrow
+    pure @property int jobs() @safe @nogc nothrow
     {
         return _jobs;
     }
@@ -84,7 +84,7 @@ struct BuildContext
     /**
      * Set the number of build jobs
      */
-    final @property void jobs(int j) @safe @nogc nothrow
+    @property void jobs(int j) @safe @nogc nothrow
     {
         if (j < 1)
         {
@@ -95,12 +95,12 @@ struct BuildContext
         _jobs = j;
     }
 
-    pure final @property const(string) outputDirectory() @safe @nogc nothrow
+    pure @property const(string) outputDirectory() @safe @nogc nothrow
     {
         return _outputDirectory;
     }
 
-    pure final @property void outputDirectory(const(string) s) @safe @nogc nothrow
+    pure @property void outputDirectory(const(string) s) @safe @nogc nothrow
     {
         _outputDirectory = s;
     }
@@ -108,7 +108,7 @@ struct BuildContext
     /**
      * Prepare a ScriptBuilder
      */
-    final void prepareScripts(ref ScriptBuilder sbuilder, string architecture)
+    void prepareScripts(ref ScriptBuilder sbuilder, string architecture)
     {
         import std.stdio : writefln;
         import std.conv : to;
@@ -138,7 +138,7 @@ private:
     /**
      * Load all supportable macros
      */
-    final void loadMacros()
+    void loadMacros()
     {
         import std.file;
         import std.path : buildPath, dirName, baseName;

@@ -31,7 +31,7 @@ import core.sys.posix.sys.stat;
  * CollectionResult gathers all data ahead of time to allow simpler
  * generation of the payloads.
  */
-package final struct FileAnalysis
+package struct FileAnalysis
 {
 
 package:
@@ -86,7 +86,7 @@ package:
     /**
      * Return the underlying filetype
      */
-    pure final FileType type() @safe @nogc nothrow
+    pure FileType type() @safe @nogc nothrow
     {
         return _type;
     }
@@ -94,7 +94,7 @@ package:
     /**
      * Return the data (symlink target or hash
      */
-    pure final const(string) data() @safe
+    pure const(string) data() @safe
     {
         import std.exception : enforce;
 
@@ -106,7 +106,7 @@ package:
     /**
      * Return true if this is a relative symlink
      */
-    pure final bool relativeSymlink() @safe
+    pure bool relativeSymlink() @safe
     {
         import std.string : startsWith;
 
@@ -116,7 +116,7 @@ package:
     /**
      * Return the fully resolved symlink
      */
-    pure final const(string) symlinkResolved() @safe
+    pure const(string) symlinkResolved() @safe
     {
         import std.exception : enforce;
 
@@ -130,7 +130,7 @@ package:
     /**
      * Return the target filesystem path
      */
-    pure final const(string) path() @safe @nogc nothrow
+    pure const(string) path() @safe @nogc nothrow
     {
         return _path;
     }
@@ -138,7 +138,7 @@ package:
     /**
      * Return the full path to the file on the host disk
      */
-    pure final const(string) fullPath() @safe @nogc nothrow
+    pure const(string) fullPath() @safe @nogc nothrow
     {
         return _fullPath;
     }
@@ -146,7 +146,7 @@ package:
     /**
      * Return the target for this file
      */
-    pure final const(string) target() @safe @nogc nothrow
+    pure const(string) target() @safe @nogc nothrow
     {
         return _target;
     }
@@ -154,7 +154,7 @@ package:
     /**
      * Set the target for this analysis
      */
-    pure final void target(const(string) t) @safe @nogc nothrow
+    pure void target(const(string) t) @safe @nogc nothrow
     {
         _target = t;
     }
@@ -162,7 +162,7 @@ package:
     /**
      * Return underlying stat buffer
      */
-    pure final stat_t stat() @safe @nogc nothrow
+    pure stat_t stat() @safe @nogc nothrow
     {
         return statResult;
     }
@@ -172,7 +172,7 @@ private:
     /**
      * Ugly utility to check a hash
      */
-    final string checkHash(const(string) path) @trusted
+    string checkHash(const(string) path) @trusted
     {
         import std.stdio;
         import std.digest.sha;
