@@ -75,7 +75,7 @@ public:
         preparePackageDefinitions();
     }
 
-    pure @property ref BuildContext context() @safe @nogc nothrow
+    pure @property ref BuildContext context() @safe @nogc nothrow return
     {
         return _context;
     }
@@ -83,7 +83,7 @@ public:
     /**
      * Return the underlying spec file
      */
-    pure @property ref Spec specFile()
+    pure @property ref Spec specFile() return
     {
         return _specFile;
     }
