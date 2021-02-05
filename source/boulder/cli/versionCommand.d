@@ -1,7 +1,7 @@
 /*
  * This file is part of boulder.
  *
- * Copyright © 2020 Serpent OS Developers
+ * Copyright © 2020-2021 Serpent OS Developers
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -40,7 +40,7 @@ public struct VersionCommand
         import std.stdio;
 
         writefln("boulder, version %s", moss.core.Version);
-        writeln("\nCopyright © 2020 Serpent OS Developers");
+        writeln("\nCopyright © 2020-2021 Serpent OS Developers");
         writeln("Available under the terms of the ZLib license");
         return ExitStatus.Success;
     }
