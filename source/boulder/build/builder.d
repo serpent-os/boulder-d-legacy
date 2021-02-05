@@ -75,6 +75,9 @@ public:
         preparePackageDefinitions();
     }
 
+    /**
+     * Property containing the current BuildContext
+     */
     pure @property ref BuildContext context() @safe @nogc nothrow return
     {
         return _context;
