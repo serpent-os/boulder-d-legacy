@@ -29,12 +29,12 @@ import moss.format.source.package_definition;
 import moss.format.source.source_definition;
 import moss.format.binary.writer;
 import moss.format.binary.payload;
-import moss.format.binary.contentPayload;
+import moss.format.binary.content_payload;
 import moss.format.binary.index;
-import moss.format.binary.indexPayload;
-import moss.format.binary.metaPayload;
+import moss.format.binary.index_payload;
+import moss.format.binary.meta_payload;
 import moss.format.binary.layout;
-import moss.format.binary.layoutPayload;
+import moss.format.binary.layout_payload;
 import moss.format.binary.record;
 
 /**
