@@ -92,7 +92,7 @@ public:
      */
     void collect(const(string) rootDir) @system
     {
-        import std.algorithm;
+        import std.algorithm : each;
 
         _rootDir = rootDir;
 
@@ -112,7 +112,7 @@ public:
      */
     void addRule(string pattern, string target, uint priority = 0) @safe
     {
-        import std.algorithm;
+        import std.algorithm : sort;
 
         /* Sort ahead of time */
         rules ~= CollectionRule(pattern, target, priority);
@@ -125,8 +125,8 @@ public:
      */
     auto filesForTarget(string target) @system
     {
-        import std.algorithm;
-        import std.array;
+        import std.algorithm : filter;
+        import std.array : array;
 
         return results.values.filter!((r) => r.target == target).array;
     }
@@ -154,8 +154,8 @@ private:
     {
         import std.string : format;
         import moss.format.binary : FileType;
-        import std.algorithm;
-        import std.range;
+        import std.algorithm : filter;
+        import std.range : takeOne;
         import std.exception : enforce;
 
         auto targetPath = e.name.relativePath(rootDir);
