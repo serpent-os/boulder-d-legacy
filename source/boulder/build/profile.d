@@ -303,7 +303,7 @@ private:
      */
     void bakeFlags(ref ScriptBuilder sbuilder) @safe
     {
-        import moss.format.source.tuningFlag;
+        import moss.format.source.tuning_flag;
         import std.array : join;
         import std.algorithm;
         import std.array;

@@ -25,7 +25,7 @@ module boulder.build.collector;
 import std.path;
 import std.file;
 import std.algorithm : startsWith;
-import moss.format.source.packageDefinition;
+import moss.format.source.package_definition;
 import boulder.build.context : BuildContext;
 import boulder.build.analysis;
 

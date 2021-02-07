@@ -25,8 +25,8 @@ module boulder.build.emitter;
 import boulder.build.analysis;
 import boulder.build.collector : BuildCollector;
 
-import moss.format.source.packageDefinition;
-import moss.format.source.sourceDefinition;
+import moss.format.source.package_definition;
+import moss.format.source.source_definition;
 import moss.format.binary.writer;
 import moss.format.binary.payload;
 import moss.format.binary.contentPayload;
