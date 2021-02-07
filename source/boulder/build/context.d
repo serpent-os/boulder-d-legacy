@@ -55,12 +55,15 @@ struct BuildContext
     /**
      * Return the root directory
      */
-    pure @property const string rootDir() @safe @nogc nothrow
+    pure @property string rootDir() const @safe @nogc nothrow
     {
         return _rootDir;
     }
 
-    pure @property const string sourceDir() @safe @nogc nothrow
+    /**
+     * Return the source directory
+     */
+    pure @property string sourceDir() const @safe @nogc nothrow
     {
         return _sourceDir;
     }
@@ -95,11 +98,17 @@ struct BuildContext
         _jobs = j;
     }
 
+    /**
+     * Return the outputDirectory property
+     */
     pure @property const(string) outputDirectory() @safe @nogc nothrow
     {
         return _outputDirectory;
     }
 
+    /**
+     * Set the outputDirectory property
+     */
     pure @property void outputDirectory(const(string) s) @safe @nogc nothrow
     {
         _outputDirectory = s;
@@ -140,9 +149,9 @@ private:
      */
     void loadMacros()
     {
-        import std.file;
+        import std.file : exists, dirEntries, thisExePath, SpanMode;
         import std.path : buildPath, dirName, baseName;
-        import moss.core.platform;
+        import moss.core.platform : platform;
         import std.string : format;
         import std.exception : enforce;
 
