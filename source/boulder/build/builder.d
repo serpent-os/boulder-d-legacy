@@ -78,7 +78,7 @@ public:
     /**
      * Property containing the current BuildContext
      */
-    pure @property ref BuildContext context() @safe @nogc nothrow return
+    pure @property ref BuildContext context() @safe @nogc nothrow return 
     {
         return _context;
     }
@@ -86,7 +86,7 @@ public:
     /**
      * Return the underlying spec file
      */
-    pure @property ref Spec specFile() return
+    pure @property ref Spec specFile() return 
     {
         return _specFile;
     }
