@@ -174,8 +174,8 @@ private:
      */
     string checkHash(const(string) path) @trusted
     {
-        import std.stdio;
-        import std.digest.sha;
+        import std.stdio : File;
+        import std.digest.sha : SHA256Digest, toHexString;
         import std.string : toLower;
 
         auto sha = new SHA256Digest();
