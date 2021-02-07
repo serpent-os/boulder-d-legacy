@@ -24,7 +24,7 @@ module boulder.cli;
 
 public import moss.core.cli;
 public import boulder.cli.build_command;
-public import boulder.cli.versionCommand;
+public import boulder.cli.version_command;
 
 /**
  * The BoulderCLI type holds some global configuration bits
