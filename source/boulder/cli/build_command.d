@@ -40,18 +40,24 @@ defaults to the current working directory.")
 @CommandUsage("[spec]")
 public struct BuildCommand
 {
+    /** Extend BaseCommand with BuildCommand specific functionality */
     BaseCommand pt;
     alias pt this;
 
+    /**
+     * Main enty point into the BuildCommand. We expect a list of paths that
+     * contain "stone.yml" formatted build description files. For each path
+     * we encounter, we initially check the validity and existence.
+     *
+     * Once all validation is passed, we begin building all of the passed
+     * file paths into packages.
+     */
     @CommandEntry() int run(ref string[] argv)
     {
-        import std.algorithm;
+        import std.algorithm : each, uniq;
         import std.file : exists;
         import std.exception : enforce;
         import std.string : format;
-
-        /* We only want a unique set of paths built */
-        auto buildPaths = argv.uniq;
 
         /* Ensure each path exists.. */
         void validatePath(const(string) p)
@@ -77,11 +83,12 @@ public struct BuildCommand
             return ExitStatus.Failure;
         }
 
-        buildPaths.each!((e) => validatePath(e));
-        buildPaths.each!((e) => buildPath(e));
+        argv.uniq.each!((e) => validatePath(e));
+        argv.uniq.each!((e) => buildPath(e));
 
         return ExitStatus.Success;
     }
 
+    /** Specify the number of build jobs to execute in parallel. */
     @Option("j", "jobs", "Set the number of parallel build jobs (0 = automatic)") int jobs = 0;
 }
