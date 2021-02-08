@@ -58,7 +58,7 @@ public:
         StageType[] stages;
 
         /* CSPGO is only available with LLVM toolchain */
-        bool multiStagePGO = (context.spec.options.toolchain == "llvm"
+        const bool multiStagePGO = (context.spec.options.toolchain == "llvm"
                 && context.spec.options.csgpo == true);
 
         /* PGO specific staging */
@@ -152,19 +152,17 @@ public:
      */
     void runStage(ExecutionStage* stage, string workDir, ref string script) @system
     {
-        import core.sys.posix.stdlib;
-        import std.stdio;
-        import std.string;
-        import core.stdc.string;
-        import core.sys.posix.unistd;
-        import std.file;
+        import core.sys.posix.stdlib : mkstemp;
+        import std.stdio : File, fflush, stdin, stderr, stdout;
+        import std.string : format;
+        import std.file : remove;
         import std.exception : enforce;
 
         auto tmpname = "/tmp/moss-stage-%s-XXXXXX".format(stage.name);
         auto copy = new char[tmpname.length + 1];
         copy[0 .. tmpname.length] = tmpname[];
         copy[tmpname.length] = '\0';
-        int fd = mkstemp(copy.ptr);
+        const int fd = mkstemp(copy.ptr);
 
         File fi;
         fi.fdopen(fd, "w");
@@ -172,7 +170,9 @@ public:
         scope (exit)
         {
             fi.close();
-            remove(cast(string) copy[0 .. copy.length - 1]);
+            enforce(copy.length > 1, "Runtime error: copy.length < 1");
+            const auto li = cast(long) copy.length;
+            remove(cast(string) copy[0 .. li - 1]);
         }
 
         /* Write + flush */
@@ -181,13 +181,15 @@ public:
         fflush(fi.getFP);
 
         /* Execute, TODO: Fix environment */
-        import std.process;
+        import std.process : Config, spawnProcess, wait;
 
         auto config = Config.retainStderr | Config.retainStdout
             | Config.stderrPassThrough | Config.inheritFDs;
         auto prenv = cast(const(string[string])) null;
 
-        auto args = ["/bin/sh", cast(string) copy[0 .. copy.length - 1]];
+        enforce(copy.length > 1, "Runtime error: copy.length < 1");
+        const auto lin = cast(long) copy.length;
+        auto args = ["/bin/sh", cast(string) copy[0 .. lin - 1]];
 
         auto id = spawnProcess(args, stdin, stdout, stderr, prenv, config, workDir);
         auto status = wait(id);
@@ -199,8 +201,7 @@ public:
      */
     void build()
     {
-        import std.stdio;
-        import std.array;
+        import std.array : replace;
         import std.file : mkdirRecurse;
 
         bool preparedFS = false;
@@ -256,7 +257,7 @@ public:
             prepareScripts(builder, buildRoot);
 
             /* Throw script away, just ensure it can build */
-            auto scripted = builder.process(e.script);
+            const auto scripted = builder.process(e.script);
         }
     }
 
@@ -303,11 +304,11 @@ private:
      */
     void bakeFlags(ref ScriptBuilder sbuilder) @safe
     {
-        import moss.format.source.tuning_flag;
+        import moss.format.source.tuning_flag : TuningFlag, Toolchain;
         import std.array : join;
-        import std.algorithm;
-        import std.array;
         import std.string : strip;
+        import std.algorithm : uniq, filter, map;
+        import std.array : array;
 
         /* Set toolchain type for flag probing */
         auto toolchain = context.spec.options.toolchain == "llvm" ? Toolchain.LLVM : Toolchain.GNU;
@@ -420,8 +421,6 @@ private:
     void insertStage(StageType t)
     {
         import std.string : startsWith;
-
-        string name = null;
 
         string script = null;
 
