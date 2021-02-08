@@ -29,7 +29,8 @@ import boulder.build;
 import boulder.cli : BoulderCLI;
 
 /**
- * The BoulderCLI type holds some global configuration bits
+ * The BuildCommand is responsible for handling requests to build stone.yml
+ * formatted files into useful binary packages.
  */
 @CommandName("build") @CommandAlias("bi")
 @CommandHelp("Build a package",
