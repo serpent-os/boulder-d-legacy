@@ -49,7 +49,7 @@ package struct Package
     /**
      * Resulting filename
      */
-    final const(string) filename() @safe
+    const(string) filename() @safe
     {
         import moss.core.platform : platform;
         import std.string : format;
@@ -88,8 +88,7 @@ public:
      */
     void emit(const(string) outputDirectory, ref BuildCollector col) @system
     {
-        import std.stdio;
-        import std.algorithm;
+        import std.algorithm : each;
 
         packages.values.each!((p) => emitPackage(outputDirectory, p, col));
     }
@@ -101,11 +100,12 @@ private:
      */
     void emitPackage(const(string) outputDirectory, scope Package* pkg, ref BuildCollector col) @trusted
     {
-        import std.stdio;
+        import std.stdio : File, writefln;
         import std.path : buildPath;
-        import std.algorithm;
+        import std.algorithm : filter, map, sort, each;
+        import std.range : empty;
         import moss.format.binary : FileType;
-        import std.array;
+        import std.array : array;
 
         auto finalPath = outputDirectory.buildPath(pkg.filename);
 
@@ -167,7 +167,7 @@ private:
             }
 
             auto size = source.getSize();
-            auto endOffset = startOffset + size;
+            const auto endOffset = startOffset + size;
             content.addFile(hash, source);
             auto idx = IndexEntry();
             idx.size = size;
@@ -187,7 +187,7 @@ private:
         LayoutEntry fromAnalysis(ref FileAnalysis fa)
         {
             LayoutEntry ret;
-            auto st = fa.stat;
+            const auto st = fa.stat;
             ret.uid = st.st_uid;
             ret.gid = st.st_gid;
             ret.mode = st.st_mode;
