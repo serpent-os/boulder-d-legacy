@@ -35,9 +35,13 @@ public import boulder.cli.version_command;
 @CommandUsage("[--args] [command]")
 public struct BoulderCLI
 {
+    /** Extend BaseCommand to give a root command for our CLI */
     BaseCommand pt;
     alias pt this;
 
+    /** Select an alternative output location than the current working directory */
     @Option("o", "output", "Directory to store build results") string outputDirectory = ".";
+
+    /** When set to true, we enable debug output */
     @Option("d", "debug", "Enable debugging output") bool debugMode = false;
 }
