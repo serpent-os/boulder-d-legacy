@@ -120,9 +120,8 @@ private:
      */
     void preparePackageDefinitions() @system
     {
-        import std.algorithm;
-        import std.array;
-        import std.range;
+        import std.algorithm : map, each, joiner;
+        import std.array : array;
 
         string[] arches = ["base"];
         arches ~= architectures;
@@ -148,8 +147,9 @@ private:
      */
     void addDefinition(PackageDefinition pd)
     {
-        import std.range;
-        import std.algorithm;
+        import std.algorithm : each, uniq, sort;
+        import std.range : chain;
+        import std.array : array;
 
         /* Always insert paths as they're encountered */
         pd = _specFile.expand(pd);
@@ -193,8 +193,8 @@ private:
      */
     void prepareRoot() @system
     {
-        import std.stdio;
-        import std.file;
+        import std.stdio : writeln;
+        import std.file : rmdirRecurse, mkdirRecurse, exists;
 
         writeln("Preparing root tree");
 
@@ -212,9 +212,9 @@ private:
      */
     void prepareSources() @system
     {
-        import std.stdio;
-        import moss.core.download;
-        import std.algorithm;
+        import moss.core.download : DownloadManager, DownloadStore, StoreType, Download;
+        import std.algorithm : filter, map;
+        import std.stdio : writeln;
 
         auto manager = new DownloadManager();
         manager.add(new DownloadStore(StoreType.System));
@@ -281,7 +281,7 @@ private:
      */
     void collectAssets() @system
     {
-        import std.algorithm;
+        import std.algorithm : map, uniq, each;
 
         profiles.map!((ref p) => p.installRoot)
             .uniq
@@ -293,8 +293,6 @@ private:
      */
     void emitPackages() @system
     {
-        import std.algorithm;
-
         emitter.emit(context.outputDirectory, this.collector);
     }
 
@@ -303,7 +301,7 @@ private:
      */
     string getBuildRoot() @safe
     {
-        import std.path;
+        import std.path : buildPath, expandTilde;
         import std.file : exists;
         import std.exception : enforce;
         import std.string : format;
