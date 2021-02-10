@@ -1,0 +1,26 @@
+actions:
+
+    # Run meson with the default options in a subdirectory
+    - meson: |
+        test -e ./meson.build || ( echo "%%meson: The ./meson.build script could not be found" ; exit 1 )
+        CFLAGS="%(cflags)" CXXFLAGS="%(cxxflags)" LDFLAGS="%(ldflags)" meson %(mesonOptions)
+
+    # Build the meson project
+    - meson_build: |
+        ninja -v -j %(jobs) -C serpentBuildDir
+
+    # Install results of the build to the destination directory
+    - meson_install: |
+        DESTDIR="%(installdir)" ninja install -v -j %(jobs) -C serpentBuildDir
+
+definitions:
+
+    # Default meson options as passed to meson
+    - mesonOptions: |
+        --prefix=%(prefix) \
+        --buildtype=plain \
+        --libdir=lib \
+        --libexecdir="lib/%(name)" \
+        --sysconfdir=%(sysconfdir) \
+        --localstatedir=%(localstatedir) \
+        serpentBuildDir
