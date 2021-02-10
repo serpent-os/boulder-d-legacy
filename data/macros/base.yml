@@ -33,6 +33,7 @@ definitions:
     - nm             : "%(compiler_nm)"
     - ranlib         : "%(compiler_ranlib)"
     - strip          : "%(compiler_strip)"
+    - path           : "%(compiler_path)"
 
 actions              :
 
@@ -53,6 +54,7 @@ actions              :
         NM="%(nm)"; export NM
         RANLIB="%(ranlib)"; export RANLIB
         STRIP="%(strip)"; export STRIP
+        PATH="%(path)"; export PATH
         test -d "%(workdir)" || (echo "Work directory does not exist"; exit 1)
         cd "%(workdir)"
 

@@ -281,6 +281,7 @@ public:
             sbuilder.addDefinition("compiler_nm", "llvm-nm");
             sbuilder.addDefinition("compiler_ranlib", "llvm-ranlib");
             sbuilder.addDefinition("compiler_strip", "llvm-strip");
+            sbuilder.addDefinition("compiler_path", "/usr/bin");
         }
         else
         {
@@ -292,6 +293,7 @@ public:
             sbuilder.addDefinition("compiler_nm", "nm");
             sbuilder.addDefinition("compiler_ranlib", "ranlib");
             sbuilder.addDefinition("compiler_strip", "strip");
+            sbuilder.addDefinition("compiler_path", "/usr/binutils/bin:/usr/bin");
         }
 
         sbuilder.addDefinition("pgo_stage1_dir", pgoStage1Dir);
