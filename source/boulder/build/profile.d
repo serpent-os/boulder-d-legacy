@@ -276,12 +276,22 @@ public:
             sbuilder.addDefinition("compiler_c", "clang");
             sbuilder.addDefinition("compiler_cxx", "clang++");
             sbuilder.addDefinition("compiler_cpp", "clang-cpp");
+            sbuilder.addDefinition("compiler_ar", "llvm-ar");
+            sbuilder.addDefinition("compiler_objcopy", "llvm-objcopy");
+            sbuilder.addDefinition("compiler_nm", "llvm-nm");
+            sbuilder.addDefinition("compiler_ranlib", "llvm-ranlib");
+            sbuilder.addDefinition("compiler_strip", "llvm-strip");
         }
         else
         {
             sbuilder.addDefinition("compiler_c", "gcc");
             sbuilder.addDefinition("compiler_cxx", "g++");
             sbuilder.addDefinition("compiler_cpp", "cpp");
+            sbuilder.addDefinition("compiler_ar", "ar");
+            sbuilder.addDefinition("compiler_objcopy", "objcopy");
+            sbuilder.addDefinition("compiler_nm", "nm");
+            sbuilder.addDefinition("compiler_ranlib", "ranlib");
+            sbuilder.addDefinition("compiler_strip", "strip");
         }
 
         sbuilder.addDefinition("pgo_stage1_dir", pgoStage1Dir);

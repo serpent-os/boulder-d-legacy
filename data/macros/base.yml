@@ -28,6 +28,11 @@ definitions:
     - cc             : "%(compiler_c)"
     - cxx            : "%(compiler_cxx)"
     - cpp            : "%(compiler_cpp)"
+    - ar             : "%(compiler_ar)"
+    - objcopy        : "%(compiler_objcopy)"
+    - nm             : "%(compiler_nm)"
+    - ranlib         : "%(compiler_ranlib)"
+    - strip          : "%(compiler_strip)"
 
 actions              :
 
@@ -43,6 +48,11 @@ actions              :
         CC="%(cc)"; export CC
         CXX="%(cxx)"; export CXX
         CPP="%(cpp)"; export CPP
+        AR="%(ar)"; export AR
+        OBJCOPY="%(objcopy)"; export OBJCOPY
+        NM="%(nm)"; export NM
+        RANLIB="%(ranlib)"; export RANLIB
+        STRIP="%(strip)"; export STRIP
         test -d "%(workdir)" || (echo "Work directory does not exist"; exit 1)
         cd "%(workdir)"
 
