@@ -23,6 +23,6 @@ definitions:
         -DCMAKE_LD_FLAGS="%(ldflags)" \
         -DCMAKE_BUILD_TYPE="RelWithDebInfo" \
         -DCMAKE_INSTALL_PREFIX="%(prefix)" \
-        -DCMAKE_AR="/usr/bin/%(ar)" \
-        -DCMAKE_NM="/usr/bin/%(nm)" \
-        -DCMAKE_RANLIB="/usr/bin/%(ranlib)"
+        -DCMAKE_AR="%(ar)" \
+        -DCMAKE_NM="%(nm)" \
+        -DCMAKE_RANLIB="%(ranlib)"
