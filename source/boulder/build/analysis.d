@@ -24,7 +24,7 @@ module boulder.build.analysis;
 
 import std.path;
 import std.file;
-import moss.format.binary.layout : FileType;
+import moss.format.binary.legacy.layout : FileType;
 import core.sys.posix.sys.stat;
 
 /**
