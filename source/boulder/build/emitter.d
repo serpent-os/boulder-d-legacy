@@ -124,6 +124,11 @@ private:
 
         writefln("Creating package %s...", finalPath);
 
+        import moss.format.binary.payload.meta : MetaPayload;
+
+        auto met = new MetaPayload();
+        writer.addPayload(met);
+
         writer.flush();
     }
 
