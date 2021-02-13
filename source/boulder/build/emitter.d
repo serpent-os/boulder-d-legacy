@@ -124,9 +124,12 @@ private:
 
         writefln("Creating package %s...", finalPath);
 
-        import moss.format.binary.payload.meta : MetaPayload;
+        import moss.format.binary.payload.meta : MetaPayload, RecordTag;
 
         auto met = new MetaPayload();
+        met.addRecord(RecordTag.Name, pkg.pd.name);
+        met.addRecord(RecordTag.Version, pkg.source.versionIdentifier);
+        met.addRecord(RecordTag.Release, pkg.source.release);
         writer.addPayload(met);
 
         writer.flush();
