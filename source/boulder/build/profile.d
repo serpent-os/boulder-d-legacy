@@ -264,11 +264,11 @@ public:
     /**
      * Prepare a script builder for use
      */
-    void prepareScripts(ref ScriptBuilder sbuilder, string workdir)
+    void prepareScripts(ref ScriptBuilder sbuilder, string workDir)
     {
-        sbuilder.addDefinition("installdir", installRoot);
-        sbuilder.addDefinition("builddir", buildRoot);
-        sbuilder.addDefinition("workdir", workdir);
+        sbuilder.addDefinition("installroot", installRoot);
+        sbuilder.addDefinition("buildroot", buildRoot);
+        sbuilder.addDefinition("workdir", workDir);
 
         /* Set the relevant compilers */
         if (context.spec.options.toolchain == "llvm")
@@ -296,8 +296,8 @@ public:
             sbuilder.addDefinition("compiler_path", "/usr/binutils/bin:/usr/bin");
         }
 
-        sbuilder.addDefinition("pgo_stage1_dir", pgoStage1Dir);
-        sbuilder.addDefinition("pgo_stage2_dir", pgoStage2Dir);
+        sbuilder.addDefinition("pgo_stage1dir", pgoStage1Dir);
+        sbuilder.addDefinition("pgo_stage2dir", pgoStage2Dir);
 
         /* Load system macros */
         context.prepareScripts(sbuilder, architecture);
@@ -491,6 +491,7 @@ private:
      *
      * The sole purpose of this internal script is to make the sources
      * available to the current build in their extracted/exploded form
+     * via the %(sourcedir) definition.
      */
     string genPrepareScript() @system
     {
@@ -502,14 +503,14 @@ private:
         /* Push commands to extract a zip */
         void extractZip(ref UpstreamDefinition u)
         {
-            ret ~= "unzip -d . \"%(sources)/" ~ u.plain.rename
+            ret ~= "unzip -d . \"%(sourcedir)/" ~ u.plain.rename
                 ~ "\" || (echo \"Failed to extract archive\"; exit 1);";
         }
 
         /* Push commands to extract a tar */
         void extractTar(ref UpstreamDefinition u)
         {
-            ret ~= "tar xf \"%(sources)/" ~ u.plain.rename
+            ret ~= "tar xf \"%(sourcedir)/" ~ u.plain.rename
                 ~ "\" -C . || (echo \"Failed to extract archive\"; exit 1);";
         }
 

@@ -3,7 +3,7 @@ actions:
     # Perform ./configure with the default options
     - configure: |
         test -x ./configure || ( echo "%%configure: The ./configure script could not be found" ; exit 1 )
-        ./configure %(configureOptions)
+        ./configure %(configure_options)
 
     # Perform a make
     - make: |
@@ -11,7 +11,7 @@ actions:
 
     # Install results of build to the destination directory
     - make_install: |
-        %make install DESTDIR="%(installdir)"
+        %make install DESTDIR="%(installroot)"
 
     # Re autotools-configure a project without an autogen.sh script
     - reconfigure: |
@@ -21,13 +21,13 @@ actions:
     # Run autogen.sh script, attempting to only configure once
     - autogen: |
         NOCONFIGURE="noconfigure"; export NOCONFIGURE
-        sh ./autogen.sh %(configureOptions)
-        ./configure %(configureOptions)
+        sh ./autogen.sh %(configure_options)
+        ./configure %(configure_options)
 
 definitions:
 
     # Default configuration options as passed to configure
-    - configureOptions: |
+    - configure_options: |
         --prefix=%(prefix) \
         --build=%(build) \
         --host=%(host) \

@@ -7,4 +7,4 @@ actions:
 
     # Install python package to the destination directory
     - python_install: |
-        python3 setup.py install --root="%(installdir)"
+        python3 setup.py install --root="%(installroot)"

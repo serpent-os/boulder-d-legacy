@@ -19,6 +19,7 @@ definitions:
     - sysconfdir     : "/etc"
     - libdir         : "%(prefix)/lib%(libsuffix)"
     - libexecdir     : "%(libdir)/%(name)"
+    - builddir       : "serpent_builddir"
 
     # The vendorID is encoded into the triplet, toolchain, builds, etc.
     # It must match the triplet from bootstrap-scripts.
@@ -55,8 +56,8 @@ actions              :
         RANLIB="%(ranlib)"; export RANLIB
         STRIP="%(strip)"; export STRIP
         PATH="%(path)"; export PATH
-        test -d "%(workdir)" || (echo "Work directory does not exist"; exit 1)
-        cd "%(workdir)"
+        test -d "%(workdir)" || (echo "workdir does not exist"; exit 1)
+        cd "%(workdir)" && echo "workdir is ${PWD}"
 
 tuning              :
     # A set of groups we can toggle from the "tune" key

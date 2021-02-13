@@ -2,27 +2,27 @@ actions:
 
     # Perform cmake with the default options in a subdirectory
     - cmake: |
-        mkdir serpentBuildDir && cd serpentBuildDir
-        cmake %(cmakeOptions)
+        mkdir %(builddir) && cd %(builddir) && echo "builddir is ${CWD}"
+        cmake %(cmake_options)
 
     # Build the cmake project
     - cmake_build: |
-        ninja -v -j %(jobs) -C serpentBuildDir
+        ninja -v -j %(jobs) -C %(builddir)
 
     # Install results of the build to the destination directory
     - cmake_install: |
-        DESTDIR="%(installdir)" ninja install -v -j %(jobs) -C serpentBuildDir
+        DESTDIR="%(installroot)" ninja install -v -j %(jobs) -C %(builddir)
 
 definitions:
 
     # Default cmake options as passed to cmake
-    - cmakeOptions: |
+    - cmake_options: |
         -G Ninja .. \
-        -DCMAKE_CFLAGS="%(cflags)" \
-        -DCMAKE_CXX_FLAGS="%(cxxflags)" \
-        -DCMAKE_LD_FLAGS="%(ldflags)" \
-        -DCMAKE_BUILD_TYPE="RelWithDebInfo" \
-        -DCMAKE_INSTALL_PREFIX="%(prefix)" \
-        -DCMAKE_AR="%(ar)" \
-        -DCMAKE_NM="%(nm)" \
-        -DCMAKE_RANLIB="%(ranlib)"
+        -DCMAKE_CFLAGS=%(cflags) \
+        -DCMAKE_CXX_FLAGS=%(cxxflags) \
+        -DCMAKE_LD_FLAGS=%(ldflags) \
+        -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+        -DCMAKE_INSTALL_PREFIX=%(prefix) \
+        -DCMAKE_AR=%(ar) \
+        -DCMAKE_NM=%(nm) \
+        -DCMAKE_RANLIB=%(ranlib)
