@@ -35,7 +35,7 @@ import std.parallelism : totalCPUs;
 struct BuildContext
 {
     /**
-     * Construct a new BuildContect
+     * Construct a new BuildContext
      */
     this(Spec* spec, string rootDir)
     {
@@ -45,7 +45,7 @@ struct BuildContext
 
         this._spec = spec;
         this._rootDir = rootDir;
-        this._sourceDir = rootDir.buildPath("sources");
+        this._sourceDir = rootDir.buildPath("sourcedir");
 
         jobs = 0;
 
@@ -128,7 +128,7 @@ struct BuildContext
         sbuilder.addDefinition("version", spec.source.versionIdentifier);
         sbuilder.addDefinition("release", to!string(spec.source.release));
         sbuilder.addDefinition("jobs", to!string(jobs));
-        sbuilder.addDefinition("sources", _sourceDir);
+        sbuilder.addDefinition("sourcedir", _sourceDir);
 
         foreach (ref arch; arches)
         {
