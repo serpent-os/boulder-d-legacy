@@ -3,7 +3,7 @@ actions:
     # Perform ./configure with the default options
     - configure: |
         test -x ./configure || ( echo "%%configure: The ./configure script could not be found" ; exit 1 )
-        ./configure %(configure_options)
+        ./configure %(options_configure)
 
     # Perform a make
     - make: |
@@ -21,13 +21,13 @@ actions:
     # Run autogen.sh script, attempting to only configure once
     - autogen: |
         NOCONFIGURE="noconfigure"; export NOCONFIGURE
-        sh ./autogen.sh %(configure_options)
-        ./configure %(configure_options)
+        sh ./autogen.sh %(options_configure)
+        ./configure %(options_configure)
 
 definitions:
 
     # Default configuration options as passed to configure
-    - configure_options: |
+    - options_configure: |
         --prefix=%(prefix) \
         --build=%(build) \
         --host=%(host) \

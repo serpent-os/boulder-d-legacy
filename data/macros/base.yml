@@ -56,8 +56,8 @@ actions              :
         RANLIB="%(ranlib)"; export RANLIB
         STRIP="%(strip)"; export STRIP
         PATH="%(path)"; export PATH
-        test -d "%(workdir)" || (echo "workdir does not exist"; exit 1)
-        cd "%(workdir)" && echo "workdir is ${PWD}"
+        test -d "%(workdir)" || (echo "The work directory %(workdir) does not exist"; exit 1)
+        cd "%(workdir)" && echo "The work directory is ${PWD}"
 
 tuning              :
     # A set of groups we can toggle from the "tune" key
