@@ -7,7 +7,7 @@ actions:
 
     # Perform a make
     - make: |
-        make V=1 VERBOSE=1 -j %(jobs)
+        make V=1 VERBOSE=1 -j "%(jobs)"
 
     # Install results of build to the destination directory
     - make_install: |
@@ -28,14 +28,14 @@ definitions:
 
     # Default configuration options as passed to configure
     - options_configure: |
-        --prefix=%(prefix) \
-        --build=%(build) \
-        --host=%(host) \
-        --libdir=%(libdir) \
-        --mandir=%(mandir) \
-        --infodir=%(infodir) \
-        --datadir=%(datadir) \
-        --sysconfdir=%(sysconfdir) \
-        --localstatedir=%(localstatedir) \
-        --sharedstatedir=%(sharedstatedir) \
-        --libexecdir=%(libexecdir)
+        --prefix="%(prefix)" \
+        --build="%(build)" \
+        --host="%(host)" \
+        --libdir="%(libdir)" \
+        --mandir="%(mandir)" \
+        --infodir="%(infodir)" \
+        --datadir="%(datadir)" \
+        --sysconfdir="%(sysconfdir)" \
+        --localstatedir="%(localstatedir)" \
+        --sharedstatedir="%(sharedstatedir)" \
+        --libexecdir="%(libexecdir)"

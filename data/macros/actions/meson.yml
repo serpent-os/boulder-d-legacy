@@ -3,24 +3,24 @@ actions:
     # Run meson with the default options in a subdirectory
     - meson: |
         test -e ./meson.build || ( echo "%%meson: The ./meson.build script could not be found" ; exit 1 )
-        CFLAGS=%(cflags) CXXFLAGS=%(cxxflags) LDFLAGS=%(ldflags) meson %(options_meson)
+        CFLAGS="%(cflags)" CXXFLAGS="%(cxxflags)" LDFLAGS="%(ldflags)" meson %(options_meson)
 
     # Build the meson project
     - meson_build: |
-        ninja -v -j %(jobs) -C %(builddir)
+        ninja -v -j "%(jobs)" -C "%(builddir)"
 
     # Install results of the build to the destination directory
     - meson_install: |
-        DESTDIR="%(installroot)" ninja install -v -j %(jobs) -C %(builddir)
+        DESTDIR="%(installroot)" ninja install -v -j "%(jobs)" -C "%(builddir)"
 
 definitions:
 
     # Default meson options as passed to meson
     - options_meson: |
-        --prefix=%(prefix) \
-        --buildtype=plain \
-        --libdir=lib%(libsuffix) \
+        --prefix="%(prefix)" \
+        --buildtype="plain" \
+        --libdir="lib%(libsuffix)" \
         --libexecdir="lib%(libsuffix)/%(name)" \
-        --sysconfdir=%(sysconfdir) \
-        --localstatedir=%(localstatedir) \
-        %(builddir)
+        --sysconfdir="%(sysconfdir)" \
+        --localstatedir="%(localstatedir)" \
+        "%(builddir)"
