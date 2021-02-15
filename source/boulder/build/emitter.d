@@ -130,6 +130,9 @@ private:
         met.addRecord(RecordTag.Name, pkg.pd.name);
         met.addRecord(RecordTag.Version, pkg.source.versionIdentifier);
         met.addRecord(RecordTag.Release, pkg.source.release);
+        met.addRecord(RecordTag.Summary, pkg.pd.summary);
+        met.addRecord(RecordTag.Description, pkg.pd.description);
+        met.addRecord(RecordTag.Homepage, pkg.source.homepage);
         writer.addPayload(met);
 
         writer.flush();
