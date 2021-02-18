@@ -125,7 +125,9 @@ private:
         writefln("Creating package %s...", finalPath);
 
         import moss.format.binary.payload.meta : MetaPayload, RecordTag;
+        import moss.format.binary.payload.index : IndexPayload;
 
+        /* Construct the MetaPayload */
         auto met = new MetaPayload();
         met.addRecord(RecordTag.Name, pkg.pd.name);
         met.addRecord(RecordTag.Version, pkg.source.versionIdentifier);
@@ -134,6 +136,10 @@ private:
         met.addRecord(RecordTag.Description, pkg.pd.description);
         met.addRecord(RecordTag.Homepage, pkg.source.homepage);
         writer.addPayload(met);
+
+        /* Construct the IndexPayload */
+        auto ind = new IndexPayload();
+        writer.addPayload(ind);
 
         writer.flush();
     }
