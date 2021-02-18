@@ -27,6 +27,7 @@ import boulder.build.collector : BuildCollector;
 
 import moss.format.source.package_definition;
 import moss.format.source.source_definition;
+import moss.format.binary.payload;
 import moss.format.binary.writer;
 
 /**
@@ -94,7 +95,7 @@ private:
     {
         import std.stdio : File, writefln;
         import std.path : buildPath;
-        import std.algorithm : filter, map, sort, each, uniq;
+        import std.algorithm : filter, map, sort, each;
         import std.range : empty;
         import moss.format.binary.legacy : FileType;
         import std.array : array;
@@ -124,11 +125,22 @@ private:
 
         writefln("Creating package %s...", finalPath);
 
-        import moss.format.binary.payload.meta : MetaPayload, RecordTag;
-        import moss.format.binary.payload.index : IndexPayload;
-        import moss.format.binary.payload.layout : LayoutPayload;
+        /* Add payloads */
+        writer.addPayload(generateMetadata(pkg));
+        writer.addPayload(generateLayout());
+        writer.addPayload(generateIndex());
 
-        /* Construct the MetaPayload */
+        writer.flush();
+    }
+
+    /**
+     * Generate metadata payload
+     */
+    Payload generateMetadata(scope Package* pkg) @trusted
+    {
+        import moss.format.binary.payload.meta : MetaPayload, RecordTag;
+        import std.algorithm : each, uniq;
+
         auto met = new MetaPayload();
         met.addRecord(RecordTag.Name, pkg.pd.name);
         met.addRecord(RecordTag.Version, pkg.source.versionIdentifier);
@@ -137,17 +149,28 @@ private:
         met.addRecord(RecordTag.Description, pkg.pd.description);
         met.addRecord(RecordTag.Homepage, pkg.source.homepage);
         pkg.source.license.uniq.each!((l) => met.addRecord(RecordTag.License, l));
-        writer.addPayload(met);
 
-        /* Construct the IndexPayload */
-        auto ind = new IndexPayload();
-        writer.addPayload(ind);
+        return met;
+    }
 
-        /* Construct the LayoutPayload */
-        auto lay = new LayoutPayload();
-        writer.addPayload(lay);
+    /**
+     * Generate layout payload
+     */
+    Payload generateLayout() @trusted
+    {
+        import moss.format.binary.payload.layout : LayoutPayload;
 
-        writer.flush();
+        return new LayoutPayload();
+    }
+
+    /**
+     * Generate index payload
+     */
+    Payload generateIndex() @trusted
+    {
+        import moss.format.binary.payload.index : IndexPayload;
+
+        return new IndexPayload();
     }
 
     Package*[string] packages;
