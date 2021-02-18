@@ -94,7 +94,7 @@ private:
     {
         import std.stdio : File, writefln;
         import std.path : buildPath;
-        import std.algorithm : filter, map, sort, each;
+        import std.algorithm : filter, map, sort, each, uniq;
         import std.range : empty;
         import moss.format.binary.legacy : FileType;
         import std.array : array;
@@ -136,6 +136,7 @@ private:
         met.addRecord(RecordTag.Summary, pkg.pd.summary);
         met.addRecord(RecordTag.Description, pkg.pd.description);
         met.addRecord(RecordTag.Homepage, pkg.source.homepage);
+        pkg.source.license.uniq.each!((l) => met.addRecord(RecordTag.License, l));
         writer.addPayload(met);
 
         /* Construct the IndexPayload */
