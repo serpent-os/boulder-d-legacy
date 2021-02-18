@@ -126,6 +126,7 @@ private:
 
         import moss.format.binary.payload.meta : MetaPayload, RecordTag;
         import moss.format.binary.payload.index : IndexPayload;
+        import moss.format.binary.payload.layout : LayoutPayload;
 
         /* Construct the MetaPayload */
         auto met = new MetaPayload();
@@ -140,6 +141,10 @@ private:
         /* Construct the IndexPayload */
         auto ind = new IndexPayload();
         writer.addPayload(ind);
+
+        /* Construct the LayoutPayload */
+        auto lay = new LayoutPayload();
+        writer.addPayload(lay);
 
         writer.flush();
     }
