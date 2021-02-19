@@ -131,6 +131,10 @@ private:
         {
             LayoutEntry le;
             le.type = file.type;
+            le.uid = file.stat.st_uid;
+            le.gid = file.stat.st_gid;
+            le.mode = file.stat.st_mode;
+            le.time = file.stat.st_ctime;
             if (le.type == FileType.Regular || le.type == FileType.Symlink)
             {
                 layoutPayload.addLayout(le, file.data, file.path);
