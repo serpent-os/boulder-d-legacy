@@ -124,10 +124,26 @@ private:
         }
 
         writefln("Creating package %s...", finalPath);
+        import moss.format.binary.payload.layout : LayoutEntry, LayoutPayload;
+
+        auto layoutPayload = cast(LayoutPayload) generateLayout();
+        foreach (file; fileSet)
+        {
+            LayoutEntry le;
+            le.type = file.type;
+            if (le.type == FileType.Regular || le.type == FileType.Symlink)
+            {
+                layoutPayload.addLayout(le, file.data, file.path);
+            }
+            else if (le.type == FileType.Directory)
+            {
+                layoutPayload.addLayout(le, null, file.path);
+            }
+        }
 
         /* Add payloads */
         writer.addPayload(generateMetadata(pkg));
-        writer.addPayload(generateLayout());
+        writer.addPayload(layoutPayload);
         writer.addPayload(generateIndex());
 
         writer.flush();
@@ -158,9 +174,12 @@ private:
      */
     Payload generateLayout() @trusted
     {
+        import moss.format.binary : FileType;
         import moss.format.binary.payload.layout : LayoutPayload;
 
-        return new LayoutPayload();
+        auto la = new LayoutPayload();
+
+        return la;
     }
 
     /**
