@@ -2,7 +2,7 @@ actions:
 
     # Perform cmake with the default options in a subdirectory
     - cmake: |
-        mkdir "%(builddir)" && cd "%(builddir)" && echo "The build directory is ${PWD}"
+        mkdir -p "%(builddir)" && cd "%(builddir)" && echo "The build directory is ${PWD}"
         cmake %(options_cmake)
 
     # Build the cmake project
