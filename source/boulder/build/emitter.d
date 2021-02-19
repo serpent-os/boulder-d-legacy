@@ -97,7 +97,7 @@ private:
         import std.path : buildPath;
         import std.algorithm : filter, map, sort, each;
         import std.range : empty;
-        import moss.format.binary.legacy : FileType;
+        import moss.format.binary : FileType;
         import std.array : array;
 
         auto finalPath = outputDirectory.buildPath(pkg.filename);
