@@ -28,6 +28,7 @@ import std.algorithm : startsWith;
 import moss.format.source.package_definition;
 import boulder.build.context : BuildContext;
 import boulder.build.analysis;
+import core.sys.posix.sys.stat;
 
 /**
  * A FileOrigin is used by the Collector to track the original file
@@ -41,6 +42,7 @@ package struct FileOrigin
     uint refcount = 1;
     string originPath = null;
     string hash = null;
+    stat_t st;
 }
 
 /**
@@ -182,6 +184,7 @@ private:
                 FileOrigin or;
                 or.originPath = an.fullPath;
                 or.hash = an.data;
+                or.st = an.stat;
                 origins[an.data] = or;
             }
         }

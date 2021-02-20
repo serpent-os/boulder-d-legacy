@@ -151,7 +151,7 @@ private:
     {
         import moss.format.binary : FileType;
         import moss.format.binary.payload.layout : LayoutPayload, LayoutEntry;
-        import moss.format.binary.payload.index : IndexPayload;
+        import moss.format.binary.payload.index : IndexPayload, IndexEntry;
         import moss.format.binary.payload.content : ContentPayload;
         import std.algorithm : filter, map, sort, each, uniq;
         import moss.format.binary : FileType;
@@ -167,13 +167,6 @@ private:
 
         /* Prepare file list for consumption + emission */
         fileSet.sort!((a, b) => a.path < b.path);
-
-        /* TODO: Utilise dupeSet for insertion of Index/Content
-        auto dupeSet = fileSet.filter!((ref m) => m.type == FileType.Regular)
-            .map!((ref m) => col.originForFile(m))
-            .array;
-        dupeSet.sort!((a, b) => a.hash < b.hash);
-        */
 
         /* Unique file origins for package emission */
         auto uniqueFiles = fileSet.filter!((ref m) => m.type == FileType.Regular)
@@ -203,6 +196,8 @@ private:
             }
         }
 
+        ulong chunkStartSize = 0;
+
         /**
          * Insert the unique file into IndexPayload and ContentPayload
          */
@@ -212,6 +207,16 @@ private:
 
             writefln(" -> Inserting Origin: %s (%s) [refcount: %d]",
                     file.originPath, file.hash, file.refcount);
+
+            IndexEntry index;
+            index.refcount = file.refcount;
+            index.size = file.st.st_size;
+            index.start = chunkStartSize;
+            index.end = index.size + index.start;
+
+            chunkStartSize = index.end;
+
+            indexPayload.addIndex(index, file.hash);
         }
 
         /* For every known file, insert it */
