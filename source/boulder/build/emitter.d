@@ -95,27 +95,16 @@ private:
     {
         import std.stdio : File, writefln;
         import std.path : buildPath;
-        import std.algorithm : filter, map, sort, each;
         import std.range : empty;
-        import moss.format.binary : FileType;
-        import std.array : array;
 
+        /* Package path */
         auto finalPath = outputDirectory.buildPath(pkg.filename);
-
-        /* No files, no package. */
         auto fileSet = col.filesForTarget(pkg.pd.name);
         if (fileSet.empty)
         {
             return;
         }
-        fileSet.sort!((a, b) => a.path < b.path);
 
-        auto dupeSet = fileSet.filter!((ref m) => m.type == FileType.Regular)
-            .map!((ref m) => col.originForFile(m))
-            .array;
-        dupeSet.sort!((a, b) => a.hash < b.hash);
-
-        /* Open the output file */
         auto fp = File(finalPath, "wb");
         auto writer = new Writer(fp);
         scope (exit)
@@ -124,12 +113,74 @@ private:
         }
 
         writefln("Creating package %s...", finalPath);
-        import moss.format.binary.payload.layout : LayoutEntry, LayoutPayload;
 
-        auto layoutPayload = cast(LayoutPayload) generateLayout();
-        foreach (file; fileSet)
+        /* Generate metadata first */
+        generateMetadata(writer, pkg);
+
+        /* Now generate the fileset */
+        generateFiles(fileSet, writer, pkg);
+
+        writer.flush();
+    }
+
+    /**
+     * Generate metadata payload
+     */
+    void generateMetadata(scope Writer writer, scope Package* pkg) @trusted
+    {
+        import moss.format.binary.payload.meta : MetaPayload, RecordTag;
+        import std.algorithm : each, uniq;
+
+        auto met = new MetaPayload();
+        met.addRecord(RecordTag.Name, pkg.pd.name);
+        met.addRecord(RecordTag.Version, pkg.source.versionIdentifier);
+        met.addRecord(RecordTag.Release, pkg.source.release);
+        met.addRecord(RecordTag.Summary, pkg.pd.summary);
+        met.addRecord(RecordTag.Description, pkg.pd.description);
+        met.addRecord(RecordTag.Homepage, pkg.source.homepage);
+        pkg.source.license.uniq.each!((l) => met.addRecord(RecordTag.License, l));
+
+        writer.addPayload(met);
+    }
+
+    /**
+     * Handle emission and inclusion of files
+     */
+    void generateFiles(ref FileAnalysis[] fileSet, scope Writer writer, scope Package* pkg) @trusted
+    {
+        import moss.format.binary : FileType;
+        import moss.format.binary.payload.layout : LayoutPayload, LayoutEntry;
+        import moss.format.binary.payload.index : IndexPayload;
+        import moss.format.binary.payload.content : ContentPayload;
+        import std.algorithm : filter, map, sort, each;
+        import moss.format.binary : FileType;
+        import std.array : array;
+
+        /* Add required payloads for files */
+        auto contentPayload = new ContentPayload();
+        auto indexPayload = new IndexPayload();
+        auto layoutPayload = new LayoutPayload();
+        writer.addPayload(layoutPayload);
+        writer.addPayload(indexPayload);
+        writer.addPayload(contentPayload);
+
+        /* Prepare file list for consumption + emission */
+        fileSet.sort!((a, b) => a.path < b.path);
+
+        /* TODO: Utilise dupeSet for insertion of Index/Content
+        auto dupeSet = fileSet.filter!((ref m) => m.type == FileType.Regular)
+            .map!((ref m) => col.originForFile(m))
+            .array;
+        dupeSet.sort!((a, b) => a.hash < b.hash);
+        */
+
+        /**
+         * Insert a LayoutEntry to the payload
+         */
+        void insertLayout(ref FileAnalysis file)
         {
             LayoutEntry le;
+            /* Clone information from the FileAnalysis into the LayoutEntry */
             le.type = file.type;
             le.uid = file.stat.st_uid;
             le.gid = file.stat.st_gid;
@@ -145,66 +196,8 @@ private:
             }
         }
 
-        /* Add payloads */
-        writer.addPayload(generateMetadata(pkg));
-        writer.addPayload(layoutPayload);
-        writer.addPayload(generateIndex());
-        writer.addPayload(generateContent());
-
-        writer.flush();
-    }
-
-    /**
-     * Generate metadata payload
-     */
-    Payload generateMetadata(scope Package* pkg) @trusted
-    {
-        import moss.format.binary.payload.meta : MetaPayload, RecordTag;
-        import std.algorithm : each, uniq;
-
-        auto met = new MetaPayload();
-        met.addRecord(RecordTag.Name, pkg.pd.name);
-        met.addRecord(RecordTag.Version, pkg.source.versionIdentifier);
-        met.addRecord(RecordTag.Release, pkg.source.release);
-        met.addRecord(RecordTag.Summary, pkg.pd.summary);
-        met.addRecord(RecordTag.Description, pkg.pd.description);
-        met.addRecord(RecordTag.Homepage, pkg.source.homepage);
-        pkg.source.license.uniq.each!((l) => met.addRecord(RecordTag.License, l));
-
-        return met;
-    }
-
-    /**
-     * Generate layout payload
-     */
-    Payload generateLayout() @trusted
-    {
-        import moss.format.binary : FileType;
-        import moss.format.binary.payload.layout : LayoutPayload;
-
-        auto la = new LayoutPayload();
-
-        return la;
-    }
-
-    /**
-     * Generate index payload
-     */
-    Payload generateIndex() @trusted
-    {
-        import moss.format.binary.payload.index : IndexPayload;
-
-        return new IndexPayload();
-    }
-
-    /**
-     * Generate the content payload
-     */
-    Payload generateContent() @trusted
-    {
-        import moss.format.binary.payload.content : ContentPayload;
-
-        return new ContentPayload();
+        /* For every known file, insert it */
+        fileSet.each!((ref f) => insertLayout(f));
     }
 
     Package*[string] packages;
