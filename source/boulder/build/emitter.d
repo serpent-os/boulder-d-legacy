@@ -203,11 +203,6 @@ private:
          */
         void insertUniqueFile(ref FileOrigin file)
         {
-            import std.stdio : writefln;
-
-            writefln(" -> Inserting Origin: %s (%s) [refcount: %d]",
-                    file.originPath, file.hash, file.refcount);
-
             IndexEntry index;
             index.refcount = file.refcount;
             index.size = file.st.st_size;
