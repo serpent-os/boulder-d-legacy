@@ -149,6 +149,7 @@ private:
         writer.addPayload(generateMetadata(pkg));
         writer.addPayload(layoutPayload);
         writer.addPayload(generateIndex());
+        writer.addPayload(generateContent());
 
         writer.flush();
     }
@@ -194,6 +195,16 @@ private:
         import moss.format.binary.payload.index : IndexPayload;
 
         return new IndexPayload();
+    }
+
+    /**
+     * Generate the content payload
+     */
+    Payload generateContent() @trusted
+    {
+        import moss.format.binary.payload.content : ContentPayload;
+
+        return new ContentPayload();
     }
 
     Package*[string] packages;
