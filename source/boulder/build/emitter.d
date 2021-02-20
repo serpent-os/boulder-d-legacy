@@ -23,7 +23,7 @@
 module boulder.build.emitter;
 
 import boulder.build.analysis;
-import boulder.build.collector : BuildCollector;
+import boulder.build.collector : BuildCollector, FileOrigin;
 
 import moss.format.source.package_definition;
 import moss.format.source.source_definition;
@@ -118,7 +118,7 @@ private:
         generateMetadata(writer, pkg);
 
         /* Now generate the fileset */
-        generateFiles(fileSet, writer, pkg);
+        generateFiles(col, fileSet, writer, pkg);
 
         writer.flush();
     }
@@ -146,13 +146,14 @@ private:
     /**
      * Handle emission and inclusion of files
      */
-    void generateFiles(ref FileAnalysis[] fileSet, scope Writer writer, scope Package* pkg) @trusted
+    void generateFiles(ref BuildCollector col, ref FileAnalysis[] fileSet,
+            scope Writer writer, scope Package* pkg) @trusted
     {
         import moss.format.binary : FileType;
         import moss.format.binary.payload.layout : LayoutPayload, LayoutEntry;
         import moss.format.binary.payload.index : IndexPayload;
         import moss.format.binary.payload.content : ContentPayload;
-        import std.algorithm : filter, map, sort, each;
+        import std.algorithm : filter, map, sort, each, uniq;
         import moss.format.binary : FileType;
         import std.array : array;
 
@@ -173,6 +174,12 @@ private:
             .array;
         dupeSet.sort!((a, b) => a.hash < b.hash);
         */
+
+        /* Unique file origins for package emission */
+        auto uniqueFiles = fileSet.filter!((ref m) => m.type == FileType.Regular)
+            .map!((ref m) => col.originForFile(m))
+            .uniq!("a.hash == b.hash")().array;
+        uniqueFiles.sort!((a, b) => a.hash < b.hash);
 
         /**
          * Insert a LayoutEntry to the payload
@@ -196,8 +203,20 @@ private:
             }
         }
 
+        /**
+         * Insert the unique file into IndexPayload and ContentPayload
+         */
+        void insertUniqueFile(ref FileOrigin file)
+        {
+            import std.stdio : writefln;
+
+            writefln(" -> Inserting Origin: %s (%s) [refcount: %d]",
+                    file.originPath, file.hash, file.refcount);
+        }
+
         /* For every known file, insert it */
         fileSet.each!((ref f) => insertLayout(f));
+        uniqueFiles.each!((ref f) => insertUniqueFile(f));
     }
 
     Package*[string] packages;
