@@ -116,7 +116,6 @@ tuning              :
     # Toggle common
     - common:
         enabled: common
-        disabled: no-common
 
     # Enable math
     - math:
@@ -205,11 +204,6 @@ flags               :
     - common:
         c         : "-fcommon"
         cxx       : "-fcommon"
-
-    # Toggle -fno-common (ON)
-    - no-common:
-        c         : "-fno-common"
-        cxx       : "-fno-common"
 
     # Toggle debug optimisations (ON)
     - debug:
