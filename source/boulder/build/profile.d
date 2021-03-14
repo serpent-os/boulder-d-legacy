@@ -59,7 +59,7 @@ public:
 
         /* CSPGO is only available with LLVM toolchain */
         const bool multiStagePGO = (context.spec.options.toolchain == "llvm"
-                && context.spec.options.csgpo == true);
+                && context.spec.options.cspgo == true);
 
         /* PGO specific staging */
         if (hasPGOWorkload)
