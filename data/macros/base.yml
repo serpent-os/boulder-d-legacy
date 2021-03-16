@@ -105,6 +105,10 @@ tuning              :
                 enabled: generic
         default: generic
 
+    # Enable LTO
+    - lto:
+        enabled: lto
+
     # Enable ICF
     - icf:
         enabled: icf
@@ -188,6 +192,12 @@ flags               :
     - generic:
         c         : "-O2"
         cxx       : "-O2"
+
+    # Enable LTO optimisations (OFF)
+    - lto:
+        c         : "-flto"
+        cxx       : "-flto"
+        ld        : "-flto"
 
     # Enable LLVM ICF optimisations (OFF)
     - icf:
