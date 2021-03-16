@@ -147,7 +147,7 @@ flags               :
     - base:
         c         : "-pipe -D_FORTIFY_SOURCE=2 -Wall -Wno-error -Wp,-D_REENTRANT -fPIC"
         cxx       : "-pipe -D_FORTIFY_SOURCE=2 -Wall -Wno-error -Wp,-D_REENTRANT -fPIC"
-        ld        : "-Wl,-O2,-z,max-page-size=0x1000,--sort-common,--gc-sections"
+        ld        : "-Wl,-O2,-z,max-page-size=0x1000,--sort-common,--gc-sections -fPIC"
 
     - omit-frame-pointer:
         c         : "-fomit-frame-pointer"
@@ -169,6 +169,7 @@ flags               :
     - hardenFull:
         c         : "-fstack-protector-strong -fstack-clash-protection -fpie --param ssp-buffer-size=4"
         cxx       : "-fstack-protector-strong -fstack-clash-protection -fpie --param ssp-buffer-size=4"
+        ld        : "-fpie"
 
     - hardenMinimal:
         c         : "-fstack-protector --param ssp-buffer-size=32"
