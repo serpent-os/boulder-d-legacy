@@ -287,7 +287,7 @@ public:
         {
             sbuilder.addDefinition("compiler_c", "gcc");
             sbuilder.addDefinition("compiler_cxx", "g++");
-            sbuilder.addDefinition("compiler_cpp", "cpp");
+            sbuilder.addDefinition("compiler_cpp", "gcc -E");
             sbuilder.addDefinition("compiler_ar", "ar");
             sbuilder.addDefinition("compiler_objcopy", "objcopy");
             sbuilder.addDefinition("compiler_nm", "nm");
