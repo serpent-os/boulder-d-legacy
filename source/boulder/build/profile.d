@@ -63,18 +63,12 @@ public:
         /* PGO specific staging */
         if (hasPGOWorkload)
         {
-            StageType generationFlags = StageType.ProfileGenerate;
-            if (multiStagePGO)
-            {
-                generationFlags |= StageType.ProfileStage1;
-            }
-
             /* Always construct a stage1 */
             stages = [
-                StageType.Prepare | generationFlags,
-                StageType.Setup | generationFlags,
-                StageType.Build | generationFlags,
-                StageType.Workload | generationFlags,
+                StageType.Prepare | StageType.ProfileGenerate | StageType.ProfileStage1,
+                StageType.Setup | StageType.ProfileGenerate | StageType.ProfileStage1,
+                StageType.Build | StageType.ProfileGenerate | StageType.ProfileStage1,
+                StageType.Workload | StageType.ProfileGenerate | StageType.ProfileStage1,
             ];
 
             /* Mulitistage uses + refines */
