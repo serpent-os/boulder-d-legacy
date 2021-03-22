@@ -1,0 +1,44 @@
+actions:
+    # Actions required for PGO builds
+
+    # Merge LLVM profile data when cspgo=false
+    - llvm_merge_s1:
+        llvm-profdata merge -output=%(pgo_dir)/combined.profdata %(pgo_dir)/IR/default*.profraw
+    # Merge LLVM profile data when cspgo=true
+    - llvm_merge_s1_cspgo:
+        llvm-profdata merge -output=%(pgo_dir)/ir.profdata %(pgo_dir)/IR/default*.profraw
+    # Merge LLVM profile data after stage2 PGO workload
+    - llvm_merge_s2:
+        llvm-profdata merge -output=%(pgo_dir)/combined.profdata %(pgo_dir)/ir.profdata %(pgo_dir)/CS/default*.profraw
+
+tuning:
+    # PGO flag options
+
+    # PGO stage1 flags for ProfileStage1 (workload builds only)
+    - pgostage1:
+        llvm:
+            c         : "-fprofile-generate=%(pgo_dir)/IR"
+            cxx       : "-fprofile-generate=%(pgo_dir)/IR"
+            ld        : "-fprofile-generate=%(pgo_dir)/IR"
+        gnu:
+            c         : "-fprofile-generate -fprofile-dir=%(pgo_dir)"
+            cxx       : "-fprofile-generate -fprofile-dir=%(pgo_dir)"
+            ld        : "-fprofile-generate -fprofile-dir=%(pgo_dir)"
+
+    # PGO stage2 flags for ProfileStage2 (workload builds only)
+    - pgostage2:
+        llvm:
+            c         : "-fprofile-use=%(pgo_dir)/ir.profdata -fcs-profile-generate=%(pgo_dir)/CS"
+            cxx       : "-fprofile-use=%(pgo_dir)/ir.profdata -fcs-profile-generate=%(pgo_dir)/CS"
+            ld        : "-fprofile-use=%(pgo_dir)/ir.profdata -fcs-profile-generate=%(pgo_dir)/CS"
+
+    # PGO final flags for ProfileUse(workload builds only)
+    - pgofinal:
+        llvm:
+            c         : "-fprofile-use=%(pgo_dir)/combined.profdata"
+            cxx       : "-fprofile-use=%(pgo_dir)/combined.profdata"
+            ld        : "-fprofile-use=%(pgo_dir)/combined.profdata"
+        gcc:
+            c         : "-fprofile-use -fprofile-dir=%(pgo_dir)"
+            cxx       : "-fprofile-use -fprofile-dir=%(pgo_dir)"
+            ld        : "-fprofile-use -fprofile-dir=%(pgo_dir)"
