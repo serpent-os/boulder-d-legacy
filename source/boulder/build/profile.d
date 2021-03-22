@@ -52,8 +52,7 @@ public:
         this._installRoot = context.rootDir.buildPath("install");
 
         /* PGO handling */
-        pgoStage1Dir = buildRoot ~ "-pgo1";
-        pgoStage2Dir = buildRoot ~ "-pgo2";
+        pgoDir = buildRoot ~ "-pgo";
 
         StageType[] stages;
 
@@ -226,14 +225,7 @@ public:
             {
                 import std.file : mkdirRecurse;
 
-                if ((e.type & StageType.ProfileStage2) == StageType.ProfileStage2)
-                {
-                    pgoStage2Dir.mkdirRecurse();
-                }
-                else
-                {
-                    pgoStage1Dir.mkdirRecurse();
-                }
+                pgoDir.mkdirRecurse();
             }
 
             runStage(e, workdir, scripted);
@@ -296,8 +288,7 @@ public:
             sbuilder.addDefinition("compiler_path", "/usr/binutils/bin:/usr/bin");
         }
 
-        sbuilder.addDefinition("pgo_stage1dir", pgoStage1Dir);
-        sbuilder.addDefinition("pgo_stage2dir", pgoStage2Dir);
+        sbuilder.addDefinition("pgo_dir", pgoDir);
 
         /* Load system macros */
         context.prepareScripts(sbuilder, architecture);
@@ -550,6 +541,5 @@ private:
     ExecutionStage*[] stages;
     string _buildRoot;
     string _installRoot;
-    string pgoStage1Dir;
-    string pgoStage2Dir;
+    string pgoDir;
 }
