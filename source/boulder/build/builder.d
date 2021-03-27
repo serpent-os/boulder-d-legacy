@@ -309,7 +309,7 @@ private:
         auto hdir = expandTilde("~");
         enforce(hdir.exists, "Home directory not found!");
 
-        return hdir.buildPath("moss", "buildRoot",
+        return hdir.buildPath(".moss", "buildRoot",
                 "%s-%s".format(_specFile.source.name, _specFile.source.release));
     }
 
