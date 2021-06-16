@@ -137,7 +137,7 @@ private:
         _specFile.subPackages.values.each!((p) => addDefinition(p));
 
         /* Fully baked definitions, pass to the emitter */
-        packages.values.each!((p) => emitter.addPackage(_specFile.source, p));
+        packages.values.each!((p) => emitter.addPackage(&_context, _specFile.source, p));
     }
 
     /**

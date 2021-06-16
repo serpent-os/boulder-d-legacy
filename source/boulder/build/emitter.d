@@ -23,6 +23,7 @@
 module boulder.build.emitter;
 
 import boulder.build.analysis;
+import boulder.build.context : BuildContext;
 import boulder.build.collector : BuildCollector, FileOrigin;
 
 import moss.format.source.package_definition;
@@ -39,6 +40,8 @@ package struct Package
     PackageDefinition pd;
     SourceDefinition source;
 
+    uint64_t buildRelease = 0;
+
     /**
      * Resulting filename
      */
@@ -49,8 +52,8 @@ package struct Package
 
         auto plat = platform();
 
-        return "%s-%s-%d-%s.stone".format(pd.name, source.versionIdentifier,
-                source.release, plat.name);
+        return "%s-%s-%d-%d-%s.stone".format(pd.name, source.versionIdentifier,
+                source.release, buildRelease, plat.name);
     }
 }
 
@@ -68,11 +71,12 @@ public:
      * a package will actually be emitted until such point as files are
      * added to it.
      */
-    void addPackage(ref SourceDefinition sd, ref PackageDefinition pd) @safe
+    void addPackage(scope BuildContext* context, ref SourceDefinition sd, ref PackageDefinition pd) @safe
     {
         auto pkg = new Package();
         pkg.pd = pd;
         pkg.source = sd;
+        pkg.buildRelease = context.buildRelease;
         packages[pd.name] = pkg;
     }
 
@@ -135,6 +139,7 @@ private:
         met.addRecord(RecordTag.Name, pkg.pd.name);
         met.addRecord(RecordTag.Version, pkg.source.versionIdentifier);
         met.addRecord(RecordTag.Release, pkg.source.release);
+        met.addRecord(RecordTag.BuildRelease, pkg.buildRelease);
         met.addRecord(RecordTag.Summary, pkg.pd.summary);
         met.addRecord(RecordTag.Description, pkg.pd.description);
         met.addRecord(RecordTag.Homepage, pkg.source.homepage);
