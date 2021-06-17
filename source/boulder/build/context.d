@@ -60,6 +60,22 @@ public final class BuildContext
     }
 
     /**
+     * Return the spec (recipe) directory
+     */
+    pure @property string specDir() const @safe @nogc nothrow
+    {
+        return _specDir;
+    }
+
+    /**
+     * Set the spec (recipe) directory
+     */
+    pure @property void specDir(const(string) p) @safe @nogc nothrow
+    {
+        _specDir = p;
+    }
+
+    /**
      * Return the root directory
      */
     pure @property string rootDir() const @safe @nogc nothrow
@@ -252,4 +268,5 @@ package:
     MacroFile*[] actionFiles;
     uint _jobs = 0;
     string _outputDirectory = ".";
+    string _specDir = ".";
 }

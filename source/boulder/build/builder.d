@@ -49,9 +49,11 @@ public:
         auto f = File(filename, "r");
         auto specFile = new Spec(f);
         specFile.parse();
+        import std.path : dirName, absolutePath;
 
         buildContext.spec = specFile;
         buildContext.rootDir = getBuildRoot();
+        buildContext.specDir = filename.dirName.absolutePath;
 
         auto plat = platform();
 
