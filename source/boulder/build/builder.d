@@ -47,11 +47,11 @@ public:
     this(string filename)
     {
         auto f = File(filename, "r");
-        specFile = Spec(f);
+        auto specFile = new Spec(f);
         specFile.parse();
 
-        auto buildRoot = getBuildRoot();
-        _context = new BuildContext(&_specFile, buildRoot);
+        buildContext.spec = specFile;
+        buildContext.rootDir = getBuildRoot();
 
         auto plat = platform();
 
@@ -76,28 +76,12 @@ public:
     }
 
     /**
-     * Property containing the current BuildContext
-     */
-    pure @property BuildContext context() @safe @nogc nothrow return 
-    {
-        return _context;
-    }
-
-    /**
-     * Return the underlying spec file
-     */
-    pure @property ref Spec specFile() return 
-    {
-        return _specFile;
-    }
-
-    /**
      * Add an architecture to the build list
      */
     void addArchitecture(string name)
     {
         architectures ~= name;
-        profiles ~= new BuildProfile(_context, name);
+        profiles ~= new BuildProfile(name);
     }
 
     /**
@@ -127,17 +111,17 @@ private:
         arches ~= architectures;
 
         /* Insert core package definitions */
-        arches.map!((a) => context.defFiles[a].packages)
+        arches.map!((a) => buildContext.defFiles[a].packages)
             .joiner
             .each!((p) => addDefinition(p));
 
         /* Insert custom package definitions */
         inclusionPriority += 1000;
-        addDefinition(_specFile.rootPackage);
-        _specFile.subPackages.values.each!((p) => addDefinition(p));
+        addDefinition(buildContext.spec.rootPackage);
+        buildContext.spec.subPackages.values.each!((p) => addDefinition(p));
 
         /* Fully baked definitions, pass to the emitter */
-        packages.values.each!((p) => emitter.addPackage(_specFile.source, p));
+        packages.values.each!((p) => emitter.addPackage(buildContext.spec.source, p));
     }
 
     /**
@@ -152,7 +136,7 @@ private:
         import std.array : array;
 
         /* Always insert paths as they're encountered */
-        pd = _specFile.expand(pd);
+        pd = buildContext.spec.expand(pd);
         void insertRule(const(string) name)
         {
             collector.addRule(name, pd.name, inclusionPriority);
@@ -198,13 +182,13 @@ private:
 
         writeln("Preparing root tree");
 
-        if (context.rootDir.exists)
+        if (buildContext.rootDir.exists)
         {
             writeln("Removing old build tree");
-            context.rootDir.rmdirRecurse();
+            buildContext.rootDir.rmdirRecurse();
         }
 
-        mkdirRecurse(context.rootDir);
+        mkdirRecurse(buildContext.rootDir);
     }
 
     /**
@@ -221,9 +205,10 @@ private:
         manager.add(new DownloadStore(StoreType.User));
 
         /* Only work with plain sources for now */
-        auto plains = _specFile.upstreams
+        auto plains = buildContext.spec
+            .upstreams
             .values
-            .map!((u) => _specFile.expand(u))
+            .map!((u) => buildContext.spec.expand(u))
             .filter!((u) => u.type == UpstreamType.Plain);
 
         /* Unfetched sources */
@@ -248,7 +233,7 @@ private:
             }
 
             /* Now grab local full name including renamed path */
-            string name = context.sourceDir.buildPath(s.plain.rename);
+            string name = buildContext.sourceDir.buildPath(s.plain.rename);
             manager.share(s.plain.hash, name);
         }
 
@@ -293,7 +278,7 @@ private:
      */
     void emitPackages() @system
     {
-        emitter.emit(context.outputDirectory, this.collector);
+        emitter.emit(buildContext.outputDirectory, this.collector);
     }
 
     /**
@@ -310,21 +295,11 @@ private:
         enforce(hdir.exists, "Home directory not found!");
 
         return hdir.buildPath(".moss", "buildRoot",
-                "%s-%s".format(_specFile.source.name, _specFile.source.release));
+                "%s-%s".format(buildContext.spec.source.name, buildContext.spec.source.release));
     }
 
-    /**
-     * Update the underlying spec file
-     */
-    @property void specFile(ref Spec s)
-    {
-        _specFile = s;
-    }
-
-    Spec _specFile;
     string[] architectures;
     BuildProfile*[] profiles;
-    BuildContext _context;
     BuildCollector collector;
     BuildEmitter emitter;
     PackageDefinition[string] packages;

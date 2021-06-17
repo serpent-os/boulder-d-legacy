@@ -27,25 +27,32 @@ import moss.format.source.spec;
 import moss.format.source.script;
 
 import std.parallelism : totalCPUs;
+import std.concurrency : initOnce;
+
+/**
+ * Return the current shared Context for all moss operations
+ */
+BuildContext buildContext() @trusted
+{
+    return initOnce!_sharedBuildContext(new BuildContext());
+}
+
+/* Singleton instance */
+private __gshared BuildContext _sharedBuildContext = null;
 
 /**
  * The BuildContext holds global configurations and variables needed to complete
  * all builds.
  */
-final class BuildContext
+public final class BuildContext
 {
     /**
      * Construct a new BuildContext
      */
-    this(Spec* spec, string rootDir)
+    this()
     {
-        import std.conv : to;
-        import std.string : format;
-        import std.path : buildPath;
-
         this._spec = spec;
-        this._rootDir = rootDir;
-        this._sourceDir = rootDir.buildPath("sourcedir");
+        this._rootDir = ".";
 
         jobs = 0;
 
@@ -61,19 +68,37 @@ final class BuildContext
     }
 
     /**
+     * Set the new root directory
+     */
+    pure @property void rootDir(const(string) s) @safe @nogc nothrow
+    {
+        _rootDir = s;
+    }
+
+    /**
      * Return the source directory
      */
-    pure @property string sourceDir() const @safe @nogc nothrow
+    pure @property string sourceDir() const @safe nothrow
     {
-        return _sourceDir;
+        import std.path : buildPath;
+
+        return _rootDir.buildPath("sourcedir");
     }
 
     /**
      * Return the underlying specfile
      */
-    pure @property Spec* spec() @safe @nogc nothrow
+    pragma(inline, true) pure @property scope Spec* spec() @safe @nogc nothrow
     {
         return _spec;
+    }
+
+    /**
+     * Update the currently used spec for this BuildContext
+     */
+    pure @property void spec(Spec* spec) @safe @nogc nothrow
+    {
+        _spec = spec;
     }
 
     /**
@@ -128,7 +153,7 @@ final class BuildContext
         sbuilder.addDefinition("version", spec.source.versionIdentifier);
         sbuilder.addDefinition("release", to!string(spec.source.release));
         sbuilder.addDefinition("jobs", to!string(jobs));
-        sbuilder.addDefinition("sourcedir", _sourceDir);
+        sbuilder.addDefinition("sourcedir", sourceDir);
 
         foreach (ref arch; arches)
         {
@@ -220,7 +245,6 @@ private:
     }
 
     string _rootDir;
-    string _sourceDir;
     Spec* _spec;
 
 package:

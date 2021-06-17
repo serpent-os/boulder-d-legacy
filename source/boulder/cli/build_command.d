@@ -70,10 +70,10 @@ public struct BuildCommand
         void buildPath(const(string) p)
         {
             auto builder = Builder(p);
-            builder.context.jobs = jobs;
-            builder.context.outputDirectory = pt.findAncestor!BoulderCLI.outputDirectory;
-            auto name = "%s %s".format(builder.specFile.source.name,
-                    builder.specFile.source.versionIdentifier);
+            buildContext.jobs = jobs;
+            buildContext.outputDirectory = pt.findAncestor!BoulderCLI.outputDirectory;
+            auto name = "%s %s".format(buildContext.spec.source.name,
+                    buildContext.spec.source.versionIdentifier);
             writefln("Building ", name);
             builder.build();
         }

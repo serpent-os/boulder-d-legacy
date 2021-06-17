@@ -44,12 +44,11 @@ public:
     /**
      * Construct a new BuildProfile using the given (parsed) spec file.
      */
-    this(BuildContext context, string architecture)
+    this(const(string) architecture)
     {
-        this._context = context;
         this._architecture = architecture;
-        this._buildRoot = context.rootDir.buildPath("build", architecture);
-        this._installRoot = context.rootDir.buildPath("install");
+        this._buildRoot = buildContext.rootDir.buildPath("build", architecture);
+        this._installRoot = buildContext.rootDir.buildPath("install");
 
         /* PGO handling */
         pgoDir = buildRoot ~ "-pgo";
@@ -57,8 +56,8 @@ public:
         StageType[] stages;
 
         /* CSPGO is only available with LLVM toolchain */
-        const bool multiStagePGO = (context.spec.options.toolchain == "llvm"
-                && context.spec.options.cspgo == true);
+        const bool multiStagePGO = (buildContext.spec.options.toolchain == "llvm"
+                && buildContext.spec.options.cspgo == true);
 
         /* PGO specific staging */
         if (hasPGOWorkload)
@@ -109,15 +108,7 @@ public:
     }
 
     /**
-     * Return the underlying context
-     */
-    pure @property BuildContext context() @safe @nogc nothrow
-    {
-        return _context;
-    }
-
-    /**
-     * Return the architecture for this Build Context
+     * Return the architecture for this profile
      */
     pure @property string architecture() @safe @nogc nothrow
     {
@@ -257,7 +248,7 @@ public:
         sbuilder.addDefinition("workdir", workDir);
 
         /* Set the relevant compilers */
-        if (context.spec.options.toolchain == "llvm")
+        if (buildContext.spec.options.toolchain == "llvm")
         {
             sbuilder.addDefinition("compiler_c", "clang");
             sbuilder.addDefinition("compiler_cxx", "clang++");
@@ -285,7 +276,7 @@ public:
         sbuilder.addDefinition("pgo_dir", pgoDir);
 
         /* Load system macros */
-        context.prepareScripts(sbuilder, architecture);
+        buildContext.prepareScripts(sbuilder, architecture);
 
         bakeFlags(sbuilder);
 
@@ -308,13 +299,14 @@ private:
         import std.array : array;
 
         /* Set toolchain type for flag probing */
-        auto toolchain = context.spec.options.toolchain == "llvm" ? Toolchain.LLVM : Toolchain.GNU;
+        auto toolchain = buildContext.spec.options.toolchain == "llvm"
+            ? Toolchain.LLVM : Toolchain.GNU;
 
         /* Enable basic cflags always */
         sbuilder.enableGroup("base");
 
         /* Take all tuning selections */
-        foreach (ref t; context.spec.options.tuneSelections)
+        foreach (ref t; buildContext.spec.options.tuneSelections)
         {
             final switch (t.type)
             {
@@ -335,7 +327,7 @@ private:
 
         foreach (w; wanted)
         {
-            if (!context.spec.options.hasTuningSelection(w))
+            if (!buildContext.spec.options.hasTuningSelection(w))
             {
                 sbuilder.enableGroup(w);
             }
@@ -395,14 +387,14 @@ private:
     {
         import std.string : startsWith;
 
-        BuildDefinition buildDef = context.spec.rootBuild;
-        if (architecture in context.spec.profileBuilds)
+        BuildDefinition buildDef = buildContext.spec.rootBuild;
+        if (architecture in buildContext.spec.profileBuilds)
         {
-            buildDef = context.spec.profileBuilds[architecture];
+            buildDef = buildContext.spec.profileBuilds[architecture];
         }
-        else if (architecture.startsWith("emul32/") && "emul32" in context.spec.profileBuilds)
+        else if (architecture.startsWith("emul32/") && "emul32" in buildContext.spec.profileBuilds)
         {
-            buildDef = context.spec.profileBuilds["emul32"];
+            buildDef = buildContext.spec.profileBuilds["emul32"];
         }
 
         return buildDef.workload() != null;
@@ -422,16 +414,16 @@ private:
         string script = null;
 
         /* Default to root namespace */
-        BuildDefinition buildDef = context.spec.rootBuild;
+        BuildDefinition buildDef = buildContext.spec.rootBuild;
 
         /* Find specific definition for stage, or an appropriate parent */
-        if (architecture in context.spec.profileBuilds)
+        if (architecture in buildContext.spec.profileBuilds)
         {
-            buildDef = context.spec.profileBuilds[architecture];
+            buildDef = buildContext.spec.profileBuilds[architecture];
         }
-        else if (architecture.startsWith("emul32/") && "emul32" in context.spec.profileBuilds)
+        else if (architecture.startsWith("emul32/") && "emul32" in buildContext.spec.profileBuilds)
         {
-            buildDef = context.spec.profileBuilds["emul32"];
+            buildDef = buildContext.spec.profileBuilds["emul32"];
         }
 
         /* Check core type of stage */
@@ -499,7 +491,7 @@ private:
                 ~ "\" -C . || (echo \"Failed to extract archive\"; exit 1);";
         }
 
-        foreach (source; context.spec.upstreams)
+        foreach (source; buildContext.spec.upstreams)
         {
             final switch (source.type)
             {
@@ -530,7 +522,6 @@ private:
         return ret == "" ? null : ret;
     }
 
-    BuildContext _context;
     string _architecture;
     ExecutionStage*[] stages;
     string _buildRoot;

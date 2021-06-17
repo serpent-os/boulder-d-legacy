@@ -23,5 +23,6 @@
 module boulder.build;
 
 public import boulder.build.builder;
+public import boulder.build.context;
 public import boulder.build.profile;
 public import boulder.build.stage;
