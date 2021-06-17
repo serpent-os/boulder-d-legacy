@@ -22,7 +22,7 @@
 
 module boulder.build.manifest.binary_manifest;
 
-public import boulder.build.manifest : BuildManifest;
+public import boulder.build.manifest;
 import boulder.build.context;
 import std.path : buildPath;
 
@@ -43,6 +43,11 @@ final class BuildManifestBinary : BuildManifest
 
         /* i.e. manifest.x86_64 */
         fileName = "manifest.%s.bin".format(architecture);
+    }
+
+    override void recordPackage(const(string) pkgName, ref FileAnalysis[] fileSet)
+    {
+
     }
 
     override void write() @safe

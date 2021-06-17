@@ -22,7 +22,7 @@
 
 module boulder.build.manifest.json_manifest;
 
-public import boulder.build.manifest : BuildManifest;
+public import boulder.build.manifest;
 
 import std.stdio : File;
 import std.conv : to;
@@ -47,9 +47,18 @@ final class BuildManifestJSON : BuildManifest
 
         /* i.e. manifest.x86_64 */
         fileName = "manifest.%s.json".format(architecture);
+
+        /* Root values required in the manifest. */
+        emissionNodes = [
+            "manifest-version": "0.1",
+            "source-name": buildContext.spec.source.name,
+            "source-release": to!string(buildContext.spec.source.release),
+            "source-version": to!string(buildContext.spec.source.versionIdentifier),
+        ];
+
     }
 
-    override void write() @safe
+    override void write() @trusted
     {
         auto targetPath = buildContext.outputDirectory.buildPath(fileName);
         auto fp = File(targetPath, "w");
@@ -58,19 +67,22 @@ final class BuildManifestJSON : BuildManifest
             fp.close();
         }
 
-        /* Root values required in the manifest. */
-        JSONValue rootVals = [
-            "manifest-version": "0.1",
-            "source-name": buildContext.spec.source.name,
-            "source-release": to!string(buildContext.spec.source.release),
-            "source-version": to!string(buildContext.spec.source.versionIdentifier),
-
-        ];
-
         fp.write("/** Human readable report. This is not consumed by boulder */\n");
-        fp.write(rootVals.toPrettyString);
+        emissionNodes["packages"] = packageNodes;
+        fp.write(emissionNodes.toPrettyString);
         fp.write("\n");
 
         /* TODO: Merge collected package names, then provides */
     }
+
+    override void recordPackage(const(string) pkgName, ref FileAnalysis[] fileSet)
+    {
+        JSONValue newPkg = ["name": pkgName,];
+        packageNodes ~= newPkg;
+    }
+
+private:
+
+    JSONValue emissionNodes;
+    JSONValue[] packageNodes;
 }

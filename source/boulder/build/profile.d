@@ -311,7 +311,22 @@ public:
      */
     void produceManifest(ref BuildCollector col)
     {
-        futureManifest.save(col);
+        import std.array : array;
+        import std.algorithm : sort;
+        import std.range : empty;
+
+        auto names = col.targets.array;
+        names.sort();
+        foreach (nom; names)
+        {
+            auto fileSet = col.filesForTarget(nom);
+            if (fileSet.empty)
+            {
+                continue;
+            }
+            futureManifest.recordPackage(nom, fileSet);
+        }
+        futureManifest.write();
     }
 
 private:

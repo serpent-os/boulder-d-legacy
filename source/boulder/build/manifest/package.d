@@ -22,7 +22,8 @@
 
 module boulder.build.manifest;
 
-import boulder.build.collector;
+public import boulder.build.collector;
+public import boulder.build.analysis;
 
 /**
  * A BuildManifest is produced for each BuildProfile and contains some
@@ -40,6 +41,7 @@ public class BuildManifest
      * TODO: Replace with per-package emission
      */
     abstract void write() @safe;
+    abstract void recordPackage(const(string) pkgName, ref FileAnalysis[] fileSet);
 
     pure @property final const(string) fileName() const @safe @nogc nothrow
     {
@@ -49,11 +51,6 @@ public class BuildManifest
     pure @property final void fileName(const(string) s) @safe @nogc nothrow
     {
         _fileName = s;
-    }
-
-    final void save(ref BuildCollector collector) @safe
-    {
-        this.write();
     }
 
 private:
