@@ -22,6 +22,8 @@
 
 module boulder.build.manifest;
 
+import boulder.build.context;
+
 /**
  * A BuildManifest is produced for each BuildProfile and contains some
  * data which we can use to verify that a source recipe has indeed been
@@ -32,5 +34,32 @@ module boulder.build.manifest;
  */
 public final class BuildManifest
 {
+    /**
+     * Disallow default constructor
+     */
+    @disable this();
 
+    /**
+     * Construct a new BuildManifest with the given architecture identifier
+     */
+    this(const(string) architecture)
+    {
+        import std.path : buildPath;
+        import std.string : format;
+
+        /* i.e. manifest.x86_64 */
+        _fileName = buildContext.specDir.buildPath("manifest.%s".format(architecture));
+    }
+
+    /**
+     * Return the file path for the manifest
+     */
+    pure @property string fileName() const @safe @nogc nothrow
+    {
+        return _fileName;
+    }
+
+private:
+
+    string _fileName = null;
 }
