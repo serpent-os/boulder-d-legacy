@@ -53,8 +53,8 @@ public:
         this._installRoot = buildContext.rootDir.buildPath("install");
 
         /* Construct manifests for comparison & emission */
-        _originalManifest = new BuildManifest(architecture);
-        _futureManifest = new BuildManifest(architecture);
+        _originalManifest = new BuildManifestBinary(architecture);
+        _futureManifest = new BuildManifestJSON(architecture);
 
         /* PGO handling */
         pgoDir = buildRoot ~ "-pgo";

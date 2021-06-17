@@ -20,46 +20,34 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-module boulder.build.manifest;
+module boulder.build.manifest.binary_manifest;
 
-import boulder.build.collector;
+public import boulder.build.manifest : BuildManifest;
+import boulder.build.context;
+import std.path : buildPath;
 
 /**
- * A BuildManifest is produced for each BuildProfile and contains some
- * data which we can use to verify that a source recipe has indeed been
- * build-verified.
- *
- * Additionally it provides important information to supplement the source
- * index for build-time results, i.e. subpackage yields, etc.
+ * Binary, read-write implementation of the BuildManifest
  */
-public class BuildManifest
+final class BuildManifestBinary : BuildManifest
 {
+
+    @disable this();
+
     /**
-     * Write the whole manifest
-     *
-     * TODO: Replace with per-package emission
+     * Construct a new BuildManifest with the given architecture identifier
      */
-    abstract void write() @safe;
-
-    pure @property final const(string) fileName() const @safe @nogc nothrow
+    this(const(string) architecture)
     {
-        return _fileName;
+        import std.string : format;
+
+        /* i.e. manifest.x86_64 */
+        fileName = "manifest.%s.bin".format(architecture);
     }
 
-    pure @property final void fileName(const(string) s) @safe @nogc nothrow
+    override void write() @safe
     {
-        _fileName = s;
+        throw new Exception("Not yet implemented");
     }
 
-    final void save(ref BuildCollector collector) @safe
-    {
-        this.write();
-    }
-
-private:
-
-    string _fileName = null;
 }
-
-public import boulder.build.manifest.json_manifest;
-public import boulder.build.manifest.binary_manifest;
