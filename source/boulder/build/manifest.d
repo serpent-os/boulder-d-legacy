@@ -86,7 +86,7 @@ public final class BuildManifest
      */
     void load() @safe
     {
-        auto sourcePath = buildContext.specDir.buildPath(fileName);
+        auto sourcePath = buildContext.specDir.buildPath(binFileName);
     }
 
 private:
