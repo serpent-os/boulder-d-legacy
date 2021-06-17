@@ -23,6 +23,7 @@
 module boulder.build.manifest;
 
 import boulder.build.context;
+import boulder.build.collector;
 import std.path : buildPath;
 import std.stdio : File;
 import std.conv : to;
@@ -76,9 +77,18 @@ public final class BuildManifest
      * This is considered a build artefact, but for development purposes
      * the file should then be stashed in git for verified builds.
      */
-    void save() @safe
+    void save(ref BuildCollector collector) @safe
     {
-        writeHumanReadableReport();
+        import std.algorithm : sort;
+        import std.array : array;
+
+        auto names = collector.targets.array;
+        names.sort();
+
+        import std.stdio : writeln;
+
+        writeln(names);
+        writeHumanReadableReport(collector);
     }
 
     /**
@@ -94,7 +104,7 @@ private:
     /**
      * A human readable JSON report is emitted. We don't ever load these.
      */
-    void writeHumanReadableReport() @safe
+    void writeHumanReadableReport(ref BuildCollector col) @safe
     {
         auto targetPath = buildContext.outputDirectory.buildPath(fileName);
         auto fp = File(targetPath, "w");

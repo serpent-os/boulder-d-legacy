@@ -24,6 +24,7 @@ module boulder.build.profile;
 
 import moss.format.source.spec;
 import moss.format.source.script;
+import boulder.build.collector;
 import boulder.build.context;
 import boulder.build.stage;
 import boulder.build.manifest;
@@ -308,9 +309,9 @@ public:
     /**
      * Save our future manifest now
      */
-    void produceManifest()
+    void produceManifest(ref BuildCollector col)
     {
-        futureManifest.save();
+        futureManifest.save(col);
     }
 
 private:

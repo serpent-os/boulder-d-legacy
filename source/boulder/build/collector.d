@@ -146,6 +146,15 @@ public:
         return origins[a.data];
     }
 
+    /**
+     * Return a set of names used in the rules */
+    auto targets() @safe
+    {
+        import std.algorithm : map, uniq;
+
+        return rules.map!((ref c) => c.target).uniq;
+    }
+
 private:
 
     /**

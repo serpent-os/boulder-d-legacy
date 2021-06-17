@@ -291,7 +291,7 @@ private:
     {
         import std.algorithm : each;
 
-        profiles.each!((ref p) => p.produceManifest());
+        profiles.each!((ref p) => p.produceManifest(collector));
 
     }
 
