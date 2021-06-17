@@ -24,6 +24,9 @@ module boulder.build.manifest;
 
 import boulder.build.context;
 import std.path : buildPath;
+import std.stdio : File;
+import std.conv : to;
+import std.json;
 
 /**
  * A BuildManifest is produced for each BuildProfile and contains some
@@ -49,6 +52,7 @@ public final class BuildManifest
 
         /* i.e. manifest.x86_64 */
         _fileName = "manifest.%s".format(architecture);
+        _binFileName = "manifest.bin.%s".format(architecture);
     }
 
     /**
@@ -60,13 +64,21 @@ public final class BuildManifest
     }
 
     /**
+     * Return the binary file name for the manifest (not the full path)
+     */
+    pure @property string binFileName() const @safe @nogc nothrow
+    {
+        return _binFileName;
+    }
+
+    /**
      * Save the manifest (useful only for future manifest).
      * This is considered a build artefact, but for development purposes
      * the file should then be stashed in git for verified builds.
      */
     void save() @safe
     {
-        auto targetPath = buildContext.outputDirectory.buildPath(fileName);
+        writeHumanReadableReport();
     }
 
     /**
@@ -79,5 +91,34 @@ public final class BuildManifest
 
 private:
 
+    /**
+     * A human readable JSON report is emitted. We don't ever load these.
+     */
+    void writeHumanReadableReport() @safe
+    {
+        auto targetPath = buildContext.outputDirectory.buildPath(fileName);
+        auto fp = File(targetPath, "w");
+        scope (exit)
+        {
+            fp.close();
+        }
+
+        /* Root values required in the manifest. */
+        JSONValue rootVals = [
+            "manifest-version": "0.1",
+            "source-name": buildContext.spec.source.name,
+            "source-release": to!string(buildContext.spec.source.release),
+            "source-version": to!string(buildContext.spec.source.versionIdentifier),
+
+        ];
+
+        fp.write("/** Human readable report. This is not consumed by boulder */\n");
+        fp.write(rootVals.toPrettyString);
+        fp.write("\n");
+
+        /* TODO: Merge collected package names, then provides */
+    }
+
     string _fileName = null;
+    string _binFileName = null;
 }

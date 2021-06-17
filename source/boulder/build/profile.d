@@ -305,6 +305,14 @@ public:
         sbuilder.bake();
     }
 
+    /**
+     * Save our future manifest now
+     */
+    void produceManifest()
+    {
+        futureManifest.save();
+    }
+
 private:
 
     /**

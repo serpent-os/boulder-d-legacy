@@ -97,6 +97,7 @@ public:
         buildProfiles();
         collectAssets();
         emitPackages();
+        produceManifests();
     }
 
 private:
@@ -281,6 +282,17 @@ private:
     void emitPackages() @system
     {
         emitter.emit(buildContext.outputDirectory, this.collector);
+    }
+
+    /**
+     * Produce required manifests
+     */
+    void produceManifests() @system
+    {
+        import std.algorithm : each;
+
+        profiles.each!((ref p) => p.produceManifest());
+
     }
 
     /**
