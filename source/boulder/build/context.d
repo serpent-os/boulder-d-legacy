@@ -32,7 +32,7 @@ import std.parallelism : totalCPUs;
  * The BuildContext holds global configurations and variables needed to complete
  * all builds.
  */
-struct BuildContext
+final class BuildContext
 {
     /**
      * Construct a new BuildContext

@@ -51,7 +51,7 @@ public:
         specFile.parse();
 
         auto buildRoot = getBuildRoot();
-        _context = BuildContext(&_specFile, buildRoot);
+        _context = new BuildContext(&_specFile, buildRoot);
 
         auto plat = platform();
 
@@ -78,7 +78,7 @@ public:
     /**
      * Property containing the current BuildContext
      */
-    pure @property ref BuildContext context() @safe @nogc nothrow return 
+    pure @property BuildContext context() @safe @nogc nothrow return 
     {
         return _context;
     }
@@ -97,7 +97,7 @@ public:
     void addArchitecture(string name)
     {
         architectures ~= name;
-        profiles ~= new BuildProfile(&_context, name);
+        profiles ~= new BuildProfile(_context, name);
     }
 
     /**

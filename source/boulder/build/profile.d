@@ -44,7 +44,7 @@ public:
     /**
      * Construct a new BuildProfile using the given (parsed) spec file.
      */
-    this(BuildContext* context, string architecture)
+    this(BuildContext context, string architecture)
     {
         this._context = context;
         this._architecture = architecture;
@@ -111,7 +111,7 @@ public:
     /**
      * Return the underlying context
      */
-    pure @property BuildContext* context() @safe @nogc nothrow
+    pure @property BuildContext context() @safe @nogc nothrow
     {
         return _context;
     }
@@ -530,7 +530,7 @@ private:
         return ret == "" ? null : ret;
     }
 
-    BuildContext* _context;
+    BuildContext _context;
     string _architecture;
     ExecutionStage*[] stages;
     string _buildRoot;
