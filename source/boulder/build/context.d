@@ -85,16 +85,6 @@ struct BuildContext
     }
 
     /**
-     * Return the correct buildRelease identifier
-     *
-     * TODO: Set this from a buildinfo file
-     */
-    pure @property uint64_t buildRelease() @safe @nogc nothrow
-    {
-        return _buildRelease;
-    }
-
-    /**
      * Set the number of build jobs
      */
     @property void jobs(int j) @safe @nogc nothrow
@@ -232,7 +222,6 @@ private:
     string _rootDir;
     string _sourceDir;
     Spec* _spec;
-    uint64_t _buildRelease = 1;
 
 package:
     MacroFile*[string] defFiles;

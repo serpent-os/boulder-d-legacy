@@ -40,7 +40,7 @@ package struct Package
     PackageDefinition pd;
     SourceDefinition source;
 
-    uint64_t buildRelease = 0;
+    uint64_t buildRelease = 1;
 
     /**
      * Resulting filename
@@ -71,12 +71,11 @@ public:
      * a package will actually be emitted until such point as files are
      * added to it.
      */
-    void addPackage(scope BuildContext* context, ref SourceDefinition sd, ref PackageDefinition pd) @safe
+    void addPackage(ref SourceDefinition sd, ref PackageDefinition pd) @safe
     {
         auto pkg = new Package();
         pkg.pd = pd;
         pkg.source = sd;
-        pkg.buildRelease = context.buildRelease;
         packages[pd.name] = pkg;
     }
 
