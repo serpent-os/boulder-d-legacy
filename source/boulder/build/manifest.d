@@ -51,8 +51,8 @@ public final class BuildManifest
         import std.string : format;
 
         /* i.e. manifest.x86_64 */
-        _fileName = "manifest.%s".format(architecture);
-        _binFileName = "manifest.bin.%s".format(architecture);
+        _fileName = "manifest.%s.json".format(architecture);
+        _binFileName = "manifest.%s.bin".format(architecture);
     }
 
     /**
