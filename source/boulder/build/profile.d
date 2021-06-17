@@ -26,6 +26,7 @@ import moss.format.source.spec;
 import moss.format.source.script;
 import boulder.build.context;
 import boulder.build.stage;
+import boulder.build.manifest;
 
 import std.path : buildPath;
 
@@ -49,6 +50,10 @@ public:
         this._architecture = architecture;
         this._buildRoot = buildContext.rootDir.buildPath("build", architecture);
         this._installRoot = buildContext.rootDir.buildPath("install");
+
+        /* Construct manifests for comparison & emission */
+        _originalManifest = new BuildManifest(architecture);
+        _futureManifest = new BuildManifest(architecture);
 
         /* PGO handling */
         pgoDir = buildRoot ~ "-pgo";
@@ -129,6 +134,22 @@ public:
     pure @property string installRoot() @safe @nogc nothrow
     {
         return _installRoot;
+    }
+
+    /**
+     * Return the original manifest, which may not be populated
+     */
+    pure @property BuildManifest originalManifest() @safe @nogc nothrow
+    {
+        return _originalManifest;
+    }
+
+    /**
+     * The manifest we're going to write
+     */
+    pure @property BuildManifest futureManifest() @safe @nogc nothrow
+    {
+        return _futureManifest;
     }
 
     /**
@@ -527,4 +548,7 @@ private:
     string _buildRoot;
     string _installRoot;
     string pgoDir;
+
+    BuildManifest _originalManifest = null;
+    BuildManifest _futureManifest = null;
 }
