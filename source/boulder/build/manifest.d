@@ -23,6 +23,7 @@
 module boulder.build.manifest;
 
 import boulder.build.context;
+import std.path : buildPath;
 
 /**
  * A BuildManifest is produced for each BuildProfile and contains some
@@ -44,19 +45,36 @@ public final class BuildManifest
      */
     this(const(string) architecture)
     {
-        import std.path : buildPath;
         import std.string : format;
 
         /* i.e. manifest.x86_64 */
-        _fileName = buildContext.specDir.buildPath("manifest.%s".format(architecture));
+        _fileName = "manifest.%s".format(architecture);
     }
 
     /**
-     * Return the file path for the manifest
+     * Return the file name for the manifest (not the full path)
      */
     pure @property string fileName() const @safe @nogc nothrow
     {
         return _fileName;
+    }
+
+    /**
+     * Save the manifest (useful only for future manifest).
+     * This is considered a build artefact, but for development purposes
+     * the file should then be stashed in git for verified builds.
+     */
+    void save() @safe
+    {
+        auto targetPath = buildContext.outputDirectory.buildPath(fileName);
+    }
+
+    /**
+     * Load the manifest from the same directory that we found the specFile in
+     */
+    void load() @safe
+    {
+        auto sourcePath = buildContext.specDir.buildPath(fileName);
     }
 
 private:
