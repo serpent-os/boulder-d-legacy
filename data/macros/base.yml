@@ -116,7 +116,12 @@ tuning              :
 
     # Enable ICF
     - icf:
-        enabled: icf
+        options:
+            - safe:
+                enabled: icf
+            - all:
+                enabled: icfall
+        default: safe
 
     # Enable Polly
     - polly:
@@ -216,6 +221,11 @@ flags               :
     - icf:
         llvm:
             ld    : "-Wl,--icf=safe"
+
+    # Enable ALL LLVM ICF optimisations (OFF)
+    - icfall:
+        llvm:
+            ld    : "-Wl,--icf=all"
 
     # Enable LLVM polly optimisations (OFF)
     - polly:
