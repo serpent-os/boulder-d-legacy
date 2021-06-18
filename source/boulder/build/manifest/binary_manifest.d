@@ -52,7 +52,6 @@ final class BuildManifestBinary : BuildManifest
 
     override void write() @safe
     {
-        throw new Exception("Not yet implemented");
     }
 
 }

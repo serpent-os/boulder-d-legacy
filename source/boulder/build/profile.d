@@ -54,7 +54,8 @@ public:
 
         /* Construct manifests for comparison & emission */
         _sourceManifest = new BuildManifestBinary(architecture);
-        _futureManifest = new BuildManifestJSON(architecture);
+        _targetManifests[0] = new BuildManifestJSON(architecture);
+        _targetManifests[1] = new BuildManifestBinary(architecture);
 
         /* PGO handling */
         pgoDir = buildRoot ~ "-pgo";
@@ -148,9 +149,9 @@ public:
     /**
      * The manifest we're going to write
      */
-    pure @property BuildManifest futureManifest() @safe @nogc nothrow
+    pure @property BuildManifest[2] targetManifests() @safe @nogc nothrow
     {
-        return _futureManifest;
+        return _targetManifests;
     }
 
     /**
@@ -312,7 +313,7 @@ public:
     void produceManifest(ref BuildCollector col)
     {
         import std.array : array;
-        import std.algorithm : sort;
+        import std.algorithm : sort, each;
         import std.range : empty;
 
         auto names = col.targets.array;
@@ -326,9 +327,9 @@ public:
             }
             /* Ensure stable sorting */
             fileSet.sort!((a, b) => a.path < b.path);
-            futureManifest.recordPackage(nom, fileSet);
+            targetManifests.each!((m) => m.recordPackage(nom, fileSet));
         }
-        futureManifest.write();
+        targetManifests.each!((m) => m.write());
     }
 
 private:
@@ -576,5 +577,5 @@ private:
     string pgoDir;
 
     BuildManifest _sourceManifest = null;
-    BuildManifest _futureManifest = null;
+    BuildManifest[2] _targetManifests = null;
 }
