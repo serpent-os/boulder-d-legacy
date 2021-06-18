@@ -69,7 +69,7 @@ final class BuildManifestJSON : BuildManifest
 
         fp.write("/** Human readable report. This is not consumed by boulder */\n");
         emissionNodes["packages"] = packageNodes;
-        fp.write(emissionNodes.toPrettyString);
+        fp.write(emissionNodes.toJSON(true, JSONOptions.doNotEscapeSlashes));
         fp.write("\n");
     }
 
