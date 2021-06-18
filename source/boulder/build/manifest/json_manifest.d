@@ -71,18 +71,26 @@ final class BuildManifestJSON : BuildManifest
         emissionNodes["packages"] = packageNodes;
         fp.write(emissionNodes.toPrettyString);
         fp.write("\n");
-
-        /* TODO: Merge collected package names, then provides */
     }
 
+    /**
+     * Emit a package as a JSON node to the manifest
+     */
     override void recordPackage(const(string) pkgName, ref FileAnalysis[] fileSet)
     {
-        JSONValue newPkg = ["name": pkgName,];
-        packageNodes ~= newPkg;
+        import std.algorithm : map;
+        import std.array : array;
+
+        auto fileSetMapped = fileSet.map!((m) => m.path).array;
+
+        JSONValue newPkgFiles = fileSetMapped;
+        JSONValue newPkg;
+        newPkg["files"] = newPkgFiles;
+        packageNodes[pkgName] = newPkg;
     }
 
 private:
 
     JSONValue emissionNodes;
-    JSONValue[] packageNodes;
+    JSONValue[string] packageNodes;
 }

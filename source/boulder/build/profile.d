@@ -324,6 +324,8 @@ public:
             {
                 continue;
             }
+            /* Ensure stable sorting */
+            fileSet.sort!((a, b) => a.path < b.path);
             futureManifest.recordPackage(nom, fileSet);
         }
         futureManifest.write();
