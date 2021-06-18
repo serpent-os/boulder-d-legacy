@@ -60,6 +60,8 @@ final class BuildManifestJSON : BuildManifest
 
     override void write() @trusted
     {
+        import std.algorithm : substitute;
+
         auto targetPath = buildContext.outputDirectory.buildPath(fileName);
         auto fp = File(targetPath, "w");
         scope (exit)
@@ -69,7 +71,8 @@ final class BuildManifestJSON : BuildManifest
 
         fp.write("/** Human readable report. This is not consumed by boulder */\n");
         emissionNodes["packages"] = packageNodes;
-        fp.write(emissionNodes.toJSON(true, JSONOptions.doNotEscapeSlashes));
+        auto jsonEmission = emissionNodes.toJSON(true, JSONOptions.doNotEscapeSlashes);
+        fp.write(jsonEmission.substitute!("    ", "\t"));
         fp.write("\n");
     }
 
