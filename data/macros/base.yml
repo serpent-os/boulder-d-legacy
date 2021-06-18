@@ -141,6 +141,10 @@ tuning              :
             - noplt
             - bindnow
 
+    # Enable nosemantic
+    - nosemantic:
+        enabled: nosemantic
+
     # Enable asneeded
     - asneeded:
         enabled: asneeded
@@ -252,6 +256,11 @@ flags               :
     - noplt:
         c         : "-fno-plt"
         cxx       : "-fno-plt"
+
+    # Toggle -fno-semantic-interposition (OFF)
+    - nosemantic:
+        c         : "-fno-semantic-interposition"
+        cxx       : "-fno-semantic-interposition"
 
     # Toggle asneeded (OFF)
     - asneeded:
