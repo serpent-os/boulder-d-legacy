@@ -98,7 +98,9 @@ tuning              :
     - optimize:
         options:
             - size:
-                enabled: size
+                enabled:
+                   - sections
+                   - size
             - speed:
                 enabled: speed
             - generic:
@@ -126,6 +128,10 @@ tuning              :
     # Enable Polly
     - polly:
         enabled: polly
+
+    # Enable section splitting
+    - sections:
+        enabled: sections
 
     # Toggle common
     - common:
@@ -189,14 +195,19 @@ flags               :
         c         : "-fstack-protector --param ssp-buffer-size=32"
         cxx       : "-fstack-protector --param ssp-buffer-size=32"
 
+    # Optimize for section splitting (OFF)
+    - sections:
+        c     : "-ffunction-sections -fdata-sections"
+        cxx   : "-ffunction-sections -fdata-sections"
+
     # Optimize for size (OFF)
     - size:
         llvm:
-            c     : "-Oz -ffunction-sections -fdata-sections"
-            cxx   : "-Oz -ffunction-sections -fdata-sections"
+            c     : "-Oz"
+            cxx   : "-Oz"
         gnu:
-            c     : "-Os -ffunction-sections -fdata-sections"
-            cxx   : "-Os -ffunction-sections -fdata-sections"
+            c     : "-Os"
+            cxx   : "-Os"
 
     # Optimize for speed (OFF)
     - speed:
