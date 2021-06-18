@@ -53,7 +53,7 @@ public:
         this._installRoot = buildContext.rootDir.buildPath("install");
 
         /* Construct manifests for comparison & emission */
-        _originalManifest = new BuildManifestBinary(architecture);
+        _sourceManifest = new BuildManifestBinary(architecture);
         _futureManifest = new BuildManifestJSON(architecture);
 
         /* PGO handling */
@@ -140,9 +140,9 @@ public:
     /**
      * Return the original manifest, which may not be populated
      */
-    pure @property BuildManifest originalManifest() @safe @nogc nothrow
+    pure @property BuildManifest sourceManifest() @safe @nogc nothrow
     {
-        return _originalManifest;
+        return _sourceManifest;
     }
 
     /**
@@ -575,6 +575,6 @@ private:
     string _installRoot;
     string pgoDir;
 
-    BuildManifest _originalManifest = null;
+    BuildManifest _sourceManifest = null;
     BuildManifest _futureManifest = null;
 }
