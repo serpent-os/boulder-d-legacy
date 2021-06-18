@@ -54,8 +54,11 @@ public:
 
         /* Construct manifests for comparison & emission */
         _sourceManifest = new BuildManifestBinary(architecture);
-        _targetManifests[0] = new BuildManifestJSON(architecture);
-        _targetManifests[1] = new BuildManifestBinary(architecture);
+
+        _targetManifests = [
+            new BuildManifestJSON(architecture),
+            new BuildManifestBinary(architecture),
+        ];
 
         /* PGO handling */
         pgoDir = buildRoot ~ "-pgo";
