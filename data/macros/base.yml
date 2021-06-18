@@ -107,7 +107,12 @@ tuning              :
 
     # Enable LTO
     - lto:
-        enabled: lto
+        options:
+            - full:
+                enabled: lto
+            - thin:
+                enabled: thinlto
+        default: full
 
     # Enable ICF
     - icf:
@@ -199,6 +204,13 @@ flags               :
         c         : "-flto"
         cxx       : "-flto"
         ld        : "-flto"
+
+    # Enable Thin-LTO optimisations (OFF)
+    - thinlto:
+        llvm:
+            c         : "-flto=thin"
+            cxx       : "-flto=thin"
+            ld        : "-flto=thin"
 
     # Enable LLVM ICF optimisations (OFF)
     - icf:
