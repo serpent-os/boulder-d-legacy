@@ -81,11 +81,9 @@ final class BuildManifestJSON : BuildManifest
         import std.algorithm : map;
         import std.array : array;
 
-        auto fileSetMapped = fileSet.map!((m) => m.path).array;
-
-        JSONValue newPkgFiles = fileSetMapped;
+        const JSONValue fileSetMapped = fileSet.map!((m) => m.path).array;
         JSONValue newPkg;
-        newPkg["files"] = newPkgFiles;
+        newPkg["files"] = fileSetMapped;
         packageNodes[pkgName] = newPkg;
     }
 
