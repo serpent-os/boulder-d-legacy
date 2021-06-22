@@ -88,11 +88,11 @@ tuning              :
     # Enable hardening
     - harden:
         options:
-            - full:
-                enabled: hardenFull
-            - minimal:
-                enabled: hardenMinimal
-        default: full
+            - level1:
+                enabled: harden1
+            - level2:
+                enabled: harden2
+        default: level2
 
     # Enable optimisation per given levels
     - optimize:
@@ -189,15 +189,15 @@ flags               :
     - symbolic:
         ld        : "-Wl,-Bsymbolic-functions"
 
-    # Hardening (ON)
-    - hardenFull:
+    # Hardening (ON harden2)
+    - harden1:
+        c         : "-fstack-protector --param ssp-buffer-size=32"
+        cxx       : "-fstack-protector --param ssp-buffer-size=32"
+
+    - harden2:
         c         : "-fstack-protector-strong -fstack-clash-protection -fpie --param ssp-buffer-size=4"
         cxx       : "-fstack-protector-strong -fstack-clash-protection -fpie --param ssp-buffer-size=4"
         ld        : "-fpie"
-
-    - hardenMinimal:
-        c         : "-fstack-protector --param ssp-buffer-size=32"
-        cxx       : "-fstack-protector --param ssp-buffer-size=32"
 
     # Optimize for section splitting (OFF)
     - sections:
