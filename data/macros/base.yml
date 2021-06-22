@@ -99,8 +99,8 @@ tuning              :
         options:
             - size:
                 enabled:
-                   - sections
-                   - size
+                    - sections
+                    - size
             - speed:
                 enabled: speed
             - generic:
@@ -154,6 +154,10 @@ tuning              :
     # Enable asneeded
     - asneeded:
         enabled: asneeded
+
+    # Enable vectorwidth
+    - vectorwidth:
+        enabled: vectorwidth
 
 flags               :
 
@@ -272,6 +276,11 @@ flags               :
     - nosemantic:
         c         : "-fno-semantic-interposition"
         cxx       : "-fno-semantic-interposition"
+
+    # Prefer 128-bit vector width (ON)
+    - vectorwidth:
+        c         : "-mprefer-vector-width=128"
+        cxx       : "-mprefer-vector-width=128"
 
     # Toggle asneeded (OFF)
     - asneeded:

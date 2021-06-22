@@ -15,8 +15,3 @@ flags:
     - architecture:
         c         : "-march=x86-64-v3 -mfsgsbase -mpclmul -mrdrnd -mxsaveopt -mtune=skylake"
         cxx       : "-march=x86-64-v3 -mfsgsbase -mpclmul -mrdrnd -mxsaveopt -mtune=skylake"
-
-    # Generic optimisation case
-    - generic:
-        c         : "-O2 -mprefer-vector-width=128"
-        cxx       : "-O2 -mprefer-vector-width=128"
