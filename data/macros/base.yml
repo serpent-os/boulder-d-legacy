@@ -159,6 +159,19 @@ tuning              :
     - vectorwidth:
         enabled: vectorwidth
 
+    # Enable instantiate
+    - instantiate:
+        enabled: instantiate
+
+    # Enable visibility
+    - visibility:
+        options:
+            - inline:
+                enabled: visinline
+            - hidden:
+                enabled: vishidden
+        default: visinline
+
 flags               :
 
     # Needs overriding with -march/mtune values.
@@ -282,6 +295,11 @@ flags               :
         c         : "-mprefer-vector-width=128"
         cxx       : "-mprefer-vector-width=128"
 
+    # Toggle -fpch-instantiate-templates (OFF)
+    - instantiate:
+        c         : "-fpch-instantiate-templates"
+        cxx       : "-fpch-instantiate-templates"
+
     # Toggle asneeded (OFF)
     - asneeded:
         ld        : "-Wl,--as-needed"
@@ -289,6 +307,14 @@ flags               :
     # Toggle runpath (OFF)
     - runpath:
         ld        : "-Wl,--enable-new-dtags"
+
+    # Toggle visibility values (OFF)
+    - visinline:
+        cxx        : "-fvisibility-inlines-hidden"
+
+    - vishidden:
+        c          : "-fvisibility=hidden"
+        cxx        : "-fvisibility=hidden"
 
 # Template packages
 packages          :
