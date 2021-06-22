@@ -13,8 +13,8 @@ flags:
 
     # Set architecture flags
     - architecture:
-        c         : "-march=haswell -mtune=skylake"
-        cxx       : "-march=haswell -mtune=skylake"
+        c         : "-march=x86-64-v3 -mfsgsbase -mpclmul -mrdrnd -mxsaveopt -mtune=skylake"
+        cxx       : "-march=x86-64-v3 -mfsgsbase -mpclmul -mrdrnd -mxsaveopt -mtune=skylake"
 
     # Generic optimisation case
     - generic:
