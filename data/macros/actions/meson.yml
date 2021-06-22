@@ -5,6 +5,11 @@ actions:
         test -e ./meson.build || ( echo "%%meson: The ./meson.build script could not be found" ; exit 1 )
         CFLAGS="%(cflags)" CXXFLAGS="%(cxxflags)" LDFLAGS="%(ldflags)" meson %(options_meson)
 
+    # Run meson with unity build enabled
+    - meson_unity: |
+        test -e ./meson.build || ( echo "%%meson: The ./meson.build script could not be found" ; exit 1 )
+        CFLAGS="%(cflags)" CXXFLAGS="%(cxxflags)" LDFLAGS="%(ldflags)" meson --unity on %(options_meson)
+
     # Build the meson project
     - meson_build: |
         ninja -v -j "%(jobs)" -C "%(builddir)"
