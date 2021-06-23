@@ -26,6 +26,10 @@ public import boulder.build.manifest;
 import boulder.build.context;
 import std.path : buildPath;
 
+import moss.format.binary.archive_header;
+import moss.format.binary.payload;
+import moss.format.binary.writer;
+
 /**
  * Binary, read-write implementation of the BuildManifest
  */
@@ -47,11 +51,26 @@ final class BuildManifestBinary : BuildManifest
 
     override void recordPackage(const(string) pkgName, ref FileAnalysis[] fileSet)
     {
-
     }
 
     override void write() @safe
     {
+        import std.algorithm : each;
+
+        auto targetPath = buildContext.outputDirectory.buildPath(fileName);
+        auto fp = File(targetPath, "w");
+        auto writer = new Writer(fp);
+        writer.compressionType = PayloadCompression.None;
+        writer.fileType = MossFileType.Database;
+        scope (exit)
+        {
+            writer.close();
+        }
+        payloads.each!((ref p) => writer.addPayload(p));
+        writer.flush();
     }
 
+private:
+
+    Payload[] payloads;
 }
