@@ -88,41 +88,43 @@ tuning              :
     # Enable hardening
     - harden:
         options:
-            - level1:
-                enabled: harden1
-            - level2:
-                enabled: harden2
-        default: level2
+            - lvl1:
+                enabled: harden-lvl1
+            - lvl2:
+                enabled: harden-lvl2
+        default: lvl2
 
     # Enable optimisation per given levels
     - optimize:
         options:
+            - fast:
+                enabled: optimize-fast
+            - generic:
+                enabled: optimize-generic
             - size:
                 enabled:
+                    - optimize-size
                     - sections
-                    - size
             - speed:
-                enabled: speed
-            - generic:
-                enabled: generic
+                enabled: optimize-speed
         default: generic
 
     # Enable LTO
     - lto:
         options:
             - full:
-                enabled: lto
+                enabled: lto-full
             - thin:
-                enabled: thinlto
+                enabled: lto-thin
         default: full
 
     # Enable ICF
     - icf:
         options:
             - safe:
-                enabled: icf
+                enabled: icf-safe
             - all:
-                enabled: icfall
+                enabled: icf-all
         default: safe
 
     # Enable Polly
@@ -155,9 +157,9 @@ tuning              :
     - asneeded:
         enabled: asneeded
 
-    # Enable vectorwidth
-    - vectorwidth:
-        enabled: vectorwidth
+    # Enable avxwidth
+    - avxwidth:
+        enabled: avxwidth-128
 
     # Enable instantiate
     - instantiate:
@@ -167,10 +169,10 @@ tuning              :
     - visibility:
         options:
             - inline:
-                enabled: visinline
+                enabled: visibility-inline
             - hidden:
-                enabled: vishidden
-        default: visinline
+                enabled: visibility-hidden
+        default: inline
 
 flags               :
 
@@ -203,11 +205,11 @@ flags               :
         ld        : "-Wl,-Bsymbolic-functions"
 
     # Hardening (ON harden2)
-    - harden1:
+    - harden-lvl1:
         c         : "-fstack-protector --param ssp-buffer-size=32"
         cxx       : "-fstack-protector --param ssp-buffer-size=32"
 
-    - harden2:
+    - harden-lvl2:
         c         : "-fstack-protector-strong -fstack-clash-protection -fpie --param ssp-buffer-size=4"
         cxx       : "-fstack-protector-strong -fstack-clash-protection -fpie --param ssp-buffer-size=4"
         ld        : "-fpie"
@@ -217,8 +219,18 @@ flags               :
         c     : "-ffunction-sections -fdata-sections"
         cxx   : "-ffunction-sections -fdata-sections"
 
+    # Optimize without care for math issues
+    - optimize-fast:
+        c         : "-Ofast"
+        cxx       : "-Ofast"
+
+    # Generic optimisation case
+    - optimize-generic:
+        c         : "-O2"
+        cxx       : "-O2"
+
     # Optimize for size (OFF)
-    - size:
+    - optimize-size:
         llvm:
             c     : "-Oz"
             cxx   : "-Oz"
@@ -227,37 +239,32 @@ flags               :
             cxx   : "-Os"
 
     # Optimize for speed (OFF)
-    - speed:
+    - optimize-speed:
         c         : "-O3"
         cxx       : "-O3"
 
-    # Generic optimisation case
-    - generic:
-        c         : "-O2"
-        cxx       : "-O2"
-
     # Enable LTO optimisations (OFF)
-    - lto:
+    - lto-full:
         c         : "-flto"
         cxx       : "-flto"
         ld        : "-flto"
 
     # Enable Thin-LTO optimisations (OFF)
-    - thinlto:
+    - lto-thin:
         llvm:
             c         : "-flto=thin"
             cxx       : "-flto=thin"
             ld        : "-flto=thin"
 
-    # Enable LLVM ICF optimisations (OFF)
-    - icf:
-        llvm:
-            ld    : "-Wl,--icf=safe"
-
     # Enable ALL LLVM ICF optimisations (OFF)
-    - icfall:
+    - icf-all:
         llvm:
             ld    : "-Wl,--icf=all"
+
+    # Enable LLVM ICF optimisations (OFF)
+    - icf-safe:
+        llvm:
+            ld    : "-Wl,--icf=safe"
 
     # Enable LLVM polly optimisations (OFF)
     - polly:
@@ -291,7 +298,7 @@ flags               :
         cxx       : "-fno-semantic-interposition"
 
     # Prefer 128-bit vector width (ON)
-    - vectorwidth:
+    - avxwidth-128:
         c         : "-mprefer-vector-width=128"
         cxx       : "-mprefer-vector-width=128"
 
@@ -308,13 +315,14 @@ flags               :
     - runpath:
         ld        : "-Wl,--enable-new-dtags"
 
-    # Toggle visibility values (OFF)
-    - visinline:
-        cxx        : "-fvisibility-inlines-hidden"
-
-    - vishidden:
+    # Toggle visibility hidden (OFF)
+    - visibility-hidden:
         c          : "-fvisibility=hidden"
-        cxx        : "-fvisibility=hidden"
+        cxx        : "-fvisibility-inlines-hidden -fvisibility=hidden"
+
+    # Toggle visibility inlines hidden (OFF)
+    - visibility-inline:
+        cxx        : "-fvisibility-inlines-hidden"
 
 # Template packages
 packages          :
