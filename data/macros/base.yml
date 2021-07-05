@@ -349,10 +349,11 @@ packages          :
         paths:
             - /usr/include
             - /usr/lib/*.a
+            - /usr/lib/cmake
             - /usr/lib/lib*.so
             - /usr/lib/pkgconfig
-            - /usr/share/pkgconfig
             - /usr/share/aclocal
+            - /usr/share/pkgconfig
 
     # Main dbginfo package
     - "%(name)-dbginfo":
@@ -381,6 +382,7 @@ packages          :
             the 32-bit version of %(name), %(name)-32bit.
         paths:
             - /usr/lib32/*.a
+            - /usr/lib32/cmake
             - /usr/lib32/lib*.so
             - /usr/lib32/pkgconfig
 
