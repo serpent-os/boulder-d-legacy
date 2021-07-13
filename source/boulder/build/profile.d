@@ -384,7 +384,7 @@ private:
             }
         }
 
-        /* Help fixup flag mappings */
+        /* Help fix up flag mappings */
         pragma(inline, true) string fixupFlags(T)(T inp)
         {
             return inp.map!((f) => f.strip)

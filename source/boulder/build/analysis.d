@@ -84,7 +84,7 @@ package:
     }
 
     /**
-     * Return the underlying filetype
+     * Return the underlying file type
      */
     pure FileType type() @safe @nogc nothrow
     {
