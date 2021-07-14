@@ -54,7 +54,7 @@ package struct FileOrigin
 package struct CollectionRule
 {
     /**
-     * A glob style pattern to match againt
+     * A glob style pattern to match against
      */
     string pattern = null;
 

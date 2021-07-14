@@ -46,7 +46,7 @@ public struct BuildCommand
     alias pt this;
 
     /**
-     * Main enty point into the BuildCommand. We expect a list of paths that
+     * Main entry point into the BuildCommand. We expect a list of paths that
      * contain "stone.yml" formatted build description files. For each path
      * we encounter, we initially check the validity and existence.
      *
