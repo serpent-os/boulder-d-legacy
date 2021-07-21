@@ -10,7 +10,22 @@ actions:
         rm %(pgo_dir)/combined.profdata
         llvm-profdata merge -output=%(pgo_dir)/combined.profdata %(pgo_dir)/ir.profdata %(pgo_dir)/CS/default*.profraw
 
-tuning:
+tuning              :
+    # A set of groups we can toggle from the "tune" key
+
+    # Enable pgostage1
+    - pgostage1:
+        enabled: pgostage1
+
+    # Enable pgostage2
+    - pgostage2:
+        enabled: pgostage2
+
+    # Enable pgofinal
+    - pgofinal:
+        enabled: pgofinal
+
+flags               :
     # PGO flag options
 
     # PGO stage1 flags for ProfileStage1 (workload builds only)
@@ -31,7 +46,7 @@ tuning:
             cxx       : "-fprofile-use=%(pgo_dir)/ir.profdata -fcs-profile-generate=%(pgo_dir)/CS"
             ld        : "-fprofile-use=%(pgo_dir)/ir.profdata -fcs-profile-generate=%(pgo_dir)/CS"
 
-    # PGO final flags for ProfileUse(workload builds only)
+    # PGO final flags for ProfileUse (workload builds only)
     - pgofinal:
         llvm:
             c         : "-fprofile-use=%(pgo_dir)/combined.profdata"
