@@ -44,9 +44,10 @@ final class BuildManifestJSON : BuildManifest
     this(const(string) architecture)
     {
         import std.string : format;
+        import std.algorithm : substitute;
 
         /* i.e. manifest.x86_64 */
-        fileName = "manifest.%s.json".format(architecture);
+        fileName = "manifest.%s.json".format(architecture.substitute!("/", "-"));
 
         /* Root values required in the manifest. */
         emissionNodes = [

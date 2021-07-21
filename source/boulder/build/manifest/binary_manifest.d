@@ -44,9 +44,10 @@ final class BuildManifestBinary : BuildManifest
     this(const(string) architecture)
     {
         import std.string : format;
+        import std.algorithm : substitute;
 
         /* i.e. manifest.x86_64 */
-        fileName = "manifest.%s.bin".format(architecture);
+        fileName = "manifest.%s.bin".format(architecture.substitute!("/", "-"));
     }
 
     override void recordPackage(const(string) pkgName, ref FileAnalysis[] fileSet)
