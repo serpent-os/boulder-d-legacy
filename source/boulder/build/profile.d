@@ -531,15 +531,18 @@ private:
         /* Push commands to extract a zip */
         void extractZip(ref UpstreamDefinition u)
         {
-            ret ~= "unzip -d " ~ u.plain.location ~ " \"%(sourcedir)/" ~ u.plain.rename
+            ret ~= "mkdir -p " ~ u.plain.unpackdir ~ "\n";
+            ret ~= "unzip -d \"" ~ u.plain.unpackdir ~ "\" \"%(sourcedir)/" ~ u.plain.rename
                 ~ "\" || (echo \"Failed to extract archive\"; exit 1);";
         }
 
         /* Push commands to extract a tar */
         void extractTar(ref UpstreamDefinition u)
         {
+            ret ~= "mkdir -p " ~ u.plain.unpackdir ~ "\n";
             ret ~= "tar xf \"%(sourcedir)/" ~ u.plain.rename
-                ~ "\" -C " ~ u.plain.location
+                ~ "\" -C \"" ~ u.plain.unpackdir
+                ~ "\" --strip-components=" ~ u.plain.stripdirs
                 ~ " || (echo \"Failed to extract archive\"; exit 1);";
         }
 
