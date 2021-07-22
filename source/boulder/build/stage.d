@@ -47,17 +47,14 @@ enum StageType
     /** Profile Guided Optimisation generation step */
     Workload = 1 << 5,
 
-    /** We need PGO genflags */
-    ProfileGenerate = 1 << 6,
-
-    /** We need to use PGO data */
-    ProfileUse = 1 << 7,
-
     /** Stage1/LLVM PGO generation */
-    ProfileStage1 = 1 << 8,
+    ProfileStage1 = 1 << 6,
 
     /** Stage2/LLVM PGO regeneration */
-    ProfileStage2 = 1 << 9,
+    ProfileStage2 = 1 << 7,
+
+    /** We need to use PGO data */
+    ProfileUse = 1 << 8,
 }
 
 /**
@@ -107,17 +104,17 @@ public:
         }
 
         /* PGO generation */
-        if ((stageType & StageType.ProfileGenerate) == StageType.ProfileGenerate)
+        if ((stageType & StageType.ProfileStage1) == StageType.ProfileStage1)
         {
-            _name ~= "-pgo";
-            if ((stageType & StageType.ProfileStage1) == StageType.ProfileStage2)
-            {
-                _name ~= "-stage1";
-            }
-            else if ((stageType & StageType.ProfileStage2) == StageType.ProfileStage2)
-            {
-                _name ~= "-stage2";
-            }
+            _name ~= "-pgo-stage1";
+        }
+        else if ((stageType & StageType.ProfileStage2) == StageType.ProfileStage2)
+        {
+            _name ~= "-pgo-stage2";
+        }
+        else if ((stageType & StageType.ProfileUse) == StageType.ProfileUse)
+        {
+            _name ~= "-pgo-use";
         }
     }
 

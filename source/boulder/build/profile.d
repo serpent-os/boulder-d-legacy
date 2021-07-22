@@ -74,20 +74,20 @@ public:
         {
             /* Always construct a stage1 */
             stages = [
-                StageType.Prepare | StageType.ProfileGenerate | StageType.ProfileStage1,
-                StageType.Setup | StageType.ProfileGenerate | StageType.ProfileStage1,
-                StageType.Build | StageType.ProfileGenerate | StageType.ProfileStage1,
-                StageType.Workload | StageType.ProfileGenerate | StageType.ProfileStage1,
+                StageType.Prepare | StageType.ProfileStage1,
+                StageType.Setup | StageType.ProfileStage1,
+                StageType.Build | StageType.ProfileStage1,
+                StageType.Workload | StageType.ProfileStage1,
             ];
 
             /* Mulitistage uses + refines */
             if (multiStagePGO)
             {
                 stages ~= [
-                    StageType.Prepare | StageType.ProfileGenerate | StageType.ProfileStage2,
-                    StageType.Setup | StageType.ProfileGenerate | StageType.ProfileStage2,
-                    StageType.Build | StageType.ProfileGenerate | StageType.ProfileStage2,
-                    StageType.Workload | StageType.ProfileGenerate | StageType.ProfileStage2,
+                    StageType.Prepare | StageType.ProfileStage2,
+                    StageType.Setup | StageType.ProfileStage2,
+                    StageType.Build | StageType.ProfileStage2,
+                    StageType.Workload | StageType.ProfileStage2,
                 ];
             }
 
@@ -232,7 +232,7 @@ public:
             auto scripted = builder.process(e.script).replace("%%", "%");
 
             /* Ensure PGO dirs are present if needed */
-            if ((e.type & StageType.ProfileGenerate) == StageType.ProfileGenerate)
+            if ((e.type & StageType.ProfileStage1) == StageType.ProfileStage1)
             {
                 import std.file : mkdirRecurse;
 
