@@ -531,7 +531,7 @@ private:
         /* Push commands to extract a zip */
         void extractZip(ref UpstreamDefinition u)
         {
-            ret ~= "unzip -d . \"%(sourcedir)/" ~ u.plain.rename
+            ret ~= "unzip -d " ~ u.plain.location ~ " \"%(sourcedir)/" ~ u.plain.rename
                 ~ "\" || (echo \"Failed to extract archive\"; exit 1);";
         }
 
@@ -539,7 +539,8 @@ private:
         void extractTar(ref UpstreamDefinition u)
         {
             ret ~= "tar xf \"%(sourcedir)/" ~ u.plain.rename
-                ~ "\" -C . || (echo \"Failed to extract archive\"; exit 1);";
+                ~ "\" -C " ~ u.plain.location
+                ~ " || (echo \"Failed to extract archive\"; exit 1);";
         }
 
         foreach (source; buildContext.spec.upstreams)
