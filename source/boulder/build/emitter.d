@@ -172,11 +172,14 @@ private:
         /* Prepare file list for consumption + emission */
         fileSet.sort!((a, b) => a.path < b.path);
 
-        /* Unique file origins for package emission */
-        auto uniqueFiles = fileSet.filter!((ref m) => m.type == FileType.Regular)
-            .map!((ref m) => col.originForFile(m))
+        /**
+         * Unique file origins for package emission, this first filters and converts
+         * the regular files before sorting unique hashes into uniqueFiles
+         */
+        auto regularFiles = fileSet.filter!((ref m) => m.type == FileType.Regular)
+            .map!((ref m) => col.originForFile(m))().array;
+        auto uniqueFiles = regularFiles.sort!((a, b) => a.hash < b.hash)
             .uniq!("a.hash == b.hash")().array;
-        uniqueFiles.sort!((a, b) => a.hash < b.hash);
 
         /**
          * Insert a LayoutEntry to the payload
