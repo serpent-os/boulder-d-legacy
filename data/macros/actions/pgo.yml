@@ -21,9 +21,9 @@ tuning              :
     - pgostage2:
         enabled: pgostage2
 
-    # Enable pgofinal
-    - pgofinal:
-        enabled: pgofinal
+    # Enable pgouse
+    - pgouse:
+        enabled: pgouse
 
 flags               :
     # PGO flag options
@@ -47,7 +47,7 @@ flags               :
             ld        : "-fprofile-use=%(pgo_dir)/ir.profdata -fcs-profile-generate=%(pgo_dir)/CS"
 
     # PGO final flags for ProfileUse (workload builds only)
-    - pgofinal:
+    - pgouse:
         llvm:
             c         : "-fprofile-use=%(pgo_dir)/combined.profdata"
             cxx       : "-fprofile-use=%(pgo_dir)/combined.profdata"
