@@ -354,7 +354,7 @@ private:
             ? Toolchain.LLVM : Toolchain.GNU;
 
         /* Enable basic cflags always */
-        sbuilder.enableGroup("base");
+        sbuilder.enableGroup("architecture");
 
         /* Take all tuning selections */
         foreach (ref t; buildContext.spec.options.tuneSelections)
@@ -374,7 +374,7 @@ private:
         }
 
         /* Always pick defaults for optimize, harden + bindnow */
-        auto wanted = ["optimize", "harden", "bindnow"];
+        auto wanted = ["base", "optimize", "avxwidth", "harden", "asneeded", "bindnow"];
 
         foreach (w; wanted)
         {

@@ -62,10 +62,14 @@ actions              :
 tuning              :
     # A set of groups we can toggle from the "tune" key
 
-    # Root flags set up architecture + core flags, should always be enabled
-    - base:
+    # Architecture flags should always be enabled
+    - architecture:
         enabled:
             - architecture
+
+    # Base flags should almost always be enabled, but want to be able to disable
+    - base:
+        enabled:
             - base
 
     - debug:
