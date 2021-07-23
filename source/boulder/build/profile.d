@@ -246,6 +246,11 @@ public:
             {
                 preparedFS = true;
             }
+            else if ((e.type & StageType.Workload) == StageType.Workload)
+            {
+                /* Want to regenerate the working directory after each pgo stage */
+                preparedFS = false;
+            }
         }
     }
 
