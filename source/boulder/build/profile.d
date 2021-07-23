@@ -492,8 +492,6 @@ private:
     {
         import std.string : startsWith;
 
-        string script = null;
-
         /* Default to root namespace */
         BuildDefinition buildDef = buildContext.spec.rootBuild;
 
@@ -507,26 +505,29 @@ private:
             buildDef = buildContext.spec.profileBuilds["emul32"];
         }
 
+        /* Start stage script with the environment output */
+        string script = buildDef.environment();
+
         /* Check core type of stage */
         if ((t & StageType.Setup) == StageType.Setup)
         {
-            script = buildDef.setup();
+            script ~= buildDef.setup();
         }
         else if ((t & StageType.Build) == StageType.Build)
         {
-            script = buildDef.build();
+            script ~= buildDef.build();
         }
         else if ((t & StageType.Install) == StageType.Install)
         {
-            script = buildDef.install();
+            script ~= buildDef.install();
         }
         else if ((t & StageType.Check) == StageType.Check)
         {
-            script = buildDef.check();
+            script ~= buildDef.check();
         }
         else if ((t & StageType.Workload) == StageType.Workload)
         {
-            script = buildDef.workload();
+            script ~= buildDef.workload();
             /* If workload is run with llvm toolchain, we need to merge the profile data */
             if (buildContext.spec.options.toolchain == "llvm")
             {
