@@ -519,6 +519,7 @@ private:
         else if ((t & StageType.Workload) == StageType.Workload)
         {
             script = buildDef.workload();
+            /* If workload is run with llvm toolchain, we need to merge the profile data */
             if (buildContext.spec.options.toolchain == "llvm")
             {
                 if ((t & StageType.ProfileStage1) == StageType.ProfileStage1)
