@@ -212,43 +212,51 @@ public:
     void build()
     {
         import std.array : replace;
-        import std.file : mkdirRecurse;
+        import std.file : exists, mkdirRecurse, rmdirRecurse;
 
         bool preparedFS = false;
 
         foreach (ref e; stages)
         {
             string workdir = buildRoot;
+            /* Prepare the buildRoot FS if it hasn't been already */
             if (preparedFS)
             {
                 workdir = getWorkDir();
+            }
+            else
+            {
+                /**
+                 * If directory already exists, nuke it and start fresh.
+                 * This is to refresh the build files for PGO builds after each stage.
+                 */
+                if (buildRoot.exists())
+                {
+                    buildRoot.rmdirRecurse();
+                }
+                buildRoot.mkdirRecurse();
+
+                /* Ensure PGO dirs are present if needed */
+                if ((e.type & StageType.ProfileStage1) == StageType.ProfileStage1)
+                {
+                    pgoDir.mkdirRecurse();
+                }
+
+                /* FS has now been prepared */
+                preparedFS = true;
             }
 
             /* Prepare the rootfs now */
             auto builder = ScriptBuilder();
             prepareScripts(e, builder, workdir);
-            buildRoot.mkdirRecurse();
 
             auto scripted = builder.process(e.script).replace("%%", "%");
 
-            /* Ensure PGO dirs are present if needed */
-            if ((e.type & StageType.ProfileStage1) == StageType.ProfileStage1)
-            {
-                import std.file : mkdirRecurse;
-
-                pgoDir.mkdirRecurse();
-            }
-
             runStage(e, workdir, scripted);
 
-            /* Did we prepare the fs for building? */
-            if ((e.type & StageType.Prepare) == StageType.Prepare)
+            /* Want to regenerate the working directory after each pgo stage */
+            if ((e.type & StageType.Workload) == StageType.Workload)
             {
-                preparedFS = true;
-            }
-            else if ((e.type & StageType.Workload) == StageType.Workload)
-            {
-                /* Want to regenerate the working directory after each pgo stage */
                 preparedFS = false;
             }
         }
