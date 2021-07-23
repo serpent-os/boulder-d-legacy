@@ -519,6 +519,17 @@ private:
         else if ((t & StageType.Workload) == StageType.Workload)
         {
             script = buildDef.workload();
+            if (buildContext.spec.options.toolchain == "llvm")
+            {
+                if ((t & StageType.ProfileStage1) == StageType.ProfileStage1)
+                {
+                    script ~= "%llvm_merge_s1";
+                }
+                else if ((t & StageType.ProfileStage2) == StageType.ProfileStage2)
+                {
+                    script ~= "%llvm_merge_s2";
+                }
+            }
         }
         else if ((t & StageType.Prepare) == StageType.Prepare)
         {
