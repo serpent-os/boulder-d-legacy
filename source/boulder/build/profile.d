@@ -226,7 +226,7 @@ public:
 
             /* Prepare the rootfs now */
             auto builder = ScriptBuilder();
-            prepareScripts(builder, workdir);
+            prepareScripts(e, builder, workdir);
             buildRoot.mkdirRecurse();
 
             auto scripted = builder.process(e.script).replace("%%", "%");
@@ -257,7 +257,7 @@ public:
         foreach (ref e; stages)
         {
             ScriptBuilder builder;
-            prepareScripts(builder, buildRoot);
+            prepareScripts(e, builder, buildRoot);
 
             /* Throw script away, just ensure it can build */
             const auto scripted = builder.process(e.script);
@@ -267,7 +267,7 @@ public:
     /**
      * Prepare a script builder for use
      */
-    void prepareScripts(ref ScriptBuilder sbuilder, string workDir)
+    void prepareScripts(ExecutionStage* stage, ref ScriptBuilder sbuilder, string workDir)
     {
         sbuilder.addDefinition("installroot", installRoot);
         sbuilder.addDefinition("buildroot", buildRoot);
@@ -304,7 +304,7 @@ public:
         /* Load system macros */
         buildContext.prepareScripts(sbuilder, architecture);
 
-        bakeFlags(sbuilder);
+        bakeFlags(stage, sbuilder);
 
         /* Fully cooked */
         sbuilder.bake();
@@ -341,7 +341,7 @@ private:
      * Specialist function to work with the ScriptBuilder in enabling a sane
      * set of build flags
      */
-    void bakeFlags(ref ScriptBuilder sbuilder) @safe
+    void bakeFlags(ExecutionStage* stage, ref ScriptBuilder sbuilder) @safe
     {
         import moss.format.source.tuning_flag : TuningFlag, Toolchain;
         import std.array : join;
@@ -373,7 +373,7 @@ private:
             }
         }
 
-        /* Always pick defaults for optimize, harden + bindnow */
+        /* Enable these tuning groups by default */
         auto wanted = ["base", "optimize", "avxwidth", "harden", "asneeded", "bindnow"];
 
         foreach (w; wanted)
@@ -381,6 +381,23 @@ private:
             if (!buildContext.spec.options.hasTuningSelection(w))
             {
                 sbuilder.enableGroup(w);
+            }
+        }
+
+        /* Enable PGO flags at correct stages of build */
+        if (hasPGOWorkload)
+        {
+            if ((stage.type & StageType.ProfileStage1) == StageType.ProfileStage1)
+            {
+                sbuilder.enableGroup("pgostage1");
+            }
+            else if ((stage.type & StageType.ProfileStage2) == StageType.ProfileStage2)
+            {
+                sbuilder.enableGroup("pgostage2");
+            }
+            else if ((stage.type & StageType.ProfileUse) == StageType.ProfileUse)
+            {
+                sbuilder.enableGroup("pgouse");
             }
         }
 
