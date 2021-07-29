@@ -13,6 +13,10 @@ actions:
 tuning              :
     # A set of groups we can toggle from the "tune" key
 
+    # Enable pgosample
+    - pgosample:
+        enabled: pgosample
+
     # Enable pgostage1
     - pgostage1:
         enabled: pgostage1
@@ -27,6 +31,17 @@ tuning              :
 
 flags               :
     # PGO flag options
+
+    # PGO sample flags for when workload is not comprehensive (workload builds only)
+    - pgosample:
+        llvm:
+            c         : "-fno-profile-sample-accurate"
+            cxx       : "-fno-profile-sample-accurate"
+            ld        : "-fno-profile-sample-accurate"
+        gnu:
+            c         : "-fprofile-partial-training"
+            cxx       : "-fprofile-partial-training"
+            ld        : "-fprofile-partial-training"
 
     # PGO stage1 flags for ProfileStage1 (workload builds only)
     - pgostage1:
