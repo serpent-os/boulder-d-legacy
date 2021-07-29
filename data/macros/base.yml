@@ -96,7 +96,7 @@ tuning              :
                 enabled: harden-lvl1
             - lvl2:
                 enabled: harden-lvl2
-        default: lvl2
+        default: lvl1
 
     # Enable optimisation per given levels
     - optimize:
