@@ -411,6 +411,10 @@ private:
             else if ((stage.type & StageType.ProfileUse) == StageType.ProfileUse)
             {
                 sbuilder.enableGroup("pgouse");
+                if (buildContext.spec.options.samplepgo == true)
+                {
+                    sbuilder.enableGroup("pgosample");
+                }
             }
         }
 
