@@ -387,7 +387,9 @@ private:
         }
 
         /* Enable these tuning groups by default */
-        auto wanted = ["base", "optimize", "avxwidth", "harden", "asneeded", "bindnow"];
+        auto wanted = [
+            "base", "optimize", "avxwidth", "harden", "asneeded", "bindnow"
+        ];
 
         foreach (w; wanted)
         {
@@ -579,18 +581,16 @@ private:
         void extractZip(ref UpstreamDefinition u)
         {
             ret ~= "mkdir -p " ~ u.plain.unpackdir ~ "\n";
-            ret ~= "unzip -d \"" ~ u.plain.unpackdir ~ "\" \"%(sourcedir)/" ~ u.plain.rename
-                ~ "\" || (echo \"Failed to extract archive\"; exit 1);";
+            ret ~= "unzip -d \"" ~ u.plain.unpackdir ~ "\" \"%(sourcedir)/"
+                ~ u.plain.rename ~ "\" || (echo \"Failed to extract archive\"; exit 1);";
         }
 
         /* Push commands to extract a tar */
         void extractTar(ref UpstreamDefinition u)
         {
             ret ~= "mkdir -p " ~ u.plain.unpackdir ~ "\n";
-            ret ~= "tar xf \"%(sourcedir)/" ~ u.plain.rename
-                ~ "\" -C \"" ~ u.plain.unpackdir
-                ~ "\" --strip-components=" ~ u.plain.stripdirs
-                ~ " || (echo \"Failed to extract archive\"; exit 1);";
+            ret ~= "tar xf \"%(sourcedir)/" ~ u.plain.rename ~ "\" -C \"" ~ u.plain.unpackdir ~ "\" --strip-components="
+                ~ u.plain.stripdirs ~ " || (echo \"Failed to extract archive\"; exit 1);";
         }
 
         foreach (source; buildContext.spec.upstreams)
