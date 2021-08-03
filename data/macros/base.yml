@@ -91,6 +91,10 @@ tuning              :
     - symbolic:
         enabled: symbolic
 
+    # Enable fortify
+    - fortify:
+        enabled: fortify
+
     # Enable hardening
     - harden:
         options:
@@ -190,8 +194,8 @@ flags               :
 
     # Base flags, enabled by default
     - base:
-        c         : "-pipe -D_FORTIFY_SOURCE=2 -Wall -Wno-error -fPIC"
-        cxx       : "-pipe -D_FORTIFY_SOURCE=2 -Wall -Wno-error -fPIC"
+        c         : "-pipe -Wformat -Wformat-security -Wno-error -fPIC"
+        cxx       : "-pipe -Wformat -Wformat-security -Wno-error -fPIC"
         ld        : "-Wl,-O2,-z,max-page-size=0x1000,--sort-common,--gc-sections -fPIC"
 
     - omit-frame-pointer:
@@ -209,6 +213,11 @@ flags               :
     # Toggle symbolic (OFF)
     - symbolic:
         ld        : "-Wl,-Bsymbolic-functions"
+
+    # Toggle fortify (ON)
+    - fortify:
+        c         : "-D_FORTIFY_SOURCE=2"
+        cxx       : "-D_FORTIFY_SOURCE=2"
 
     # Hardening (ON harden2)
     - harden-lvl1:
