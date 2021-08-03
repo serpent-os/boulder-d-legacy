@@ -190,8 +190,8 @@ flags               :
 
     # Base flags, enabled by default
     - base:
-        c         : "-pipe -D_FORTIFY_SOURCE=2 -Wall -Wno-error -Wp,-D_REENTRANT -fPIC"
-        cxx       : "-pipe -D_FORTIFY_SOURCE=2 -Wall -Wno-error -Wp,-D_REENTRANT -fPIC"
+        c         : "-pipe -D_FORTIFY_SOURCE=2 -Wall -Wno-error -fPIC"
+        cxx       : "-pipe -D_FORTIFY_SOURCE=2 -Wall -Wno-error -fPIC"
         ld        : "-Wl,-O2,-z,max-page-size=0x1000,--sort-common,--gc-sections -fPIC"
 
     - omit-frame-pointer:
