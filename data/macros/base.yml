@@ -216,9 +216,9 @@ flags               :
         cxx       : "-fstack-protector --param ssp-buffer-size=32"
 
     - harden-lvl2:
-        c         : "-fstack-protector-strong -fstack-clash-protection -fpie --param ssp-buffer-size=4"
-        cxx       : "-fstack-protector-strong -fstack-clash-protection -fpie --param ssp-buffer-size=4"
-        ld        : "-fpie"
+        c         : "-fstack-protector-strong -fstack-clash-protection -fPIE --param ssp-buffer-size=4"
+        cxx       : "-fstack-protector-strong -fstack-clash-protection -fPIE --param ssp-buffer-size=4"
+        ld        : "-Wl,-pie"
 
     # Optimize for section splitting (OFF)
     - sections:
