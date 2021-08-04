@@ -388,7 +388,8 @@ private:
 
         /* Enable these tuning groups by default */
         auto wanted = [
-            "base", "fortify", "optimize", "avxwidth", "harden", "asneeded", "bindnow"
+            "base", "fortify", "optimize", "avxwidth", "harden", "asneeded",
+            "bindnow"
         ];
 
         foreach (w; wanted)
