@@ -1,0 +1,5 @@
+actions:
+
+    # Patch sources from file (use: '%patch ${file}'; Add -p# at end if needed
+    - patch: |
+        patch -E -f -p1 -i
