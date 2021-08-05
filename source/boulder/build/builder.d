@@ -94,6 +94,7 @@ public:
         prepareRoot();
         validateProfiles();
         prepareSources();
+        preparePkgFiles();
         buildProfiles();
         collectAssets();
         emitPackages();
@@ -192,6 +193,16 @@ private:
         }
 
         mkdirRecurse(buildContext.rootDir);
+    }
+
+    /**
+     * Prepare and fetch any required sources
+     */
+    void preparePkgFiles() @system
+    {
+        import std.file : mkdirRecurse;
+
+        buildContext.pkgDir.mkdirRecurse();
     }
 
     /**

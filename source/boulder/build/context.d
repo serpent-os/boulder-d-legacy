@@ -92,6 +92,16 @@ public final class BuildContext
     }
 
     /**
+     * Return the package file directory
+     */
+    pure @property string pkgDir() const @safe nothrow
+    {
+        import std.path : buildPath;
+
+        return _rootDir.buildPath("pkgdir");
+    }
+
+    /**
      * Return the source directory
      */
     pure @property string sourceDir() const @safe nothrow
@@ -169,6 +179,7 @@ public final class BuildContext
         sbuilder.addDefinition("version", spec.source.versionIdentifier);
         sbuilder.addDefinition("release", to!string(spec.source.release));
         sbuilder.addDefinition("jobs", to!string(jobs));
+        sbuilder.addDefinition("pkgdir", pkgDir);
         sbuilder.addDefinition("sourcedir", sourceDir);
 
         foreach (ref arch; arches)
