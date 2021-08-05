@@ -196,13 +196,35 @@ private:
     }
 
     /**
-     * Prepare and fetch any required sources
+     * Copy all package files to pkgDir
      */
     void preparePkgFiles() @system
     {
-        import std.file : mkdirRecurse;
+        import std.array : array;
+        import std.file : copy, dirEntries, exists, isDir, mkdirRecurse, SpanMode;
+        import std.path : asRelativePath, buildPath;
 
+        /* Create directory for the package files*/
         buildContext.pkgDir.mkdirRecurse();
+
+        /* Copy the files directory into the build */
+        auto location = buildContext.specDir.buildPath("files");
+        if (location.exists && location.isDir)
+        {
+            foreach (file; dirEntries(location, SpanMode.breadth, false))
+            {
+                auto relName = asRelativePath(file.name, location).array;
+                auto destName = buildPath(buildContext.pkgDir, relName);
+                if (file.isDir())
+                {
+                    destName.mkdirRecurse();
+                }
+                else
+                {
+                    copy(file.name, destName);
+                }
+            }
+        }
     }
 
     /**
