@@ -142,6 +142,13 @@ private:
         met.addRecord(RecordTag.Summary, pkg.pd.summary);
         met.addRecord(RecordTag.Description, pkg.pd.description);
         met.addRecord(RecordTag.Homepage, pkg.source.homepage);
+
+        /* TODO: Be more flexible encoding architecture. */
+        import moss.core.platform : platform;
+
+        auto plat = platform();
+        met.addRecord(RecordTag.Architecture, plat.name);
+
         pkg.source.license.uniq.each!((l) => met.addRecord(RecordTag.License, l));
 
         writer.addPayload(met);
