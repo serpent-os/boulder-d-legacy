@@ -28,7 +28,6 @@ definitions:
 
     # Default configuration options as passed to configure
     - options_configure: |
-        --exec-prefix="%(prefix)" \
         --prefix="%(prefix)" \
         --bindir="%(bindir)" \
         --sbindir="%(sbindir)" \
