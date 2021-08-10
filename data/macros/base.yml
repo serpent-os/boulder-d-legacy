@@ -13,6 +13,7 @@ definitions:
     - infodir        : "%(datadir)/info"
     - mandir         : "%(datadir)/man"
     - docdir         : "%(datadir)/doc"
+    - vendordir      : "%(datadir)/defaults/etc"
     - localstatedir  : "/var"
     - sharedstatedir : "%(localstatedir)/lib"
     - runstatedir    : "/run"
