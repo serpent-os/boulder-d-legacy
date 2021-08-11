@@ -208,7 +208,7 @@ private:
         buildContext.pkgDir.mkdirRecurse();
 
         /* Copy the files directory into the build */
-        auto location = buildContext.specDir.buildPath("files");
+        auto location = buildContext.specDir.buildPath("pkg");
         if (location.exists && location.isDir)
         {
             foreach (file; dirEntries(location, SpanMode.breadth, false))
