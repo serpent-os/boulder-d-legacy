@@ -14,6 +14,8 @@ definitions:
     - mandir         : "%(datadir)/man"
     - docdir         : "%(datadir)/doc"
     - vendordir      : "%(datadir)/defaults/etc"
+    - tmpfilesdir    : "%(prefix)/lib/tmpfiles.d"
+    - sysusersdir    : "%(prefix)/lib/sysusers.d"
     - localstatedir  : "/var"
     - sharedstatedir : "%(localstatedir)/lib"
     - runstatedir    : "/run"
