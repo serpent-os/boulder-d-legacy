@@ -92,7 +92,14 @@ tuning              :
 
     # Enable symbolic
     - symbolic:
-        enabled: symbolic
+        options:
+            - all:
+                enabled: symbolic-all
+            - functions:
+                enabled: symbolic-functions
+            - nonweak:
+                enabled: symbolic-nonweak
+        default: functions
 
     # Enable fortify
     - fortify:
@@ -214,8 +221,15 @@ flags               :
         ld        : "-Wl,-z,relro,-z,now"
 
     # Toggle symbolic (OFF)
-    - symbolic:
+    - symbolic-all:
+        ld        : "-Wl,-Bsymbolic"
+
+    - symbolic-functions:
         ld        : "-Wl,-Bsymbolic-functions"
+
+    - symbolic-nonweak:
+        llvm:
+            ld        : "-Wl,-Bsymbolic-non-weak-functions"
 
     # Toggle fortify (ON)
     - fortify:
