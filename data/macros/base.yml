@@ -181,9 +181,9 @@ tuning              :
     - avxwidth:
         enabled: avxwidth-128
 
-    # Enable instantiate
-    - instantiate:
-        enabled: instantiate
+    # Enable pch-instantiate
+    - pch-instantiate:
+        enabled: pch-instantiate
 
     # Enable visibility
     - visibility:
@@ -340,7 +340,7 @@ flags               :
         cxx       : "-mprefer-vector-width=128"
 
     # Toggle -fpch-instantiate-templates (OFF)
-    - instantiate:
+    - pch-instantiate:
         c         : "-fpch-instantiate-templates"
         cxx       : "-fpch-instantiate-templates"
 
