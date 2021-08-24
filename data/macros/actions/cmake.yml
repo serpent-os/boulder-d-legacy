@@ -26,6 +26,6 @@ definitions:
         -DCMAKE_CFLAGS="%(cflags)" \
         -DCMAKE_CXX_FLAGS="%(cxxflags)" \
         -DCMAKE_LD_FLAGS="%(ldflags)" \
-        -DCMAKE_BUILD_TYPE="RelWithDebInfo" \
+        -DCMAKE_BUILD_TYPE="Release" \
         -DCMAKE_INSTALL_PREFIX="%(prefix)" \
         -DCMAKE_LIB_SUFFIX="%(libsuffix)"
