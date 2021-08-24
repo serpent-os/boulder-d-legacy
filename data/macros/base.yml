@@ -185,6 +185,10 @@ tuning              :
     - avxwidth:
         enabled: avxwidth-128
 
+    # Enable bolt
+    - bolt:
+        enabled: bolt
+
     # Enable runpath
     - runpath:
         enabled: runpath
@@ -320,6 +324,15 @@ flags               :
         llvm:
             c     : "-mllvm -polly"
             cxx   : "-mllvm -polly"
+
+    # Toggle options you want to use with llvm-bolt (OFF)
+    - bolt:
+        gnu:
+            c         : "-fno-reorder-blocks-and-partition​"
+            cxx       : "-fno-reorder-blocks-and-partition​"
+            ld        : "-Wl,-q"
+        llvm:
+            ld        : "-Wl,-q"
 
     # Toggle -fcommon (OFF)
     - common:
