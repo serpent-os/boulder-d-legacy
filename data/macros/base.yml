@@ -78,8 +78,12 @@ tuning              :
             - base
 
     - debug:
-        enabled:
-            - debug
+        options:
+            - lines:
+                enabled: debug-lines
+            - std:
+                enabled: debug-std
+        default: std
 
     # Toggle frame-pointer
     - frame-pointer:
@@ -314,8 +318,14 @@ flags               :
         c         : "-fcommon"
         cxx       : "-fcommon"
 
-    # Toggle debug optimisations (ON)
-    - debug:
+    # Toggle debug-lines optimisations
+    - debug-lines:
+        llvm:
+            c         : "-gline-tables-only -feliminate-unused-debug-types -fasynchronous-unwind-tables"
+            cxx       : "-gline-tables-only -feliminate-unused-debug-types -fasynchronous-unwind-tables"
+
+    # Toggle debug-std optimisations (ON)
+    - debug-std:
         c         : "-g -feliminate-unused-debug-types -fasynchronous-unwind-tables"
         cxx       : "-g -feliminate-unused-debug-types -fasynchronous-unwind-tables"
 
