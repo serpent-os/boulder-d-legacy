@@ -185,6 +185,14 @@ tuning              :
     - avxwidth:
         enabled: avxwidth-128
 
+    # Enable runpath
+    - runpath:
+        enabled: runpath
+
+    # Enable sse2avx
+    - sse2avx:
+        enabled: sse2avx
+
     # Enable pch-instantiate
     - pch-instantiate:
         enabled: pch-instantiate
@@ -361,6 +369,11 @@ flags               :
     # Toggle runpath (OFF)
     - runpath:
         ld        : "-Wl,--enable-new-dtags"
+
+    # Toggle sse2avx (OFF)
+    - sse2avx:
+        c         : "-msse2avx"
+        cxx       : "-msse2avx"
 
     # Toggle visibility hidden (OFF)
     - visibility-hidden:
