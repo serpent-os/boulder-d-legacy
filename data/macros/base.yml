@@ -352,8 +352,12 @@ flags               :
 
     # Toggle fast math (OFF)
     - math:
-        c         : "-fno-math-errno -fno-trapping-math -ffp-contract=fast -ffp-model=fast"
-        cxx       : "-fno-math-errno -fno-trapping-math -ffp-contract=fast -ffp-model=fast"
+        gnu:
+            c         : "-fno-math-errno -fno-trapping-math"
+            cxx       : "-fno-math-errno -fno-trapping-math"
+        llvm:
+            c         : "-fno-math-errno -fno-trapping-math -ffp-contract=fast -ffp-model=fast"
+            cxx       : "-fno-math-errno -fno-trapping-math -ffp-contract=fast -ffp-model=fast"
 
     # Toggle noplt, requires bindnow (OFF)
     - noplt:
