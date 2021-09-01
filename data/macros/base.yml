@@ -376,8 +376,9 @@ flags               :
 
     # Toggle -fpch-instantiate-templates (OFF)
     - pch-instantiate:
-        c         : "-fpch-instantiate-templates"
-        cxx       : "-fpch-instantiate-templates"
+        llvm:
+            c         : "-fpch-instantiate-templates"
+            cxx       : "-fpch-instantiate-templates"
 
     # Toggle asneeded (OFF)
     - asneeded:
