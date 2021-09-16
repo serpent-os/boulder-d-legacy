@@ -389,7 +389,7 @@ private:
         /* Enable these tuning groups by default */
         auto wanted = [
             "base", "fortify", "optimize", "avxwidth", "harden", "asneeded",
-            "bindnow"
+            "bindnow", "icf", "symbolic"
         ];
 
         foreach (w; wanted)
