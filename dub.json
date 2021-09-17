@@ -14,6 +14,9 @@
 		},
 		"moss-format": {
 			"path": "external/moss-format"
+		},
+		"moss-jobs": {
+			"path": "external/moss-jobs"
 		}
 	},
 	"buildTypes": {
