@@ -44,6 +44,58 @@ import moss.format.source.spec;
 }
 
 /**
+ * Provide stateful processing for the BuildProcessor allowing it to manage
+ * a job in a reentrant, loop tidy fashion.
+ */
+enum BuildState
+{
+    /**
+     * We have no active work, so we can accept work now.
+     */
+    Idle = 0,
+
+    /**
+     * Preparate the root trees
+     */
+    Prepare,
+
+    /**
+     * Fetching the sources
+     */
+    Fetch,
+
+    /**
+     * Build the package
+     */
+    Build,
+
+    /**
+     * Analyse the contents
+     */
+    Analyse,
+
+    /**
+     * Emit the package
+     */
+    ProducePackages,
+
+    /**
+     * Emit the source build manifest
+     */
+    ProduceManifest,
+
+    /**
+     * Completed successfully
+     */
+    Complete,
+
+    /**
+     * Failed to build for whatever reason
+     */
+    Failed,
+}
+
+/**
  * The  BuildProcessor is responsible for accepting a BuildRequest and processing
  * the entire lifecycle of it
  */
@@ -63,7 +115,12 @@ public final class BuildProcessor : SystemProcessor
      */
     override bool allocateWork()
     {
-        return buildContext.jobSystem.claimJob(job, req);
+        if (state == BuildState.Idle && buildContext.jobSystem.claimJob(job, req))
+        {
+            return true;
+        }
+
+        return state != BuildState.Idle;
     }
 
     /**
@@ -73,7 +130,12 @@ public final class BuildProcessor : SystemProcessor
     {
         import std.stdio : writeln;
 
-        writeln("Processing manifest: ", req.ymlSource, " = ", *req.specFile);
+        writeln(state);
+
+        if (state == BuildState.Build)
+        {
+            writeln("Building: ", *req.specFile);
+        }
     }
 
     /**
@@ -81,11 +143,48 @@ public final class BuildProcessor : SystemProcessor
      */
     override void syncWork()
     {
-        buildContext.jobSystem.finishJob(job.jobID, JobStatus.Failed);
+        final switch (state)
+        {
+            /* Transition to preparation */
+        case BuildState.Idle:
+            state = BuildState.Prepare;
+            break;
+        case BuildState.Prepare:
+            state = BuildState.Fetch;
+            break;
+        case BuildState.Fetch:
+            state = BuildState.Build;
+            break;
+        case BuildState.Build:
+            state = BuildState.Analyse;
+            break;
+        case BuildState.Analyse:
+            state = BuildState.ProducePackages;
+            break;
+        case BuildState.ProducePackages:
+            state = BuildState.ProduceManifest;
+            break;
+        case BuildState.ProduceManifest:
+            state = BuildState.Complete;
+            break;
+        case BuildState.Complete:
+            state = BuildState.Idle;
+            buildContext.jobSystem.finishJob(job.jobID, JobStatus.Completed);
+            break;
+        case BuildState.Failed:
+            state = BuildState.Idle;
+            buildContext.jobSystem.finishJob(job.jobID, JobStatus.Failed);
+            break;
+        }
     }
 
 private:
 
     BuildRequest req;
     JobIDComponent job;
+
+    /**
+     * Current working state
+     */
+    BuildState state = BuildState.Idle;
 }
