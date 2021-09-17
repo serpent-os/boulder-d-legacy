@@ -33,43 +33,34 @@ import moss.core.platform;
  * The Builder is responsible for the full build of a source package
  * and emitting a binary package.
  */
-struct Builder
+final class Builder
 {
 
 public:
-
-    @disable this();
 
     /**
      * Construct a new Builder with the given input file. It must be
      * a stone.yml formatted file and actually be valid.
      */
-    this(string filename)
+    this()
     {
-        auto f = File(filename, "r");
-        auto specFile = new Spec(f);
-        specFile.parse();
-        import std.path : dirName, absolutePath;
-
-        buildContext.spec = specFile;
         buildContext.rootDir = getBuildRoot();
-        buildContext.specDir = filename.dirName.absolutePath;
 
         auto plat = platform();
-
         /* Is emul32 supported for 64-bit OS? */
         if (plat.emul32)
         {
             auto emul32name = "emul32/" ~ plat.name;
-            if (specFile.supportedArchitecture(emul32name)
-                    || specFile.supportedArchitecture("emul32"))
+            if (buildContext.spec.supportedArchitecture(emul32name)
+                    || buildContext.spec.supportedArchitecture("emul32"))
             {
                 addArchitecture(emul32name);
             }
         }
 
         /* Add builds if this is a supported platform */
-        if (specFile.supportedArchitecture(plat.name) || specFile.supportedArchitecture("native"))
+        if (buildContext.spec.supportedArchitecture(plat.name)
+                || buildContext.spec.supportedArchitecture("native"))
         {
             addArchitecture(plat.name);
         }
@@ -84,96 +75,6 @@ public:
     {
         architectures ~= name;
         profiles ~= new BuildProfile(name);
-    }
-
-    /**
-     * Full build cycle
-     */
-    void build()
-    {
-        prepareRoot();
-        validateProfiles();
-        prepareSources();
-        preparePkgFiles();
-        buildProfiles();
-        collectAssets();
-        emitPackages();
-        produceManifests();
-    }
-
-private:
-
-    /**
-     * Load all package definitions in
-     */
-    void preparePackageDefinitions() @system
-    {
-        import std.algorithm : map, each, joiner;
-        import std.array : array;
-
-        string[] arches = ["base"];
-        arches ~= architectures;
-
-        /* Insert core package definitions */
-        arches.map!((a) => buildContext.defFiles[a].packages)
-            .joiner
-            .each!((p) => addDefinition(p));
-
-        /* Insert custom package definitions */
-        inclusionPriority += 1000;
-        addDefinition(buildContext.spec.rootPackage);
-        buildContext.spec.subPackages.values.each!((p) => addDefinition(p));
-
-        /* Fully baked definitions, pass to the emitter */
-        packages.values.each!((p) => emitter.addPackage(buildContext.spec.source, p));
-    }
-
-    /**
-     * Insert a definition to allow matching file paths to a proper
-     * PackageDefinition merged object. This comes from the spec and
-     * our base definitions.
-     */
-    void addDefinition(PackageDefinition pd)
-    {
-        import std.algorithm : each, uniq, sort;
-        import std.range : chain;
-        import std.array : array;
-
-        /* Always insert paths as they're encountered */
-        pd = buildContext.spec.expand(pd);
-        void insertRule(const(string) name)
-        {
-            collector.addRule(name, pd.name, inclusionPriority);
-            ++inclusionPriority;
-        }
-
-        pd.paths.each!((p) => insertRule(p));
-
-        /* Insert new package if needed */
-        if (!(pd.name in packages))
-        {
-            packages[pd.name] = pd;
-            return;
-        }
-
-        /* Merge rules */
-        auto oldPkg = &packages[pd.name];
-        oldPkg.runtimeDependencies = oldPkg.runtimeDependencies.chain(pd.runtimeDependencies)
-            .uniq.array;
-        oldPkg.paths = oldPkg.paths.chain(pd.paths).uniq.array;
-
-        sort(oldPkg.runtimeDependencies);
-        sort(oldPkg.paths);
-
-        /* Merge details */
-        if (oldPkg.summary is null)
-        {
-            oldPkg.summary = pd.summary;
-        }
-        if (oldPkg.description is null)
-        {
-            oldPkg.description = pd.description;
-        }
     }
 
     /**
@@ -326,6 +227,81 @@ private:
 
         profiles.each!((ref p) => p.produceManifest(collector));
 
+    }
+
+private:
+
+    /**
+     * Load all package definitions in
+     */
+    void preparePackageDefinitions() @system
+    {
+        import std.algorithm : map, each, joiner;
+        import std.array : array;
+
+        string[] arches = ["base"];
+        arches ~= architectures;
+
+        /* Insert core package definitions */
+        arches.map!((a) => buildContext.defFiles[a].packages)
+            .joiner
+            .each!((p) => addDefinition(p));
+
+        /* Insert custom package definitions */
+        inclusionPriority += 1000;
+        addDefinition(buildContext.spec.rootPackage);
+        buildContext.spec.subPackages.values.each!((p) => addDefinition(p));
+
+        /* Fully baked definitions, pass to the emitter */
+        packages.values.each!((p) => emitter.addPackage(buildContext.spec.source, p));
+    }
+
+    /**
+     * Insert a definition to allow matching file paths to a proper
+     * PackageDefinition merged object. This comes from the spec and
+     * our base definitions.
+     */
+    void addDefinition(PackageDefinition pd)
+    {
+        import std.algorithm : each, uniq, sort;
+        import std.range : chain;
+        import std.array : array;
+
+        /* Always insert paths as they're encountered */
+        pd = buildContext.spec.expand(pd);
+        void insertRule(const(string) name)
+        {
+            collector.addRule(name, pd.name, inclusionPriority);
+            ++inclusionPriority;
+        }
+
+        pd.paths.each!((p) => insertRule(p));
+
+        /* Insert new package if needed */
+        if (!(pd.name in packages))
+        {
+            packages[pd.name] = pd;
+            return;
+        }
+
+        /* Merge rules */
+        auto oldPkg = &packages[pd.name];
+        oldPkg.runtimeDependencies = oldPkg.runtimeDependencies.chain(pd.runtimeDependencies)
+            .uniq.array;
+        oldPkg.paths = oldPkg.paths.chain(pd.paths).uniq.array;
+
+        sort(oldPkg.runtimeDependencies);
+        sort(oldPkg.paths);
+
+        /* Merge details */
+        if (oldPkg.summary is null)
+        {
+            oldPkg.summary = pd.summary;
+        }
+        if (oldPkg.description is null)
+        {
+            oldPkg.description = pd.description;
+        }
     }
 
     /**

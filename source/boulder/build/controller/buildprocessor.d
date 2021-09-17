@@ -23,8 +23,10 @@
 module boulder.build.controller.buildprocessor;
 
 import moss.jobs;
+import boulder.build.builder;
 import boulder.build.context;
 import moss.format.source.spec;
+import std.path : dirName, absolutePath;
 
 /**
  * A BuildRequest is sent to the BuildController to begin building of a given
@@ -128,13 +130,43 @@ public final class BuildProcessor : SystemProcessor
      */
     override void performWork()
     {
-        import std.stdio : writeln;
+        import std.stdio : writefln;
+        import std.datetime.stopwatch : StopWatch, AutoStart;
 
-        writeln(state);
-
-        if (state == BuildState.Build)
+        /* Report how long function execution takes */
+        auto sw = StopWatch(AutoStart.yes);
+        scope (exit)
         {
-            writeln("Building: ", *req.specFile);
+            sw.stop();
+            if (state != BuildState.Complete && state != BuildState.Failed
+                    && state != BuildState.Idle)
+            {
+                writefln(" ==> 'BuildState.%s' finished [%s]", state, sw.peek);
+            }
+        }
+
+        switch (state)
+        {
+        case BuildState.Prepare:
+            currentBuilder.prepareRoot();
+            /* TODO: Move sources + Pkgfiles to fetch jobs */
+            currentBuilder.prepareSources();
+            currentBuilder.preparePkgFiles();
+            break;
+        case BuildState.Build:
+            currentBuilder.buildProfiles();
+            break;
+        case BuildState.Analyse:
+            currentBuilder.collectAssets();
+            break;
+        case BuildState.ProducePackages:
+            currentBuilder.emitPackages();
+            break;
+        case BuildState.ProduceManifest:
+            currentBuilder.produceManifests();
+            break;
+        default:
+            break;
         }
     }
 
@@ -147,7 +179,11 @@ public final class BuildProcessor : SystemProcessor
         {
             /* Transition to preparation */
         case BuildState.Idle:
+            clear();
             state = BuildState.Prepare;
+            buildContext.spec = req.specFile;
+            buildContext.specDir = req.ymlSource.dirName.absolutePath;
+            currentBuilder = new Builder();
             break;
         case BuildState.Prepare:
             state = BuildState.Fetch;
@@ -168,17 +204,30 @@ public final class BuildProcessor : SystemProcessor
             state = BuildState.Complete;
             break;
         case BuildState.Complete:
-            state = BuildState.Idle;
+            clear();
             buildContext.jobSystem.finishJob(job.jobID, JobStatus.Completed);
             break;
         case BuildState.Failed:
-            state = BuildState.Idle;
+            clear();
             buildContext.jobSystem.finishJob(job.jobID, JobStatus.Failed);
             break;
         }
     }
 
 private:
+
+    /**
+     * Helper to clear the current state out
+     */
+    void clear()
+    {
+        if (currentBuilder !is null)
+        {
+            currentBuilder.destroy();
+            currentBuilder = null;
+        }
+        state = BuildState.Idle;
+    }
 
     BuildRequest req;
     JobIDComponent job;
@@ -187,4 +236,6 @@ private:
      * Current working state
      */
     BuildState state = BuildState.Idle;
+
+    Builder currentBuilder = null;
 }
