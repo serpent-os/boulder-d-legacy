@@ -25,6 +25,10 @@ module boulder.build.controller;
 import moss.jobs;
 import boulder.build.context;
 import boulder.build.controller.buildprocessor;
+import std.exception : enforce;
+import std.file : exists;
+import std.string : format, endsWith;
+import moss.format.source.spec;
 
 /**
  * The BuildController is responsible for the main execution cycle of Boulder,
@@ -32,7 +36,7 @@ import boulder.build.controller.buildprocessor;
  * as the build process can be one that hangs execution, it is run on a separate
  * thread.
  */
-final class BuildController
+public final class BuildController
 {
 
     /**
@@ -51,5 +55,24 @@ final class BuildController
 
         buildContext.entityManager.build();
         buildContext.entityManager.step();
+    }
+
+    /**
+     * Request that we begin building the given path
+     */
+    void beginBuild(const(string) path)
+    {
+        enforce(path.exists,
+                "BuildController.beginBuild(): Cannot build %s as it does not exist".format(path));
+        enforce(path.endsWith(".yml"),
+                "BuildController.beginBuild(): Path does not look like a valid YML file: %s".format(
+                    path));
+
+        /* TODO: Better capture the processing */
+        auto s = new Spec(File(path, "r"));
+        s.parse();
+
+        /* Send off the job */
+        buildContext.jobSystem.pushJob(BuildRequest(path, s));
     }
 }

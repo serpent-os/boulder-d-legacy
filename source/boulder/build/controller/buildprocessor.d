@@ -24,6 +24,7 @@ module boulder.build.controller.buildprocessor;
 
 import moss.jobs;
 import boulder.build.context;
+import moss.format.source.spec;
 
 /**
  * A BuildRequest is sent to the BuildController to begin building of a given
@@ -35,6 +36,11 @@ import boulder.build.context;
      * Fully qualified path to the YAML source
      */
     string ymlSource;
+
+    /**
+     * The real specFile
+     */
+    Spec* specFile;
 }
 
 /**
@@ -57,7 +63,7 @@ public final class BuildProcessor : SystemProcessor
      */
     override bool allocateWork()
     {
-        return false;
+        return buildContext.jobSystem.claimJob(job, req);
     }
 
     /**
@@ -65,7 +71,9 @@ public final class BuildProcessor : SystemProcessor
      */
     override void performWork()
     {
+        import std.stdio : writeln;
 
+        writeln("Processing manifest: ", req.ymlSource, " = ", *req.specFile);
     }
 
     /**
@@ -73,6 +81,11 @@ public final class BuildProcessor : SystemProcessor
      */
     override void syncWork()
     {
-
+        buildContext.jobSystem.finishJob(job.jobID, JobStatus.Failed);
     }
+
+private:
+
+    BuildRequest req;
+    JobIDComponent job;
 }

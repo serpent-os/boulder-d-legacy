@@ -25,8 +25,10 @@ module boulder.cli.build_command;
 public import moss.core.cli;
 import moss.core;
 import std.stdio;
-import boulder.build;
+import boulder.build.context;
+import boulder.build.controller;
 import boulder.cli : BoulderCLI;
+import moss.jobs;
 
 /**
  * The BuildCommand is responsible for handling requests to build stone.yml
@@ -56,36 +58,20 @@ public struct BuildCommand
     @CommandEntry() int run(ref string[] argv)
     {
         import std.algorithm : each, uniq;
-        import std.file : exists;
         import std.exception : enforce;
-        import std.string : format;
 
-        /* Ensure each path exists.. */
-        void validatePath(const(string) p)
-        {
-            enforce(p.exists, "Path does not exist: %s".format(p));
-        }
+        auto controller = new BuildController();
+        argv.uniq.each!((e) => controller.beginBuild(e));
 
-        /* Build each passed path */
-        void buildPath(const(string) p)
-        {
-            auto builder = Builder(p);
-            buildContext.jobs = jobs;
-            buildContext.outputDirectory = pt.findAncestor!BoulderCLI.outputDirectory;
-            auto name = "%s %s".format(buildContext.spec.source.name,
-                    buildContext.spec.source.versionIdentifier);
-            writefln("Building ", name);
-            builder.build();
-        }
-
-        if (argv.length < 1)
-        {
-            writeln("No source packages provided to build CLI");
-            return ExitStatus.Failure;
-        }
-
-        argv.uniq.each!((e) => validatePath(e));
-        argv.uniq.each!((e) => buildPath(e));
+        mainLoop.idleAdd(() => {
+            if (!buildContext.jobSystem.hasJobs)
+            {
+                mainLoop.quit();
+                return CallbackControl.Stop;
+            }
+            return CallbackControl.Continue;
+        }());
+        mainLoop.run();
 
         return ExitStatus.Success;
     }
