@@ -23,6 +23,7 @@
 module boulder.build.controller.buildprocessor;
 
 import moss.jobs;
+import boulder.build.context;
 
 /**
  * A BuildRequest is sent to the BuildController to begin building of a given
@@ -48,6 +49,7 @@ public final class BuildProcessor : SystemProcessor
     this()
     {
         super("buildProcessor", ProcessorMode.Branched);
+        buildContext.jobSystem.registerJobType!BuildRequest;
     }
 
     /**
