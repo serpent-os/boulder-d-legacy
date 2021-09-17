@@ -23,6 +23,7 @@
 module boulder.build.controller;
 
 import moss.jobs;
+import boulder.build.context;
 import boulder.build.controller.buildprocessor;
 
 /**
@@ -47,5 +48,8 @@ final class BuildController
         auto buildGroup = new ProcessorGroup("buildGroup");
         buildGroup.append(new BuildProcessor());
         mainLoop.appendGroup(buildGroup);
+
+        buildContext.entityManager.build();
+        buildContext.entityManager.step();
     }
 }
