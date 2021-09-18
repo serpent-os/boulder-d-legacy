@@ -108,7 +108,7 @@ public final class BuildProcessor : SystemProcessor
      */
     this()
     {
-        super("buildProcessor", ProcessorMode.Branched);
+        super("buildProcessor", ProcessorMode.Main);
         buildContext.jobSystem.registerJobType!BuildRequest;
     }
 
