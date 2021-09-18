@@ -25,6 +25,7 @@ module boulder.build.controller;
 import moss.jobs;
 import boulder.build.context;
 import boulder.build.controller.buildprocessor;
+import boulder.build.controller.fetchprocessor;
 import std.exception : enforce;
 import std.file : exists;
 import std.string : format, endsWith;
@@ -46,6 +47,12 @@ public final class BuildController
     {
         /* Run fetch group after system group */
         auto fetchGroup = new ProcessorGroup("fetchGroup");
+
+        buildContext.jobSystem.registerJobType!FetchJob;
+        foreach (i; 0 .. 4)
+        {
+            fetchGroup.append(new FetchProcessor());
+        }
         mainLoop.appendGroup(fetchGroup);
 
         /* Then run our main building group */

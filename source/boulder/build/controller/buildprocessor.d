@@ -25,8 +25,11 @@ module boulder.build.controller.buildprocessor;
 import moss.jobs;
 import boulder.build.builder;
 import boulder.build.context;
+import boulder.build.controller.fetchprocessor : FetchJob;
 import moss.format.source.spec;
 import std.path : dirName, absolutePath;
+import core.sync.mutex;
+import core.sync.condition;
 
 /**
  * A BuildRequest is sent to the BuildController to begin building of a given
@@ -108,8 +111,11 @@ public final class BuildProcessor : SystemProcessor
      */
     this()
     {
-        super("buildProcessor", ProcessorMode.Main);
+        super("buildProcessor", ProcessorMode.Branched);
         buildContext.jobSystem.registerJobType!BuildRequest;
+
+        wakeMutex = new shared Mutex();
+        wakeCondition = new shared Condition(wakeMutex);
     }
 
     /**
@@ -150,10 +156,15 @@ public final class BuildProcessor : SystemProcessor
         case BuildState.Prepare:
             currentBuilder.prepareRoot();
             /* TODO: Move sources + Pkgfiles to fetch jobs */
-            currentBuilder.prepareSources();
+            //currentBuilder.prepareSources();
             currentBuilder.preparePkgFiles();
+            state = BuildState.Fetch;
+            beginFetchUpstreams();
             break;
         case BuildState.Build:
+            import std.stdio : writeln;
+
+            writeln("Building");
             currentBuilder.buildProfiles();
             break;
         case BuildState.Analyse:
@@ -175,7 +186,7 @@ public final class BuildProcessor : SystemProcessor
      */
     override void syncWork()
     {
-        final switch (state)
+        switch (state)
         {
             /* Transition to preparation */
         case BuildState.Idle:
@@ -184,9 +195,6 @@ public final class BuildProcessor : SystemProcessor
             buildContext.spec = req.specFile;
             buildContext.specDir = req.ymlSource.dirName.absolutePath;
             currentBuilder = new Builder();
-            break;
-        case BuildState.Prepare:
-            state = BuildState.Fetch;
             break;
         case BuildState.Fetch:
             state = BuildState.Build;
@@ -209,12 +217,67 @@ public final class BuildProcessor : SystemProcessor
             break;
         case BuildState.Failed:
             clear();
+            import std.stdio : writeln;
+
+            writeln(" ==> Build failed");
             buildContext.jobSystem.finishJob(job.jobID, JobStatus.Failed);
+            break;
+        default:
             break;
         }
     }
 
 private:
+
+    void beginFetchUpstreams()
+    {
+        auto upstreams = buildContext.spec.upstreams.values;
+
+        /* No upstreams */
+        if (upstreams.length == 0)
+        {
+            state = BuildState.Build;
+            return;
+        }
+
+        totalUpstreams = upstreams.length;
+
+        /* Spawn fetch on each upstream */
+        foreach (upstream; upstreams)
+        {
+            buildContext.jobSystem.pushJob(FetchJob(upstream), () => {
+                /* Success. Increment */
+                fetchedUpstreams++;
+                visitedUpstreams++;
+                synchronized (wakeMutex)
+                {
+                    wakeCondition.notify();
+                }
+            }(), () => {
+                /* Failed. Increment only success */
+                visitedUpstreams++;
+                synchronized (wakeMutex)
+                {
+                    wakeCondition.notify();
+                }
+            }());
+        }
+
+        /* Await fetch completion */
+        while (visitedUpstreams != totalUpstreams)
+        {
+            synchronized (wakeMutex)
+            {
+                wakeCondition.wait();
+            }
+        }
+
+        if (visitedUpstreams != fetchedUpstreams)
+        {
+            state = BuildState.Failed;
+            return;
+        }
+    }
 
     /**
      * Helper to clear the current state out
@@ -238,4 +301,11 @@ private:
     BuildState state = BuildState.Idle;
 
     Builder currentBuilder = null;
+
+    ulong totalUpstreams = 0;
+    ulong fetchedUpstreams = 0;
+    ulong visitedUpstreams = 0;
+
+    shared Mutex wakeMutex = null;
+    shared Condition wakeCondition = null;
 }
