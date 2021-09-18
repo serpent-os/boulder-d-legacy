@@ -129,55 +129,6 @@ public:
     }
 
     /**
-     * Prepare and fetch any required sources
-     */
-    void prepareSources() @system
-    {
-        import moss.core.download : DownloadManager, DownloadStore, StoreType, Download;
-        import std.algorithm : filter, map;
-        import std.stdio : writeln;
-
-        auto manager = new DownloadManager();
-        manager.add(new DownloadStore(StoreType.System));
-        manager.add(new DownloadStore(StoreType.User));
-
-        /* Only work with plain sources for now */
-        auto plains = buildContext.spec
-            .upstreams
-            .values
-            .map!((u) => buildContext.spec.expand(u))
-            .filter!((u) => u.type == UpstreamType.Plain);
-
-        /* Unfetched sources */
-        auto fetchables = plains.filter!((u) => !manager.contains(u.plain.hash));
-        foreach (u; fetchables)
-        {
-            manager.add(Download(u.uri, u.plain.hash));
-        }
-
-        manager.fetch();
-
-        /* Now put them into place */
-        foreach (s; plains)
-        {
-            import std.path : buildPath, baseName;
-            import std.file : exists;
-
-            /* Ensure we have a name for this source */
-            if (s.plain.rename == null)
-            {
-                s.plain.rename = s.uri.baseName;
-            }
-
-            /* Now grab local full name including renamed path */
-            string name = buildContext.sourceDir.buildPath(s.plain.rename);
-            manager.share(s.plain.hash, name);
-        }
-
-        writeln("Preparing sources");
-    }
-
-    /**
      * Ensure all profile builds will compile ahead of time
      */
     void validateProfiles() @system

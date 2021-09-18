@@ -22,6 +22,7 @@
 
 module boulder.build.controller;
 
+import moss.core.download.store;
 import moss.jobs;
 import boulder.build.context;
 import boulder.build.controller.buildprocessor;
@@ -48,16 +49,17 @@ public final class BuildController
         /* Run fetch group after system group */
         auto fetchGroup = new ProcessorGroup("fetchGroup");
 
+        downloadStore = new DownloadStore(StoreType.User);
         buildContext.jobSystem.registerJobType!FetchJob;
         foreach (i; 0 .. 4)
         {
-            fetchGroup.append(new FetchProcessor());
+            fetchGroup.append(new FetchProcessor(downloadStore));
         }
         mainLoop.appendGroup(fetchGroup);
 
         /* Then run our main building group */
         auto buildGroup = new ProcessorGroup("buildGroup");
-        buildGroup.append(new BuildProcessor());
+        buildGroup.append(new BuildProcessor(downloadStore));
         mainLoop.appendGroup(buildGroup);
 
         buildContext.entityManager.build();
@@ -82,4 +84,8 @@ public final class BuildController
         /* Send off the job */
         buildContext.jobSystem.pushJob(BuildRequest(path, s));
     }
+
+private:
+
+    DownloadStore downloadStore = null;
 }

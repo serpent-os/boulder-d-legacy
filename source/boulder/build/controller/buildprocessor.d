@@ -23,11 +23,13 @@
 module boulder.build.controller.buildprocessor;
 
 import moss.jobs;
+import moss.core.download.store;
 import boulder.build.builder;
 import boulder.build.context;
 import boulder.build.controller.fetchprocessor : FetchJob;
 import moss.format.source.spec;
-import std.path : dirName, absolutePath;
+import std.path : dirName, absolutePath, baseName, buildPath;
+import std.file : mkdirRecurse;
 import core.sync.mutex;
 import core.sync.condition;
 
@@ -106,12 +108,15 @@ enum BuildState
  */
 public final class BuildProcessor : SystemProcessor
 {
+    @disable this();
+
     /**
      * Construct a new BuildProcessor operating on a separate thread
      */
-    this()
+    this(DownloadStore downloadStore)
     {
         super("buildProcessor", ProcessorMode.Branched);
+        this.downloadStore = downloadStore;
         buildContext.jobSystem.registerJobType!BuildRequest;
 
         wakeMutex = new shared Mutex();
@@ -165,6 +170,7 @@ public final class BuildProcessor : SystemProcessor
             import std.stdio : writeln;
 
             writeln("Building");
+            promoteSources();
             currentBuilder.buildProfiles();
             break;
         case BuildState.Analyse:
@@ -280,6 +286,29 @@ private:
     }
 
     /**
+     * Promote sources to where they need to be
+     */
+    void promoteSources()
+    {
+        import std.stdio : writeln;
+
+        foreach (upstream; buildContext.spec.upstreams.values)
+        {
+            if (upstream.type != UpstreamType.Plain)
+            {
+                continue;
+            }
+
+            auto partName = upstream.plain.rename !is null
+                ? upstream.plain.rename : upstream.uri.baseName;
+            string fullname = buildContext.sourceDir.buildPath(partName);
+            auto dn = fullname.dirName;
+            dn.mkdirRecurse();
+            downloadStore.share(upstream.plain.hash, fullname);
+        }
+    }
+
+    /**
      * Helper to clear the current state out
      */
     void clear()
@@ -308,4 +337,5 @@ private:
 
     shared Mutex wakeMutex = null;
     shared Condition wakeCondition = null;
+    DownloadStore downloadStore = null;
 }

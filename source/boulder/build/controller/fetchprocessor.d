@@ -23,8 +23,12 @@
 module boulder.build.controller.fetchprocessor;
 
 import boulder.build.context;
+import moss.core.download.store;
 import moss.jobs;
 import moss.format.source.upstream_definition;
+import std.path : dirName;
+import std.file : mkdirRecurse;
+import std.net.curl : download;
 
 /**
  * FetchJob simply wraps an Upstream
@@ -44,9 +48,13 @@ public @Job struct FetchJob
  */
 public final class FetchProcessor : SystemProcessor
 {
-    this()
+    /**
+     * Construct a new FetchProcessor backed with the given DownloadStore
+     */
+    this(DownloadStore downloadStore)
     {
         super("fetchProcessor", ProcessorMode.Branched);
+        this.downloadStore = downloadStore;
     }
 
     override bool allocateWork()
@@ -56,18 +64,39 @@ public final class FetchProcessor : SystemProcessor
 
     override void performWork()
     {
-        import std.stdio : writeln;
+        success = false;
 
-        writeln("Fetching: ", req.upstream);
+        if (req.upstream.type != UpstreamType.Plain)
+        {
+            return;
+        }
+
+        if (downloadStore.contains(req.upstream.plain.hash))
+        {
+            success = true;
+            return;
+        }
+
+        const auto finalPath = downloadStore.fullPath(req.upstream.plain.hash);
+        auto pathDir = finalPath.dirName;
+        pathDir.mkdirRecurse();
+        import std.stdio : writefln;
+
+        writefln("Downloading '%s' to '%s'", req.upstream.uri, finalPath);
+        download(req.upstream.uri, finalPath);
+        success = true;
     }
 
     override void syncWork()
     {
-        buildContext.jobSystem.finishJob(job.jobID, JobStatus.Completed);
+        buildContext.jobSystem.finishJob(job.jobID, success
+                ? JobStatus.Completed : JobStatus.Failed);
     }
 
 private:
 
     JobIDComponent job;
     FetchJob req;
+    bool success = false;
+    DownloadStore downloadStore = null;
 }
