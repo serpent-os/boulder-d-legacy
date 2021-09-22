@@ -7,3 +7,6 @@
 [submodule "external/moss-jobs"]
 	path = external/moss-jobs
 	url = https://gitlab.com/serpent-os/core/moss-jobs.git
+[submodule "external/moss-ansi"]
+	path = external/moss-ansi
+	url = https://gitlab.com/serpent-os/core/moss-ansi.git
