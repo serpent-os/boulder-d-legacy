@@ -27,6 +27,8 @@ import moss.jobs;
 import boulder.build.context;
 import boulder.build.controller.buildprocessor;
 import boulder.build.controller.fetchprocessor;
+import boulder.build.controller.tuiprocessor;
+
 import std.exception : enforce;
 import std.file : exists;
 import std.string : format, endsWith;
@@ -61,6 +63,9 @@ public final class BuildController
         auto buildGroup = new ProcessorGroup("buildGroup");
         buildGroup.append(new BuildProcessor(downloadStore));
         mainLoop.appendGroup(buildGroup);
+
+        /* Run TUI as part of system group. */
+        mainLoop.systemGroup.append(new TUIProcessor());
 
         buildContext.entityManager.build();
         buildContext.entityManager.step();
