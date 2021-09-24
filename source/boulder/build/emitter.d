@@ -188,6 +188,9 @@ private:
         auto uniqueFiles = regularFiles.sort!((a, b) => a.hash < b.hash)
             .uniq!("a.hash == b.hash")().array;
 
+        /* Re-sort files by path to improve data locality */
+        uniqueFiles.sort!((a, b) => a.originPath < b.originPath);
+
         /**
          * Insert a LayoutEntry to the payload
          */
