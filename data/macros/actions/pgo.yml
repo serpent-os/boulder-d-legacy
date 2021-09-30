@@ -3,12 +3,12 @@ actions:
 
     # Merge LLVM profile data, copies to combined.profdata in case there's no stage2
     - llvm_merge_s1: |
-        llvm-profdata merge -output=%(pgo_dir)/ir.profdata %(pgo_dir)/IR/default*.profraw
+        llvm-profdata merge --failure-mode=all -output=%(pgo_dir)/ir.profdata %(pgo_dir)/IR/default*.profraw
         cp %(pgo_dir)/ir.profdata %(pgo_dir)/combined.profdata
     # Merge LLVM profile data after stage2 PGO workload
     - llvm_merge_s2: |
         rm %(pgo_dir)/combined.profdata
-        llvm-profdata merge -output=%(pgo_dir)/combined.profdata %(pgo_dir)/ir.profdata %(pgo_dir)/CS/default*.profraw
+        llvm-profdata merge --failure-mode=all -output=%(pgo_dir)/combined.profdata %(pgo_dir)/ir.profdata %(pgo_dir)/CS/default*.profraw
 
 tuning              :
     # A set of groups we can toggle from the "tune" key
