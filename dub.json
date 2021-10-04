@@ -17,9 +17,6 @@
 		},
 		"moss-jobs": {
 			"path": "external/moss-jobs"
-		},
-		"moss-ansi": {
-			"path": "external/moss-ansi"
 		}
 	},
 	"buildTypes": {
