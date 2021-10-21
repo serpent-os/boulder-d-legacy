@@ -160,12 +160,11 @@ private:
     void generateFiles(ref BuildCollector col, ref FileAnalysis[] fileSet,
             scope Writer writer, scope Package* pkg) @trusted
     {
-        import moss.format.binary : FileType;
+        import moss.core : FileType;
         import moss.format.binary.payload.layout : LayoutPayload, LayoutEntry;
         import moss.format.binary.payload.index : IndexPayload, IndexEntry;
         import moss.format.binary.payload.content : ContentPayload;
         import std.algorithm : filter, map, sort, each, uniq;
-        import moss.format.binary : FileType;
         import std.array : array;
 
         /* Add required payloads for files */

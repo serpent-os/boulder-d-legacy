@@ -164,7 +164,7 @@ private:
     void collectPath(ref DirEntry e) @system
     {
         import std.string : format;
-        import moss.format.binary : FileType;
+        import moss.core : FileType;
         import std.algorithm : filter;
         import std.range : takeOne;
         import std.exception : enforce;
