@@ -62,7 +62,7 @@ final class BuildManifestBinary : BuildManifest
         auto fp = File(targetPath, "w");
         auto writer = new Writer(fp);
         writer.compressionType = PayloadCompression.None;
-        writer.fileType = MossFileType.Database;
+        writer.fileType = MossFileType.BuildManifest;
         scope (exit)
         {
             writer.close();
