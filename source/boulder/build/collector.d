@@ -83,7 +83,7 @@ package struct CollectionRule
  * By default, all files will end up in the main package unless explicitly
  * overridden by a pattern.
  */
-struct BuildCollector
+final class BuildCollector
 {
 
 public:

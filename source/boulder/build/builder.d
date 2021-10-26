@@ -45,6 +45,7 @@ public:
     this()
     {
         buildContext.rootDir = getBuildRoot();
+        collector = new BuildCollector();
 
         auto plat = platform();
         /* Is emul32 supported for 64-bit OS? */
