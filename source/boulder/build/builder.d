@@ -28,6 +28,21 @@ import boulder.build.collector;
 import boulder.build.profile;
 import boulder.build.emitter;
 import moss.core.platform;
+import moss.deps.analysis;
+import std.algorithm : each;
+import moss.deps.analysis.elves;
+
+/**
+ * Processing of files for analysis + mutation
+ */
+static immutable AnalysisChain[] boulderChains = [
+    /* Handle ELF files */
+    AnalysisChain("elves", [&acceptElfFiles, &scanElfFiles, &includeFile,],
+            100),
+
+    /* Default inclusion policy */
+    AnalysisChain("default", [&includeFile], 0),
+];
 
 /**
  * The Builder is responsible for the full build of a source package
@@ -45,7 +60,14 @@ public:
     this()
     {
         buildContext.rootDir = getBuildRoot();
+
+        /* Collection + analysis */
         collector = new BuildCollector();
+        analyser = new Analyser();
+        boulderChains.each!((const c) => {
+            auto chain = cast(AnalysisChain) c;
+            analyser.addChain(chain);
+        }());
 
         auto plat = platform();
         /* Is emul32 supported for 64-bit OS? */
@@ -275,6 +297,7 @@ private:
 
     string[] architectures;
     BuildProfile*[] profiles;
+    Analyser analyser;
     BuildCollector collector;
     BuildEmitter emitter;
     PackageDefinition[string] packages;
