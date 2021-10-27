@@ -24,7 +24,9 @@ module boulder.build.collector;
 
 import std.path;
 import std.file;
-import std.algorithm : startsWith;
+import std.algorithm : startsWith, filter;
+import std.exception : enforce;
+import std.string : format;
 import moss.format.source.package_definition;
 import boulder.build.context : BuildContext;
 import boulder.build.analysis;
@@ -153,6 +155,19 @@ public:
         import std.algorithm : map, uniq;
 
         return rules.map!((ref c) => c.target).uniq;
+    }
+
+    /**
+     * Return the package target for the given filesystem path by matching
+     * globs.
+     */
+    auto packageTarget(const(string) targetPath)
+    {
+        auto matchingSet = rules.filter!((r) => r.match(targetPath));
+        enforce(!matchingSet.empty,
+                "packageTarget: No matching rule for path: %s".format(targetPath));
+
+        return matchingSet.front.target;
     }
 
 private:
