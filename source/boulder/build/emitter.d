@@ -124,7 +124,7 @@ private:
         writefln("Creating package %s...", finalPath);
 
         /* Generate metadata first */
-        generateMetadata(writer, pkg);
+        generateMetadata(analyser, writer, pkg);
 
         /* Now generate the fileset */
         generateFiles(analyser, writer, pkg);
@@ -135,7 +135,7 @@ private:
     /**
      * Generate metadata payload
      */
-    void generateMetadata(scope Writer writer, scope Package* pkg) @trusted
+    void generateMetadata(scope Analyser analyser, scope Writer writer, scope Package* pkg) @trusted
     {
         import moss.format.binary.payload.meta : MetaPayload, RecordTag;
         import std.algorithm : each, uniq;
@@ -156,6 +156,28 @@ private:
         met.addRecord(RecordTag.Architecture, plat.name);
 
         pkg.source.license.uniq.each!((l) => met.addRecord(RecordTag.License, l));
+
+        auto bucket = analyser.bucket(pkg.pd.name);
+        auto providers = bucket.providers();
+        auto dependencies = bucket.dependencies();
+
+        /* TODO: Record in metadata */
+        import std.stdio : writefln, writeln;
+
+        writeln();
+
+        if (!providers.empty)
+        {
+            writefln(" -> Providers [%s]", pkg.pd.name);
+            providers.each!((p) => writefln(" -> %s", p));
+            writeln();
+        }
+        if (!dependencies.empty)
+        {
+            writefln(" -> Dependencies [%s]", pkg.pd.name);
+            dependencies.each!((d) => writefln(" -> %s", d));
+            writeln();
+        }
 
         writer.addPayload(met);
     }
