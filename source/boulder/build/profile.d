@@ -28,8 +28,8 @@ import boulder.build.collector;
 import boulder.build.context;
 import boulder.build.stage;
 import boulder.build.manifest;
-import moss.deps.analysis;
 import std.path : buildPath;
+import moss.deps.analysis;
 
 /**
  * A build profile is generated for each major build profile in the

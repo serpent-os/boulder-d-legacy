@@ -28,24 +28,6 @@ import std.algorithm : startsWith, filter;
 import std.exception : enforce;
 import std.string : format;
 import moss.format.source.package_definition;
-import boulder.build.context : BuildContext;
-import boulder.build.analysis;
-import core.sys.posix.sys.stat;
-
-/**
- * A FileOrigin is used by the Collector to track the original file
- * origin of a given **hash** to assist in deduplication. We also store
- * a reference count to keep track of statistics, which will be employed
- * in future to know how well we're actually deduplicating and how much
- * space we're saving the user.
- */
-package struct FileOrigin
-{
-    uint refcount = 1;
-    string originPath = null;
-    string hash = null;
-    stat_t st;
-}
 
 /**
  * A CollectionRule simply defines a pattern to match against (glob style)
@@ -91,27 +73,6 @@ final class BuildCollector
 public:
 
     /**
-     * Begin collection on the given root directory, considered to be
-     * the "/" root filesystem of the target package.
-     */
-    void collect(const(string) rootDir) @system
-    {
-        import std.algorithm : each;
-
-        _rootDir = rootDir;
-
-        dirEntries(rootDir, SpanMode.depth, false).each!((ref e) => this.collectPath(e));
-    }
-
-    /**
-     * Return the root directory for our current operational set
-     */
-    pragma(inline, true) pure @property string rootDir() @safe @nogc nothrow
-    {
-        return _rootDir;
-    }
-
-    /**
      * Add a priority based rule to the system which can of course be overridden.
      */
     void addRule(string pattern, string target, uint priority = 0) @safe
@@ -121,40 +82,6 @@ public:
         /* Sort ahead of time */
         rules ~= CollectionRule(pattern, target, priority);
         rules.sort!((a, b) => a.priority > b.priority);
-    }
-
-    /**
-     * Return all FileAnalysis structs that we have matching the given
-     * target
-     */
-    auto filesForTarget(string target) @system
-    {
-        import std.algorithm : filter;
-        import std.array : array;
-
-        return results.values.filter!((r) => r.target == target).array;
-    }
-
-    /**
-     * Return the FileOrigin for a given path to assist in deduplication
-     * matters.
-     */
-    FileOrigin originForFile(ref FileAnalysis a) @system
-    {
-        import std.exception : enforce;
-        import std.string : format;
-
-        enforce(a.data in origins, "Hash %s origin unknown!".format(a.data));
-        return origins[a.data];
-    }
-
-    /**
-     * Return a set of names used in the rules */
-    auto targets() @safe
-    {
-        import std.algorithm : map, uniq;
-
-        return rules.map!((ref c) => c.target).uniq;
     }
 
     /**
@@ -172,65 +99,6 @@ public:
 
 private:
 
-    /**
-     * Collect the path here into our various buckets, so that it
-     * may be post-processed.
-     */
-    void collectPath(ref DirEntry e) @system
-    {
-        import std.string : format;
-        import moss.core : FileType;
-        import std.algorithm : filter;
-        import std.range : takeOne;
-        import std.exception : enforce;
-
-        auto targetPath = e.name.relativePath(rootDir);
-
-        /* Ensure full "local" path */
-        if (targetPath[0] != '/')
-        {
-            targetPath = "/%s".format(targetPath);
-        }
-
-        auto fullPath = e.name;
-        auto an = FileAnalysis(targetPath, fullPath);
-
-        /* Stash the FileOrigin for regular files */
-        if (an.type == FileType.Regular)
-        {
-            if (an.data in origins)
-            {
-                FileOrigin* or = &origins[an.data];
-                or.refcount++;
-            }
-            else
-            {
-                FileOrigin or;
-                or.originPath = an.fullPath;
-                or.hash = an.data;
-                or.st = an.stat;
-                origins[an.data] = or;
-            }
-        }
-
-        auto matchingSet = rules.filter!((r) => r.match(targetPath)).takeOne();
-        enforce(!matchingSet.empty,
-                "analysePath: No matching rule for path: %s".format(targetPath));
-        an.target = matchingSet.front.target;
-
-        /* Stash the results. */
-        results[an.fullPath] = an;
-    }
-
-    /* Root directory for collection */
-    string _rootDir = null;
-
     /* Map file glob patterns to target packages */
     CollectionRule[] rules;
-
-    /* Track file origins for deduplication */
-    FileOrigin[string] origins;
-
-    /* Collection of every encountered file */
-    FileAnalysis[string] results;
 }
