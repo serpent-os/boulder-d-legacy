@@ -177,11 +177,13 @@ public:
      */
     void collectAssets() @system
     {
-        import std.algorithm : map, uniq, each;
+        import std.algorithm : map, uniq, each, sort;
+        import std.array : array;
 
-        profiles.map!((ref p) => p.installRoot)
-            .uniq
-            .each!((const s) => this.collector.collect(s));
+        auto roots = profiles.map!((ref p) => p.installRoot).array();
+        roots.sort();
+        roots.uniq.each!((const s) => this.collectRootfs(s));
+        analyser.process();
     }
 
     /**
@@ -204,6 +206,34 @@ public:
     }
 
 private:
+
+    /**
+     * Begin collection on the given rootfs tree, from the collectAssets
+     * call.
+     */
+    void collectRootfs(const(string) root)
+    {
+        import std.file : dirEntries, DirEntry, SpanMode;
+        import std.path : relativePath;
+        import std.string : format;
+
+        /* Add every encountered file for processing */
+        foreach (ref DirEntry e; dirEntries(root, SpanMode.depth, false))
+        {
+            auto targetPath = e.name.relativePath(root);
+
+            /* Ensure full "local" path */
+            if (targetPath[0] != '/')
+            {
+                targetPath = "/%s".format(targetPath);
+            }
+
+            auto fullPath = e.name;
+            auto inf = FileInfo(targetPath, fullPath);
+            inf.target = collector.packageTarget(targetPath);
+            analyser.addFile(inf);
+        }
+    }
 
     /**
      * Load all package definitions in
