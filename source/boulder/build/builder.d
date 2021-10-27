@@ -33,18 +33,6 @@ import std.algorithm : each;
 import moss.deps.analysis.elves;
 
 /**
- * Processing of files for analysis + mutation
- */
-static immutable AnalysisChain[] boulderChains = [
-    /* Handle ELF files */
-    AnalysisChain("elves", [&acceptElfFiles, &scanElfFiles, &includeFile,],
-            100),
-
-    /* Default inclusion policy */
-    AnalysisChain("default", [&includeFile], 0),
-];
-
-/**
  * The Builder is responsible for the full build of a source package
  * and emitting a binary package.
  */
@@ -64,10 +52,7 @@ public:
         /* Collection + analysis */
         collector = new BuildCollector();
         analyser = new Analyser();
-        boulderChains.each!((const c) => {
-            auto chain = cast(AnalysisChain) c;
-            analyser.addChain(chain);
-        }());
+        setupChains();
 
         auto plat = platform();
         /* Is emul32 supported for 64-bit OS? */
@@ -206,6 +191,26 @@ public:
     }
 
 private:
+
+    /**
+     * Setup our boulder chains */
+    void setupChains()
+    {
+        const auto boulderChains = [
+            /* Handle ELF files */
+            AnalysisChain("elves", [
+                    &acceptElfFiles, &scanElfFiles, &includeFile,
+                    ], 100),
+
+            /* Default inclusion policy */
+            AnalysisChain("default", [&includeFile], 0),
+        ];
+
+        boulderChains.each!((const c) => {
+            auto chain = cast(AnalysisChain) c;
+            analyser.addChain(chain);
+        }());
+    }
 
     /**
      * Begin collection on the given rootfs tree, from the collectAssets
