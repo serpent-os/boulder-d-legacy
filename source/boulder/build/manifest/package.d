@@ -22,8 +22,7 @@
 
 module boulder.build.manifest;
 
-public import boulder.build.collector;
-public import boulder.build.analysis;
+public import moss.deps.analysis.fileinfo;
 
 /**
  * A BuildManifest is produced for each BuildProfile and contains some
@@ -41,7 +40,7 @@ public class BuildManifest
      * TODO: Replace with per-package emission
      */
     abstract void write() @safe;
-    abstract void recordPackage(const(string) pkgName, ref FileAnalysis[] fileSet);
+    abstract void recordPackage(const(string) pkgName, ref FileInfo[] fileSet);
 
     pure @property final const(string) fileName() const @safe @nogc nothrow
     {

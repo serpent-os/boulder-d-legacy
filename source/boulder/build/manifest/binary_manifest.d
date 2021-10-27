@@ -50,7 +50,7 @@ final class BuildManifestBinary : BuildManifest
         fileName = "manifest.%s.bin".format(architecture.substitute!("/", "-"));
     }
 
-    override void recordPackage(const(string) pkgName, ref FileAnalysis[] fileSet)
+    override void recordPackage(const(string) pkgName, ref FileInfo[] fileSet)
     {
     }
 

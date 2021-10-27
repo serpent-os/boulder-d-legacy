@@ -201,7 +201,7 @@ public:
     {
         import std.algorithm : each;
 
-        profiles.each!((ref p) => p.produceManifest(collector));
+        profiles.each!((ref p) => p.produceManifest(analyser));
 
     }
 

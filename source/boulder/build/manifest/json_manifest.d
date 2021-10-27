@@ -80,7 +80,7 @@ final class BuildManifestJSON : BuildManifest
     /**
      * Emit a package as a JSON node to the manifest
      */
-    override void recordPackage(const(string) pkgName, ref FileAnalysis[] fileSet)
+    override void recordPackage(const(string) pkgName, ref FileInfo[] fileSet)
     {
         import std.algorithm : map;
         import std.array : array;

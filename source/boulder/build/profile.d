@@ -28,7 +28,7 @@ import boulder.build.collector;
 import boulder.build.context;
 import boulder.build.stage;
 import boulder.build.manifest;
-
+import moss.deps.analysis;
 import std.path : buildPath;
 
 /**
@@ -326,21 +326,24 @@ public:
     /**
      * Save our future manifest now
      */
-    void produceManifest(ref BuildCollector col)
+    void produceManifest(Analyser analyser)
     {
         import std.array : array;
-        import std.algorithm : sort, each;
+        import std.algorithm : sort, each, map, uniq;
         import std.range : empty;
 
-        auto names = col.targets.array;
+        auto names = analyser.buckets.map!((b) => cast(string) b.name).array();
         names.sort();
-        foreach (nom; names)
+        foreach (nom; names.uniq)
         {
-            auto fileSet = col.filesForTarget(nom);
-            if (fileSet.empty)
+            auto bucket = analyser.bucket(nom);
+            if (bucket.empty)
             {
                 continue;
             }
+
+            auto fileSet = bucket.allFiles().array();
+
             /* Ensure stable sorting */
             fileSet.sort!((a, b) => a.path < b.path);
             targetManifests.each!((m) => m.recordPackage(nom, fileSet));
