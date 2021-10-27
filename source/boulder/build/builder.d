@@ -191,7 +191,7 @@ public:
      */
     void emitPackages() @system
     {
-        emitter.emit(buildContext.outputDirectory, this.collector);
+        emitter.emit(buildContext.outputDirectory, this.analyser);
     }
 
     /**

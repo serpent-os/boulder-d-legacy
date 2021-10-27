@@ -30,6 +30,7 @@ import moss.format.source.package_definition;
 import moss.format.source.source_definition;
 import moss.format.binary.payload;
 import moss.format.binary.writer;
+import moss.deps.analysis;
 
 /**
  * Resulting Package is only buildable once it contains
@@ -82,11 +83,11 @@ public:
     /**
      * Now emit the collected packages
      */
-    void emit(const(string) outputDirectory, ref BuildCollector col) @system
+    void emit(const(string) outputDirectory, Analyser analyser) @system
     {
         import std.algorithm : each;
 
-        packages.values.each!((p) => emitPackage(outputDirectory, p, col));
+        packages.values.each!((p) => emitPackage(outputDirectory, p, analyser));
     }
 
 private:
@@ -94,19 +95,26 @@ private:
     /**
      * Emit a single package into the given working directory
      */
-    void emitPackage(const(string) outputDirectory, scope Package* pkg, ref BuildCollector col) @trusted
+    void emitPackage(const(string) outputDirectory, scope Package* pkg, Analyser analyser) @trusted
     {
         import std.stdio : File, writefln;
         import std.path : buildPath;
         import std.range : empty;
 
-        /* Package path */
-        auto finalPath = outputDirectory.buildPath(pkg.filename);
-        auto fileSet = col.filesForTarget(pkg.pd.name);
-        if (fileSet.empty)
+        /* Empty package */
+        if (!analyser.hasBucket(pkg.pd.name))
         {
             return;
         }
+
+        /* Magically empty bucket.. */
+        if (analyser.bucket(pkg.pd.name).empty)
+        {
+            return;
+        }
+
+        /* Package path */
+        auto finalPath = outputDirectory.buildPath(pkg.filename);
 
         auto fp = File(finalPath, "wb");
         auto writer = new Writer(fp);
@@ -121,7 +129,7 @@ private:
         generateMetadata(writer, pkg);
 
         /* Now generate the fileset */
-        generateFiles(col, fileSet, writer, pkg);
+        generateFiles(analyser, writer, pkg);
 
         writer.flush();
     }
@@ -157,8 +165,7 @@ private:
     /**
      * Handle emission and inclusion of files
      */
-    void generateFiles(ref BuildCollector col, ref FileAnalysis[] fileSet,
-            scope Writer writer, scope Package* pkg) @trusted
+    void generateFiles(Analyser analyser, scope Writer writer, scope Package* pkg) @trusted
     {
         import moss.core : FileType;
         import moss.format.binary.payload.layout : LayoutPayload, LayoutEntry;
@@ -175,25 +182,18 @@ private:
         writer.addPayload(indexPayload);
         writer.addPayload(contentPayload);
 
-        /* Prepare file list for consumption + emission */
-        fileSet.sort!((a, b) => a.path < b.path);
+        auto bucket = analyser.bucket(pkg.pd.name);
+        auto allFiles = bucket.allFiles().array();
+        auto uniqueFiles = bucket.uniqueFiles().array();
 
-        /**
-         * Unique file origins for package emission, this first filters and converts
-         * the regular files before sorting unique hashes into uniqueFiles
-         */
-        auto regularFiles = fileSet.filter!((ref m) => m.type == FileType.Regular)
-            .map!((ref m) => col.originForFile(m))().array;
-        auto uniqueFiles = regularFiles.sort!((a, b) => a.hash < b.hash)
-            .uniq!("a.hash == b.hash")().array;
-
-        /* Re-sort files by path to improve data locality */
-        uniqueFiles.sort!((a, b) => a.originPath < b.originPath);
+        /* Keep sorted by path for better data locality + compression */
+        uniqueFiles.sort!((a, b) => a.fullPath < b.fullPath);
+        allFiles.sort!((a, b) => a.path < b.path);
 
         /**
          * Insert a LayoutEntry to the payload
          */
-        void insertLayout(ref FileAnalysis file)
+        void insertLayout(ref FileInfo file)
         {
             LayoutEntry le;
             /* Clone information from the FileAnalysis into the LayoutEntry */
@@ -217,22 +217,23 @@ private:
         /**
          * Insert the unique file into IndexPayload and ContentPayload
          */
-        void insertUniqueFile(ref FileOrigin file)
+        void insertUniqueFile(ref FileInfo file)
         {
             IndexEntry index;
-            index.refcount = file.refcount;
-            index.size = file.st.st_size;
+            /* We broke refcounts */
+            index.refcount = 0;
+            index.size = file.stat.st_size;
             index.start = chunkStartSize;
             index.end = index.size + index.start;
 
             chunkStartSize = index.end;
 
-            indexPayload.addIndex(index, file.hash);
-            contentPayload.addFile(file.hash, file.originPath);
+            indexPayload.addIndex(index, file.data);
+            contentPayload.addFile(file.data, file.fullPath);
         }
 
         /* For every known file, insert it */
-        fileSet.each!((ref f) => insertLayout(f));
+        allFiles.each!((ref f) => insertLayout(f));
         uniqueFiles.each!((ref f) => insertUniqueFile(f));
     }
 
