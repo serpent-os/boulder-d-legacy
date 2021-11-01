@@ -29,9 +29,6 @@ import moss.format.source.script;
 import std.parallelism : totalCPUs;
 import std.concurrency : initOnce;
 
-import moss.jobs;
-import serpent.ecs;
-
 /**
  * Return the current shared Context for all moss operations
  */
@@ -169,22 +166,6 @@ public final class BuildContext
     }
 
     /**
-     * Return process wide Entity Manager
-     */
-    pragma(inline, true) pure @property EntityManager entityManager() @safe @nogc nothrow
-    {
-        return _entityManager;
-    }
-
-    /**
-     * Return process wide job system
-     */
-    pragma(inline, true) pure @property JobSystem jobSystem() @safe @nogc nothrow
-    {
-        return _jobSystem;
-    }
-
-    /**
      * Prepare a ScriptBuilder
      */
     void prepareScripts(ref ScriptBuilder sbuilder, string architecture)
@@ -299,7 +280,4 @@ package:
     uint _jobs = 0;
     string _outputDirectory = ".";
     string _specDir = ".";
-
-    EntityManager _entityManager = null;
-    JobSystem _jobSystem = null;
 }
