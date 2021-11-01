@@ -32,6 +32,7 @@ import std.path : dirName, absolutePath;
 import std.string : format, endsWith;
 import moss.format.source.spec;
 import std.path : buildPath, baseName;
+import std.parallelism : TaskPool, totalCPUs;
 
 /**
  * The BuildController is responsible for the main execution cycle of Boulder,
@@ -150,6 +151,14 @@ private:
      */
     void fetchUpstreams()
     {
+        /* bound to max 4 fetches, or 2 for everyone else. */
+        auto tp = new TaskPool(totalCPUs >= 4 ? 4 : 2);
+        tp.isDaemon = true;
+
+        scope (exit)
+        {
+            tp.finish();
+        }
         auto upstreams = buildContext.spec.upstreams.values;
 
         /* No upstreams */
@@ -158,7 +167,7 @@ private:
             return;
         }
 
-        foreach (upstream; upstreams)
+        foreach (upstream; tp.parallel(upstreams))
         {
             fetchUpstream(upstream);
         }
