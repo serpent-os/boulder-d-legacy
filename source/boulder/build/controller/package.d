@@ -75,26 +75,75 @@ public final class BuildController
 
         builder = new Builder();
 
-        /* Prepare */
+        runTimed(&stageFetch, "Fetch");
+        runTimed(&stagePrepare, "Prepare");
+        runTimed(&stageBuild, "Build");
+        runTimed(&stageAnalyse, "Analyse");
+        runTimed(&stageEmit, "Emit packages");
+        runTimed(&stageManifest, "Emit manifest");
+    }
+
+    /**
+     * Run preparation for the package
+     */
+    void stagePrepare()
+    {
         builder.prepareRoot();
-        fetchUpstreams();
         builder.preparePkgFiles();
         promoteSources();
+    }
 
-        /* Build */
+    /**
+     * Fetch upstreams for the package
+     */
+    void stageFetch()
+    {
+        fetchUpstreams();
+    }
+
+    /**
+     * Build the package profiles
+     */
+    void stageBuild()
+    {
         builder.buildProfiles();
+    }
 
-        /* Analyse */
+    /**
+     * Analyse + collect
+     */
+    void stageAnalyse()
+    {
         builder.collectAssets();
+    }
 
-        /* Emit */
+    /**
+     * Emit packages
+     */
+    void stageEmit()
+    {
         builder.emitPackages();
+    }
 
-        /* Manifest */
+    /**
+     * Product manifest files
+     */
+    void stageManifest()
+    {
         builder.produceManifests();
     }
 
 private:
+
+    void runTimed(void delegate() dg, in string label)
+    {
+        import std.datetime.stopwatch : StopWatch, AutoStart;
+        import std.stdio : writefln;
+
+        auto sw = StopWatch(AutoStart.yes);
+        dg();
+        writefln("[%s] Finished: %s", label, sw.peek);
+    }
 
     /**
      * Fetch all upstreams
