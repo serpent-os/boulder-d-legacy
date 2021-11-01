@@ -77,7 +77,7 @@ public final class BuildController
 
         /* Prepare */
         builder.prepareRoot();
-        beginFetchUpstreams();
+        fetchUpstreams();
         builder.preparePkgFiles();
         promoteSources();
 
@@ -99,7 +99,7 @@ private:
     /**
      * Fetch all upstreams
      */
-    void beginFetchUpstreams()
+    void fetchUpstreams()
     {
         auto upstreams = buildContext.spec.upstreams.values;
 
@@ -139,11 +139,28 @@ private:
     /**
      * Block and fetch the given upstream definition
      */
-    void fetchUpstream(in UpstreamDefinition ud)
+    bool fetchUpstream(in UpstreamDefinition upstream)
     {
-        import std.stdio : writeln;
+        import std.net.curl : download;
 
-        writeln("Fetching: ", ud);
+        if (upstream.type != UpstreamType.Plain)
+        {
+            return false;
+        }
+
+        if (downloadStore.contains(upstream.plain.hash))
+        {
+            return true;
+        }
+
+        const auto finalPath = downloadStore.fullPath(upstream.plain.hash);
+        auto pathDir = finalPath.dirName;
+        pathDir.mkdirRecurse();
+        import std.stdio : writefln;
+
+        writefln("Downloading '%s' to '%s'", upstream.uri, finalPath);
+        download(upstream.uri, finalPath);
+        return true;
     }
 
     DownloadStore downloadStore = null;
