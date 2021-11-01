@@ -23,13 +23,12 @@
 module boulder.build.controller;
 
 import moss.core.download.store;
-import moss.jobs;
+import boulder.build.builder;
 import boulder.build.context;
-import boulder.build.controller.buildprocessor;
-import boulder.build.controller.fetchprocessor;
 
 import std.exception : enforce;
 import std.file : exists;
+import std.path : dirName, absolutePath;
 import std.string : format, endsWith;
 import moss.format.source.spec;
 
@@ -47,46 +46,41 @@ public final class BuildController
      */
     this()
     {
-        /* Run fetch group after system group */
-        auto fetchGroup = new ProcessorGroup("fetchGroup");
-
         downloadStore = new DownloadStore(StoreType.User);
-        buildContext.jobSystem.registerJobType!FetchJob;
-        foreach (i; 0 .. 4)
-        {
-            fetchGroup.append(new FetchProcessor(downloadStore));
-        }
-        mainLoop.appendGroup(fetchGroup);
-
-        /* Then run our main building group */
-        auto buildGroup = new ProcessorGroup("buildGroup");
-        buildGroup.append(new BuildProcessor(downloadStore));
-        mainLoop.appendGroup(buildGroup);
-
-        buildContext.entityManager.build();
-        buildContext.entityManager.step();
     }
 
     /**
      * Request that we begin building the given path
      */
-    void beginBuild(const(string) path)
+    void build(const(string) path)
     {
         enforce(path.exists,
-                "BuildController.beginBuild(): Cannot build %s as it does not exist".format(path));
+                "BuildController.build(): Cannot build %s as it does not exist".format(path));
         enforce(path.endsWith(".yml"),
-                "BuildController.beginBuild(): Path does not look like a valid YML file: %s".format(
+                "BuildController.build(): Path does not look like a valid YML file: %s".format(
                     path));
 
-        /* TODO: Better capture the processing */
+        if (builder !is null)
+        {
+            builder.destroy();
+        }
+
+        /* Set up the new builder */
         auto s = new Spec(File(path, "r"));
         s.parse();
 
-        /* Send off the job */
-        buildContext.jobSystem.pushJob(BuildRequest(path, s));
+        buildContext.spec = s;
+        buildContext.specDir = path.dirName.absolutePath;
+
+        builder = new Builder();
+
+        import std.stdio : writeln;
+
+        writeln("TODO: Build");
     }
 
 private:
 
     DownloadStore downloadStore = null;
+    Builder builder = null;
 }
