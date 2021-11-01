@@ -60,8 +60,6 @@ public final class BuildContext
         jobs = 0;
 
         this.loadMacros();
-        this._entityManager = new EntityManager();
-        this._jobSystem = new JobSystem(entityManager);
     }
 
     /**
