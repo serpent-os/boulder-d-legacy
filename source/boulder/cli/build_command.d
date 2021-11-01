@@ -28,7 +28,6 @@ import std.stdio;
 import boulder.build.context;
 import boulder.build.controller;
 import boulder.cli : BoulderCLI;
-import moss.jobs;
 
 /**
  * The BuildCommand is responsible for handling requests to build stone.yml
@@ -57,21 +56,14 @@ public struct BuildCommand
      */
     @CommandEntry() int run(ref string[] argv)
     {
-        import std.algorithm : each, uniq;
         import std.exception : enforce;
 
         auto controller = new BuildController();
-        argv.uniq.each!((e) => controller.beginBuild(e));
 
-        mainLoop.idleAdd(() => {
-            if (!buildContext.jobSystem.hasJobs)
-            {
-                mainLoop.quit();
-                return CallbackControl.Stop;
-            }
-            return CallbackControl.Continue;
-        }());
-        mainLoop.run();
+        foreach (specURI; argv)
+        {
+            controller.build(specURI);
+        }
 
         return ExitStatus.Success;
     }
