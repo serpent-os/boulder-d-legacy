@@ -27,10 +27,11 @@ import boulder.build.builder;
 import boulder.build.context;
 
 import std.exception : enforce;
-import std.file : exists;
+import std.file : exists, mkdirRecurse;
 import std.path : dirName, absolutePath;
 import std.string : format, endsWith;
 import moss.format.source.spec;
+import std.path : buildPath, baseName;
 
 /**
  * The BuildController is responsible for the main execution cycle of Boulder,
@@ -74,12 +75,76 @@ public final class BuildController
 
         builder = new Builder();
 
-        import std.stdio : writeln;
+        /* Prepare */
+        builder.prepareRoot();
+        beginFetchUpstreams();
+        builder.preparePkgFiles();
+        promoteSources();
 
-        writeln("TODO: Build");
+        /* Build */
+        builder.buildProfiles();
+
+        /* Analyse */
+        builder.collectAssets();
+
+        /* Emit */
+        builder.emitPackages();
+
+        /* Manifest */
+        builder.produceManifests();
     }
 
 private:
+
+    /**
+     * Fetch all upstreams
+     */
+    void beginFetchUpstreams()
+    {
+        auto upstreams = buildContext.spec.upstreams.values;
+
+        /* No upstreams */
+        if (upstreams.length == 0)
+        {
+            return;
+        }
+
+        foreach (upstream; upstreams)
+        {
+            fetchUpstream(upstream);
+        }
+    }
+
+    /**
+     * Promote sources to where they need to be
+     */
+    void promoteSources()
+    {
+        foreach (upstream; buildContext.spec.upstreams.values)
+        {
+            if (upstream.type != UpstreamType.Plain)
+            {
+                continue;
+            }
+
+            auto partName = upstream.plain.rename !is null
+                ? upstream.plain.rename : upstream.uri.baseName;
+            string fullname = buildContext.sourceDir.buildPath(partName);
+            auto dn = fullname.dirName;
+            dn.mkdirRecurse();
+            downloadStore.share(upstream.plain.hash, fullname);
+        }
+    }
+
+    /**
+     * Block and fetch the given upstream definition
+     */
+    void fetchUpstream(in UpstreamDefinition ud)
+    {
+        import std.stdio : writeln;
+
+        writeln("Fetching: ", ud);
+    }
 
     DownloadStore downloadStore = null;
     Builder builder = null;
