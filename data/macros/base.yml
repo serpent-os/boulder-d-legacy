@@ -342,8 +342,8 @@ flags               :
     # Toggle debug-lines optimisations
     - debug-lines:
         llvm:
-            c         : "-gline-tables-only -feliminate-unused-debug-types -fasynchronous-unwind-tables"
-            cxx       : "-gline-tables-only -feliminate-unused-debug-types -fasynchronous-unwind-tables"
+            c         : "-gline-tables-only -fasynchronous-unwind-tables"
+            cxx       : "-gline-tables-only -fasynchronous-unwind-tables"
 
     # Toggle debug-std optimisations (ON)
     - debug-std:
