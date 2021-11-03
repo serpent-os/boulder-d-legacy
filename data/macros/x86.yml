@@ -13,5 +13,5 @@ flags:
 
     # Set architecture flags
     - architecture:
-        c         : "-march=i686 -mtune=generic"
-        cxx       : "-march=i686 -mtune=generic"
+        c         : "-march=x86-64-v2 -mtune=ivybridge"
+        cxx       : "-march=x86-64-v2 -mtune=ivybridge"

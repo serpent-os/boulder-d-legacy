@@ -5,13 +5,13 @@ definitions:
     - libsuffix      : ""
     - build          : x86_64-%(vendorID)
     - host           : x86_64-%(vendorID)
-    - cc             : "%(compiler_c) -m64"
-    - cxx            : "%(compiler_cxx) -m64"
-    - cpp            : "%(compiler_cpp) -m64"
+    - cc             : "%(compiler_c)"
+    - cxx            : "%(compiler_cxx)"
+    - cpp            : "%(compiler_cpp)"
 
 flags:
 
     # Set architecture flags
     - architecture:
-        c         : "-march=x86-64-v3 -maes -mfsgsbase -mpclmul -mrdrnd -mxsaveopt -mtune=skylake"
-        cxx       : "-march=x86-64-v3 -maes -mfsgsbase -mpclmul -mrdrnd -mxsaveopt -mtune=skylake"
+        c         : "-march=x86-64-v2 -mtune=ivybridge"
+        cxx       : "-march=x86-64-v2 -mtune=ivybridge"
