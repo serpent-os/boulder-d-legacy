@@ -390,8 +390,9 @@ flags               :
 
     # Toggle sse2avx (OFF)
     - sse2avx:
-        c         : "-msse2avx"
-        cxx       : "-msse2avx"
+        gnu:
+            c         : "-msse2avx"
+            cxx       : "-msse2avx"
 
     # Toggle visibility hidden (OFF)
     - visibility-hidden:
