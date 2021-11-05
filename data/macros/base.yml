@@ -361,8 +361,9 @@ flags               :
 
     # Toggle noplt, requires bindnow (OFF)
     - noplt:
-        c         : "-fno-plt"
-        cxx       : "-fno-plt"
+        gnu:
+            c         : "-fno-plt"
+            cxx       : "-fno-plt"
 
     # Toggle -fno-semantic-interposition (OFF)
     - nosemantic:
