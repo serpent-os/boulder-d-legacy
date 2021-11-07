@@ -8,6 +8,8 @@ definitions:
     - cc             : "%(compiler_c) -m64"
     - cxx            : "%(compiler_cxx) -m64"
     - cpp            : "%(compiler_cpp) -m64"
+    - march          : armv8-a+simd+fp+crypto
+    - tune           : cortex-a72.cortex-a53
 
 flags:
 

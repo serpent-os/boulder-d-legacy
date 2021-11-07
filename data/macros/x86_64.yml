@@ -8,6 +8,8 @@ definitions:
     - cc             : "%(compiler_c)"
     - cxx            : "%(compiler_cxx)"
     - cpp            : "%(compiler_cpp)"
+    - march          : x86-64-v2
+    - tune           : ivybridge
 
 flags:
 
