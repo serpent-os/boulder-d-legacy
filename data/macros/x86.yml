@@ -9,7 +9,7 @@ definitions:
     - cxx            : "%(compiler_cxx) -m32"
     - cpp            : "%(compiler_cpp) -m32"
     - march          : x86-64-v2
-    - tune           : ivybridge
+    - mtune          : ivybridge
 
 flags:
 
