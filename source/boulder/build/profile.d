@@ -304,12 +304,12 @@ public:
             sbuilder.addDefinition("compiler_c", "gcc");
             sbuilder.addDefinition("compiler_cxx", "g++");
             sbuilder.addDefinition("compiler_cpp", "gcc -E");
-            sbuilder.addDefinition("compiler_ar", "ar");
+            sbuilder.addDefinition("compiler_ar", "gcc-ar");
             sbuilder.addDefinition("compiler_objcopy", "objcopy");
-            sbuilder.addDefinition("compiler_nm", "nm");
-            sbuilder.addDefinition("compiler_ranlib", "ranlib");
+            sbuilder.addDefinition("compiler_nm", "gcc-nm");
+            sbuilder.addDefinition("compiler_ranlib", "gcc-ranlib");
             sbuilder.addDefinition("compiler_strip", "strip");
-            sbuilder.addDefinition("compiler_path", "/usr/binutils/bin:/usr/bin");
+            sbuilder.addDefinition("compiler_path", "/usr/bin");
         }
 
         sbuilder.addDefinition("pgo_dir", pgoDir);
