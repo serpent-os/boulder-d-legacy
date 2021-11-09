@@ -267,7 +267,7 @@ flags               :
             cxx       : "-fstack-protector-strong -fstack-clash-protection -fPIE --param ssp-buffer-size=4"
             ld        : "-Wl,-pie"
 
-    # Optimize for section splitting (OFF)
+    # Use section splitting, improves GC without lto only (OFF)
     - sections:
         c     : "-ffunction-sections -fdata-sections"
         cxx   : "-ffunction-sections -fdata-sections"
