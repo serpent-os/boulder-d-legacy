@@ -142,6 +142,15 @@ tuning              :
                 enabled: lto-thin
         default: full
 
+    # Enable LTOextra. Requires the equivalent lto option
+    - ltoextra:
+        options:
+            - full:
+                enabled: ltoextra-full
+            - thin:
+                enabled: ltoextra-thin
+        default: full
+
     # Enable ICF
     - icf:
         options:
@@ -308,6 +317,21 @@ flags               :
             c         : "-flto=thin"
             cxx       : "-flto=thin"
             ld        : "-flto=thin"
+
+    # Enable LTOextra optimisations (OFF)
+    - ltoextra-full:
+        gnu:
+            c         : "-fdevirtualize-at-ltrans"
+            cxx       : "-fdevirtualize-at-ltrans"
+        llvm:
+            c         : "-fwhole-program-vtables -fvirtual-function-elimination"
+            cxx       : "-fwhole-program-vtables -fvirtual-function-elimination"
+
+    # Enable Thin-LTOextra optimisations (OFF)
+    - ltoextra-thin:
+        llvm:
+            c         : "-fwhole-program-vtables"
+            cxx       : "-fwhole-program-vtables"
 
     # Enable ALL LLVM ICF optimisations (OFF)
     - icf-all:
