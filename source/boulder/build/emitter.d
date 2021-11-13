@@ -137,25 +137,26 @@ private:
      */
     void generateMetadata(scope Analyser analyser, scope Writer writer, scope Package* pkg) @trusted
     {
-        import moss.format.binary.payload.meta : MetaPayload, RecordTag;
+        import moss.format.binary.payload.meta : MetaPayload, RecordTag, RecordType;
         import std.algorithm : each, uniq;
 
         auto met = new MetaPayload();
-        met.addRecord(RecordTag.Name, pkg.pd.name);
-        met.addRecord(RecordTag.Version, pkg.source.versionIdentifier);
-        met.addRecord(RecordTag.Release, pkg.source.release);
-        met.addRecord(RecordTag.BuildRelease, pkg.buildRelease);
-        met.addRecord(RecordTag.Summary, pkg.pd.summary);
-        met.addRecord(RecordTag.Description, pkg.pd.description);
-        met.addRecord(RecordTag.Homepage, pkg.source.homepage);
+        met.addRecord(RecordType.String, RecordTag.Name, pkg.pd.name);
+        met.addRecord(RecordType.String, RecordTag.Version, pkg.source.versionIdentifier);
+        met.addRecord(RecordType.Uint64, RecordTag.Release, pkg.source.release);
+        met.addRecord(RecordType.Uint64, RecordTag.BuildRelease, pkg.buildRelease);
+        met.addRecord(RecordType.String, RecordTag.Summary, pkg.pd.summary);
+        met.addRecord(RecordType.String, RecordTag.Description, pkg.pd.description);
+        met.addRecord(RecordType.String, RecordTag.Homepage, pkg.source.homepage);
 
         /* TODO: Be more flexible encoding architecture. */
         import moss.core.platform : platform;
 
         auto plat = platform();
-        met.addRecord(RecordTag.Architecture, plat.name);
+        met.addRecord(RecordType.String, RecordTag.Architecture, plat.name);
 
-        pkg.source.license.uniq.each!((l) => met.addRecord(RecordTag.License, l));
+        pkg.source.license.uniq.each!((l) => met.addRecord(RecordType.String,
+                RecordTag.License, l));
 
         auto bucket = analyser.bucket(pkg.pd.name);
         auto providers = bucket.providers();
