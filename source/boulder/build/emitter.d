@@ -171,12 +171,20 @@ private:
         {
             writefln(" -> Providers [%s]", pkg.pd.name);
             providers.each!((p) => writefln(" -> %s", p));
+            foreach (prov; providers)
+            {
+                met.addRecord(RecordType.Provider, RecordTag.Provides, prov);
+            }
             writeln();
         }
         if (!dependencies.empty)
         {
             writefln(" -> Dependencies [%s]", pkg.pd.name);
             dependencies.each!((d) => writefln(" -> %s", d));
+            foreach (dep; dependencies)
+            {
+                met.addRecord(RecordType.Dependency, RecordTag.Depends, dep);
+            }
             writeln();
         }
 
