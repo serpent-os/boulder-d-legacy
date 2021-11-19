@@ -219,6 +219,14 @@ tuning              :
                 enabled: visibility-hidden
         default: inline
 
+    # Enable relative-vtables
+    - relative-vtables:
+        enabled: relative-vtables
+
+    # Enable relr
+    - relr:
+        enabled: relr
+
 flags               :
 
     # Needs overriding with -march/mtune values.
@@ -427,6 +435,16 @@ flags               :
     # Toggle visibility inlines hidden (OFF)
     - visibility-inline:
         cxx        : "-fvisibility-inlines-hidden"
+
+    # Enable relative vtables (OFF)
+    - relative-vtables:
+        llvm:
+            cxx       : "-fexperimental-relative-c++-abi-vtables"
+
+    # Toggle relr (OFF)
+    - relr:
+        llvm:
+            ld        : "-Wl,--pack-dyn-relocs=relr"
 
 # Template packages
 packages          :
