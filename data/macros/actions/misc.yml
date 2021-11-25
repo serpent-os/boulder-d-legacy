@@ -1,5 +1,17 @@
 actions:
 
+    # Macro to create an empty directory
+    - install_dir: |
+        install -dm00755
+
+    # Macro to install a file with default executable permissions
+    - install_exe: |
+        install -Dm00755
+
+    # Macro to install a file without executable permissions
+    - install_file: |
+        install -Dm00644
+
     # Patch sources from file (use: '%patch ${file}'; Add -p# at end if needed
     - patch: |
         patch -E -f -p1 -i
