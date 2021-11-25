@@ -152,7 +152,7 @@ private:
     void fetchUpstreams()
     {
         /* bound to max 4 fetches, or 2 for everyone else. */
-        auto tp = new TaskPool(totalCPUs >= 4 ? 4 : 2);
+        auto tp = new TaskPool(totalCPUs >= 4 ? 3 : 1);
         tp.isDaemon = true;
 
         scope (exit)
