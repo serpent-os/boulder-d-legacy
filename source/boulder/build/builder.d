@@ -29,8 +29,18 @@ import boulder.build.profile;
 import boulder.build.emitter;
 import moss.core.platform;
 import moss.deps.analysis;
-import std.algorithm : each;
+import std.algorithm : each, filter;
 import moss.deps.analysis.elves;
+
+import core.sys.posix.sys.stat;
+
+/**
+ * As far as boulder is concerned, any directory mode 0755 is utterly uninteresting
+ * and doesn't need to be recorded in the final payload, as we can simply recreate
+ * it.
+ */
+private static immutable auto regularDirectoryMode = S_IFDIR | S_IROTH | S_IXOTH
+    | S_IRGRP | S_IXGRP | S_IRWXU;
 
 /**
  * The Builder is responsible for the full build of a source package
@@ -222,22 +232,61 @@ private:
         import std.path : relativePath;
         import std.string : format;
 
-        /* Add every encountered file for processing */
-        foreach (ref DirEntry e; dirEntries(root, SpanMode.depth, false))
+        /**
+         * Explicitly requested addition of some path, so add it now.
+         */
+        void collectPath(in string path)
         {
-            auto targetPath = e.name.relativePath(root);
-
-            /* Ensure full "local" path */
+            auto targetPath = path.relativePath(root);
             if (targetPath[0] != '/')
             {
-                targetPath = "/%s".format(targetPath);
+                targetPath = format!"/%s"(targetPath);
             }
-
-            auto fullPath = e.name;
-            auto inf = FileInfo(targetPath, fullPath);
+            auto inf = FileInfo(targetPath, path);
             inf.target = collector.packageTarget(targetPath);
             analyser.addFile(inf);
         }
+
+        /**
+         * Custom recursive dirEntries (DFS) style function which lets us
+         * detect empty directories and directories with special permissions
+         * so that for the most part we won't explicitly include directory
+         * records in the payload.
+         */
+        void collectionHelper(in string path, bool specialDirectory = false)
+        {
+            auto entries = dirEntries(path, SpanMode.shallow, false);
+
+            if (entries.empty)
+            {
+                /* Include empty directory */
+                collectPath(path);
+                return;
+            }
+            else if (specialDirectory)
+            {
+                /* Include directory with non standard mode */
+                collectPath(path);
+            }
+            /* Otherwise, ignore the directory and rely on mkdir recursive */
+
+            /* Depth first, close fd early to prevent exhaustion */
+            foreach (entry; entries)
+            {
+                auto specialDir = entry.isDir() && entry.statBuf.st_mode != regularDirectoryMode;
+                if (entry.isDir)
+                {
+                    collectionHelper(entry.name, specialDir);
+                }
+                else
+                {
+                    collectPath(entry.name);
+                }
+                entry.destroy();
+            }
+        }
+
+        collectionHelper(root);
     }
 
     /**
