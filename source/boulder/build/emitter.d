@@ -233,7 +233,7 @@ private:
             le.time = file.stat.st_ctime;
             if (le.type == FileType.Regular || le.type == FileType.Symlink)
             {
-                layoutPayload.addLayout(le, file.data, file.path);
+                layoutPayload.addLayout(le, file.digestString.dup, file.path);
             }
             else if (le.type == FileType.Directory)
             {
@@ -249,16 +249,15 @@ private:
         void insertUniqueFile(ref FileInfo file)
         {
             IndexEntry index;
-            /* We broke refcounts */
-            index.refcount = 0;
-            index.size = file.stat.st_size;
             index.start = chunkStartSize;
-            index.end = index.size + index.start;
+            index.end = index.start + file.stat.st_size;
+            index.digest = file.digest();
 
+            /* Update next chunk size */
             chunkStartSize = index.end;
 
-            indexPayload.addIndex(index, file.data);
-            contentPayload.addFile(file.data, file.fullPath);
+            indexPayload.addIndex(index);
+            contentPayload.addFile(file.digest, file.fullPath);
         }
 
         /* For every known file, insert it */
