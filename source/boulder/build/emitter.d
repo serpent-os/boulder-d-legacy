@@ -29,6 +29,7 @@ import moss.format.source.source_definition;
 import moss.format.binary.payload;
 import moss.format.binary.writer;
 import moss.deps.analysis;
+import std.string : startsWith;
 
 /**
  * Resulting Package is only buildable once it contains
@@ -231,16 +232,23 @@ private:
             le.gid = file.stat.st_gid;
             le.mode = file.stat.st_mode;
 
+            /* We only allow /usr/ paths in moss/boulder, strip the prefix. */
+            string fsTarget = file.path;
+            if (fsTarget.startsWith("/usr/"))
+            {
+                fsTarget = fsTarget[5 .. $];
+            }
+
             switch (le.type)
             {
             case FileType.Regular:
-                layoutPayload.addLayout(le, file.digestString.dup, file.path);
+                layoutPayload.addLayout(le, file.digestString.dup, fsTarget);
                 break;
             case FileType.Symlink:
-                layoutPayload.addLayout(le, file.symlinkSource, file.path);
+                layoutPayload.addLayout(le, file.symlinkSource, fsTarget);
                 break;
             case FileType.Directory:
-                layoutPayload.addLayout(le, null, file.path);
+                layoutPayload.addLayout(le, null, fsTarget);
                 break;
             default:
                 assert(0);
