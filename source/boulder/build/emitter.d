@@ -231,13 +231,20 @@ private:
             le.gid = file.stat.st_gid;
             le.mode = file.stat.st_mode;
             le.time = file.stat.st_ctime;
-            if (le.type == FileType.Regular || le.type == FileType.Symlink)
+
+            switch (le.type)
             {
+            case FileType.Regular:
                 layoutPayload.addLayout(le, file.digestString.dup, file.path);
-            }
-            else if (le.type == FileType.Directory)
-            {
+                break;
+            case FileType.Symlink:
+                layoutPayload.addLayout(le, file.symlinkSource, file.path);
+                break;
+            case FileType.Directory:
                 layoutPayload.addLayout(le, null, file.path);
+                break;
+            default:
+                assert(0);
             }
         }
 
