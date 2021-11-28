@@ -230,7 +230,6 @@ private:
             le.uid = file.stat.st_uid;
             le.gid = file.stat.st_gid;
             le.mode = file.stat.st_mode;
-            le.time = file.stat.st_ctime;
 
             switch (le.type)
             {
