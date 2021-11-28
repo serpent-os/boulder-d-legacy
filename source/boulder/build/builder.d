@@ -31,6 +31,8 @@ import moss.core.platform;
 import moss.deps.analysis;
 import std.algorithm : each, filter;
 import moss.deps.analysis.elves;
+import std.stdio : stderr;
+import std.string : startsWith;
 
 import core.sys.posix.sys.stat;
 
@@ -41,6 +43,20 @@ import core.sys.posix.sys.stat;
  */
 private static immutable auto regularDirectoryMode = S_IFDIR | S_IROTH | S_IXOTH
     | S_IRGRP | S_IXGRP | S_IRWXU;
+
+/* 
+ * Do not allow non /usr paths!
+ */
+private static AnalysisReturn dropBadPaths(scope Analyser analyser, in FileInfo info)
+{
+    if (!info.path.startsWith("/usr"))
+    {
+        stderr.writefln!"[Analyse] Rejecting non /usr file from inclusion: %s"(info.path);
+        return AnalysisReturn.IgnoreFile;
+    }
+
+    return AnalysisReturn.NextHandler;
+}
 
 /**
  * The Builder is responsible for the full build of a source package
@@ -207,6 +223,9 @@ private:
     void setupChains()
     {
         const auto boulderChains = [
+            /* Highest policy */
+            AnalysisChain("badFiles", [&dropBadPaths], 100),
+
             /* Handle ELF files */
             AnalysisChain("elves", [
                     &acceptElfFiles, &scanElfFiles, &includeFile,
