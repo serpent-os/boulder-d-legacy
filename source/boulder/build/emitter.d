@@ -242,13 +242,13 @@ private:
             switch (le.type)
             {
             case FileType.Regular:
-                layoutPayload.addLayout(le, file.digestString.dup, fsTarget);
+                layoutPayload.addLayout(le, fsTarget, file.digest);
                 break;
             case FileType.Symlink:
-                layoutPayload.addLayout(le, file.symlinkSource, fsTarget);
+                layoutPayload.addLayout(le, fsTarget, file.symlinkSource);
                 break;
             case FileType.Directory:
-                layoutPayload.addLayout(le, null, fsTarget);
+                layoutPayload.addLayout(le, fsTarget, cast(ubyte[]) null);
                 break;
             default:
                 assert(0);
