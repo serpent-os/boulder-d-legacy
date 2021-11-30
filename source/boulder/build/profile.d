@@ -297,7 +297,7 @@ public:
             sbuilder.addDefinition("compiler_nm", "llvm-nm");
             sbuilder.addDefinition("compiler_ranlib", "llvm-ranlib");
             sbuilder.addDefinition("compiler_strip", "llvm-strip");
-            sbuilder.addDefinition("compiler_path", "/usr/bin");
+            sbuilder.addDefinition("compiler_path", "/usr/bin:/bin");
         }
         else
         {
