@@ -309,7 +309,7 @@ public:
             sbuilder.addDefinition("compiler_nm", "gcc-nm");
             sbuilder.addDefinition("compiler_ranlib", "gcc-ranlib");
             sbuilder.addDefinition("compiler_strip", "strip");
-            sbuilder.addDefinition("compiler_path", "/usr/bin");
+            sbuilder.addDefinition("compiler_path", "/usr/bin:/bin");
         }
 
         sbuilder.addDefinition("pgo_dir", pgoDir);
