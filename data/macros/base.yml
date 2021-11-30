@@ -14,6 +14,7 @@ definitions:
     - mandir         : "%(datadir)/man"
     - docdir         : "%(datadir)/doc"
     - vendordir      : "%(datadir)/defaults/etc"
+    - completionsdir : "%(datadir)/bash-completion/completions"
     - tmpfilesdir    : "%(prefix)/lib/tmpfiles.d"
     - sysusersdir    : "%(prefix)/lib/sysusers.d"
     - localstatedir  : "/var"
