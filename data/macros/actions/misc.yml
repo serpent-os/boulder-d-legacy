@@ -19,7 +19,7 @@ actions:
     # Create a tmpfiles.d file for the package with given content
     - tmpfiles: |
         create_tmpfiles(){
-            if [[ -z "%(libsuffix)" ]]; then
+            if [ -z "%(libsuffix)" ]; then
                 mkdir -p %(installroot)/%(tmpfilesdir)
                 echo "$@" >> %(installroot)/%(tmpfilesdir)/%(name).conf
             fi
@@ -29,7 +29,7 @@ actions:
     # Create a sysusers.d file for the package with given content
     - sysusers: |
         create_sysusers(){
-            if [[ -z "%(libsuffix)" ]]; then
+            if [ -z "%(libsuffix)" ]; then
                 mkdir -p %(installroot)/%(sysusersdir)
                 echo "$@" >> %(installroot)/%(sysusersdir)/%(name).conf
             fi
