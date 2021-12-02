@@ -6,7 +6,7 @@ definitions:
     - libsuffix      : "" 
     - prefix         : "/usr"
     - bindir         : "%(prefix)/bin"
-    - sbindir        : "%(prefix)/bin"
+    - sbindir        : "%(prefix)/sbin"
     - includedir     : "%(prefix)/include"
     - datadir        : "%(prefix)/share"
     - localedir      : "%(datadir)/locale"
