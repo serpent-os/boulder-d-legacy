@@ -233,11 +233,7 @@ private:
             le.mode = file.stat.st_mode;
 
             /* We only allow /usr/ paths in moss/boulder, strip the prefix. */
-            string fsTarget = file.path;
-            if (fsTarget.startsWith("/usr/"))
-            {
-                fsTarget = fsTarget[5 .. $];
-            }
+            string fsTarget = file.path[5 .. $];
 
             switch (le.type)
             {

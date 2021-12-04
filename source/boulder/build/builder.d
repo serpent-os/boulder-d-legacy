@@ -49,9 +49,12 @@ private static immutable auto regularDirectoryMode = S_IFDIR | S_IROTH | S_IXOTH
  */
 private static AnalysisReturn dropBadPaths(scope Analyser analyser, in FileInfo info)
 {
-    if (!info.path.startsWith("/usr"))
+    if (!info.path.startsWith("/usr/"))
     {
-        stderr.writefln!"[Analyse] Rejecting non /usr file from inclusion: %s"(info.path);
+        if (!info.path.startsWith("/usr"))
+        {
+            stderr.writefln!"[Analyse] Rejecting non /usr/ file from inclusion: %s"(info.path);
+        }
         return AnalysisReturn.IgnoreFile;
     }
 
