@@ -27,6 +27,7 @@ import boulder.build.context;
 import boulder.build.collector;
 import boulder.build.profile;
 import boulder.build.emitter;
+import boulder.build.util;
 import moss.core.platform;
 import moss.deps.analysis;
 import std.algorithm : each, filter;
@@ -273,25 +274,20 @@ private:
         auto debugInfoDir = debugInfoPath.dirName;
         debugInfoDir.mkdirRecurse();
 
-        /* TODO: Strip the file here */
         /* Execute, TODO: Fix environment */
-        import std.process : Config, spawnProcess, wait;
+        auto ret = executeCommand(command, [
+                "--only-keep-debug", fileInfo.fullPath, debugInfoPath
+                ], null);
+        auto code = ret.match!((err) {
+            writeln("[debuginfo] failure: ", err.toString());
+            return -1;
+        }, (code) => code);
 
-        auto config = Config.retainStderr | Config.retainStdout
-            | Config.stderrPassThrough | Config.inheritFDs;
-        auto prenv = cast(const(string[string])) null;
-
-        auto args = [
-            command, "--only-keep-debug", fileInfo.fullPath, debugInfoPath
-        ];
-        auto id = spawnProcess(args, stdin, stdout, stderr, prenv, config, ".");
-        auto status = wait(id);
-        enforce(status == 0, "Failed to invoke %s on %s: %s".format(command,
-                fileInfo.fullPath, status));
-
-        writeln("[debuginfo] ", fileInfo.path);
-
-        instance.collectPath(debugInfoPath, instance.profiles[0].installRoot);
+        if (code == 0)
+        {
+            writeln("[debuginfo] ", fileInfo.path);
+            instance.collectPath(debugInfoPath, instance.profiles[0].installRoot);
+        }
 
         return AnalysisReturn.NextFunction;
     }
@@ -315,21 +311,21 @@ private:
         bool useLLVM = buildContext.spec.options.toolchain == "llvm";
         auto command = useLLVM ? "/usr/bin/llvm-strip" : "/usr/bin/strip";
 
-        /* TODO: Strip the file here */
         /* Execute, TODO: Fix environment */
         import std.process : Config, spawnProcess, wait;
 
-        auto config = Config.retainStderr | Config.retainStdout
-            | Config.stderrPassThrough | Config.inheritFDs;
-        auto prenv = cast(const(string[string])) null;
+        auto ret = executeCommand(command, [
+                "--strip-unneeded", fileInfo.fullPath
+                ], null);
+        auto code = ret.match!((err) {
+            writeln("[strip] failure: ", err.toString);
+            return -1;
+        }, (code) => code);
 
-        auto args = [command, "--strip-unneeded", fileInfo.fullPath];
-        auto id = spawnProcess(args, stdin, stdout, stderr, prenv, config, ".");
-        auto status = wait(id);
-        enforce(status == 0, "Failed to invoke %s on %s: %s".format(command,
-                fileInfo.fullPath, status));
-
-        writeln("[strip] ", fileInfo.path);
+        if (code == 0)
+        {
+            writeln("[strip] ", fileInfo.path);
+        }
 
         return AnalysisReturn.NextFunction;
     }
