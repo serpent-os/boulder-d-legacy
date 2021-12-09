@@ -162,27 +162,29 @@ public:
      */
     void runStage(ExecutionStage* stage, string workDir, ref string script) @system
     {
-        import core.sys.posix.stdlib : mkstemp;
         import std.stdio : File, fflush, stdin, stderr, stdout;
         import std.string : format;
         import std.file : remove;
         import std.exception : enforce;
 
-        auto tmpname = "/tmp/moss-stage-%s-XXXXXX".format(stage.name);
-        auto copy = new char[tmpname.length + 1];
-        copy[0 .. tmpname.length] = tmpname[];
-        copy[tmpname.length] = '\0';
-        const int fd = mkstemp(copy.ptr);
+        import moss.core.ioutil;
+        import std.sumtype : match;
+
+        /* Ensure we get a temporary file */
+        auto tmpResult = IOUtil.createTemporary(format!"/tmp/moss-stage-%s-XXXXXX"(stage.name));
+        TemporaryFile tmpFile;
+        tmpResult.match!((tmp) { tmpFile = tmp; }, (CError err) {
+            throw new Exception("Fatal: Unable to create temporary files: " ~ cast(
+                string) err.toString());
+        });
 
         File fi;
-        fi.fdopen(fd, "w");
+        fi.fdopen(tmpFile.fd, "w");
 
         scope (exit)
         {
             fi.close();
-            enforce(copy.length > 1, "Runtime error: copy.length < 1");
-            const auto li = cast(long) copy.length;
-            remove(cast(string) copy[0 .. li - 1]);
+            remove(tmpFile.realPath);
         }
 
         /* Write + flush */
@@ -197,9 +199,7 @@ public:
             | Config.stderrPassThrough | Config.inheritFDs;
         auto prenv = cast(const(string[string])) null;
 
-        enforce(copy.length > 1, "Runtime error: copy.length < 1");
-        const auto lin = cast(long) copy.length;
-        auto args = ["/bin/sh", cast(string) copy[0 .. lin - 1]];
+        auto args = ["/bin/sh", tmpFile.realPath];
 
         auto id = spawnProcess(args, stdin, stdout, stderr, prenv, config, workDir);
         auto status = wait(id);
