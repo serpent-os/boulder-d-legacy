@@ -331,8 +331,6 @@ private:
         auto command = useLLVM ? "/usr/bin/llvm-strip" : "/usr/bin/strip";
 
         /* Execute, TODO: Fix environment */
-        import std.process : Config, spawnProcess, wait;
-
         auto ret = executeCommand(command, [
                 "--strip-unneeded", fileInfo.fullPath
                 ], null);
