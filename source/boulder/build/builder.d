@@ -47,7 +47,7 @@ private static immutable auto regularDirectoryMode = S_IFDIR | S_IROTH | S_IXOTH
 /* 
  * Do not allow non /usr paths!
  */
-private static AnalysisReturn dropBadPaths(scope Analyser analyser, in FileInfo info)
+private static AnalysisReturn dropBadPaths(scope Analyser analyser, ref FileInfo info)
 {
     if (!info.path.startsWith("/usr/"))
     {
@@ -249,11 +249,10 @@ private:
     /**
      * TODO: Copy the ELF debug section into debug files
      */
-    static AnalysisReturn copyElfDebug(scope Analyser analyser, in FileInfo fileInfo)
+    static AnalysisReturn copyElfDebug(scope Analyser analyser, ref FileInfo fileInfo)
     {
         auto instance = analyser.userdata!Builder;
-        auto buildID = analyser.getAttribute!string(fileInfo, AttributeBuildID);
-        if (buildID.isNull)
+        if (fileInfo.buildID is null)
         {
             return AnalysisReturn.NextFunction;
         }
@@ -266,7 +265,7 @@ private:
      * Interface back with boulder instance for file stripping. This is specific
      * to ELF files only (i.e. split for debuginfo)
      */
-    static AnalysisReturn stripElfFiles(scope Analyser analyser, in FileInfo fileInfo)
+    static AnalysisReturn stripElfFiles(scope Analyser analyser, ref FileInfo fileInfo)
     {
         Builder instance = analyser.userdata!Builder();
         import std.stdio : stdin, stdout, stderr, writeln;
