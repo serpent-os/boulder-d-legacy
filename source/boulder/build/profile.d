@@ -160,12 +160,13 @@ public:
     /**
      * Write the temporary script to disk, then execute it.
      */
-    void runStage(ExecutionStage* stage, string workDir, ref string script) @system
+    bool runStage(ExecutionStage* stage, string workDir, ref string script) @system
     {
-        import std.stdio : File, fflush, stdin, stderr, stdout;
+        import boulder.build.util;
+
+        import std.stdio : File, fflush, stdin, stderr, stdout, writefln;
         import std.string : format;
         import std.file : remove;
-        import std.exception : enforce;
 
         import moss.core.ioutil;
         import std.sumtype : match;
@@ -173,10 +174,17 @@ public:
         /* Ensure we get a temporary file */
         auto tmpResult = IOUtil.createTemporary(format!"/tmp/moss-stage-%s-XXXXXX"(stage.name));
         TemporaryFile tmpFile;
-        tmpResult.match!((tmp) { tmpFile = tmp; }, (CError err) {
-            throw new Exception("Fatal: Unable to create temporary files: " ~ cast(
-                string) err.toString());
+        CError err;
+        tmpResult.match!((tmp) { tmpFile = tmp; }, (CError localErr) {
+            err = localErr;
         });
+
+        /* Error? Bail */
+        if (err.errorCode != 0)
+        {
+            writefln!"Fatal error in stage '%s': %s"(stage.name, cast(string) err.toString());
+            return false;
+        }
 
         File fi;
         fi.fdopen(tmpFile.fd, "w");
@@ -193,23 +201,23 @@ public:
         fflush(fi.getFP);
 
         /* Execute, TODO: Fix environment */
-        import std.process : Config, spawnProcess, wait;
+        int statusCode = -1;
+        auto res = executeCommand("/bin/sh", [tmpFile.realPath], null, workDir);
+        res.match!((err) {
+            writefln!"Unable to execute script: %s"(cast(string) err.toString);
+        }, (code) { statusCode = code; });
 
-        auto config = Config.retainStderr | Config.retainStdout
-            | Config.stderrPassThrough | Config.inheritFDs;
-        auto prenv = cast(const(string[string])) null;
-
-        auto args = ["/bin/sh", tmpFile.realPath];
-
-        auto id = spawnProcess(args, stdin, stdout, stderr, prenv, config, workDir);
-        auto status = wait(id);
-        enforce(status == 0, "Stage '%s' exited with code '%d'".format(stage.name, status));
+        if (statusCode != 0)
+        {
+            writefln!"Stage '%s' exited with code [%d]"(stage.name, statusCode);
+        }
+        return statusCode == 0;
     }
 
     /**
      * Request for this profile to now build
      */
-    void build()
+    bool build()
     {
         import std.array : replace;
         import std.file : exists, mkdirRecurse, rmdirRecurse;
@@ -252,7 +260,10 @@ public:
 
             auto scripted = builder.process(e.script).replace("%%", "%");
 
-            runStage(e, workdir, scripted);
+            if (!runStage(e, workdir, scripted))
+            {
+                return false;
+            }
 
             /* Want to regenerate the working directory after each pgo stage */
             if ((e.type & StageType.Workload) == StageType.Workload)
@@ -260,6 +271,7 @@ public:
                 preparedFS = false;
             }
         }
+        return true;
     }
 
     /**

@@ -180,11 +180,16 @@ public:
     /**
      * Build all of the given profiles
      */
-    void buildProfiles() @system
+    bool buildProfiles() @system
     {
-        import std.algorithm.iteration : each;
-
-        profiles.each!((ref p) => p.build());
+        foreach (p; profiles)
+        {
+            if (!p.build())
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

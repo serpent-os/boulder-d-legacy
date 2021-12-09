@@ -107,7 +107,7 @@ public final class BuildController
      */
     void stageBuild()
     {
-        builder.buildProfiles();
+        running = builder.buildProfiles();
     }
 
     /**
@@ -140,6 +140,11 @@ private:
     {
         import std.datetime.stopwatch : StopWatch, AutoStart;
         import std.stdio : writefln;
+
+        if (!running)
+        {
+            return;
+        }
 
         auto sw = StopWatch(AutoStart.yes);
         dg();
@@ -223,4 +228,5 @@ private:
 
     DownloadStore downloadStore = null;
     Builder builder = null;
+    bool running = true;
 }
