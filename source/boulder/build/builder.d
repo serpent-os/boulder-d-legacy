@@ -269,8 +269,9 @@ private:
 
         auto debugdir = fileInfo.bitSize == 64
             ? "usr/lib/debug/.build-id" : "usr/lib32/debug/.build-id";
-        auto debugInfoPath = instance.profiles[0].installRoot.buildPath(debugdir,
-                fileInfo.buildID[0 .. 2], fileInfo.buildID[2 .. $] ~ ".debug");
+        auto debugInfoPathRelative = debugdir.buildPath(fileInfo.buildID[0 .. 2],
+                fileInfo.buildID[2 .. $] ~ ".debug");
+        auto debugInfoPath = instance.profiles[0].installRoot.buildPath(debugInfoPathRelative);
         auto debugInfoDir = debugInfoPath.dirName;
         debugInfoDir.mkdirRecurse();
 
@@ -283,11 +284,29 @@ private:
             return -1;
         }, (code) => code);
 
-        if (code == 0)
+        /* Collect the debug asset */
+        if (code != 0)
         {
-            writeln("[debuginfo] ", fileInfo.path);
-            instance.collectPath(debugInfoPath, instance.profiles[0].installRoot);
+            return AnalysisReturn.NextFunction;
         }
+
+        /* GNU debuglink. */
+        auto commandLink = useLLVM ? "/usr/bin/llvm-objcopy" : "/usr/bin/objcopy";
+        auto linkRet = executeCommand(commandLink, [
+                "--add-gnu-debuglink", debugInfoPath, fileInfo.fullPath
+                ], null);
+        code = linkRet.match!((err) {
+            writeln("[debuginfo:link] failure: ", err.toString());
+            return -1;
+        }, (code) => code);
+        if (code != 0)
+        {
+            writeln("[debuginfo:link] not including broken debuginfo: /", debugInfoPathRelative);
+            return AnalysisReturn.NextFunction;
+        }
+
+        writeln("[debuginfo] ", fileInfo.path);
+        instance.collectPath(debugInfoPath, instance.profiles[0].installRoot);
 
         return AnalysisReturn.NextFunction;
     }
