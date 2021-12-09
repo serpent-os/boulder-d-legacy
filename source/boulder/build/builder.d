@@ -252,12 +252,47 @@ private:
     static AnalysisReturn copyElfDebug(scope Analyser analyser, ref FileInfo fileInfo)
     {
         auto instance = analyser.userdata!Builder;
+        import std.stdio : stdin, stdout, stderr, writeln;
+        import std.exception : enforce;
+        import std.string : format;
+        import std.path : buildPath, dirName;
+        import std.file : mkdirRecurse;
+
         if (fileInfo.buildID is null)
         {
             return AnalysisReturn.NextFunction;
         }
 
-        /* TODO: Copy the debuginfo files */
+        bool useLLVM = buildContext.spec.options.toolchain == "llvm";
+        auto command = useLLVM ? "/usr/bin/llvm-objcopy" : "/usr/bin/objcopy";
+
+        auto debugdir = fileInfo.bitSize == 64
+            ? "usr/lib/debug/.build-id" : "usr/lib32/debug/.build-id";
+        auto debugInfoPath = instance.profiles[0].installRoot.buildPath(debugdir,
+                fileInfo.buildID[0 .. 2], fileInfo.buildID[2 .. $] ~ ".debug");
+        auto debugInfoDir = debugInfoPath.dirName;
+        debugInfoDir.mkdirRecurse();
+
+        /* TODO: Strip the file here */
+        /* Execute, TODO: Fix environment */
+        import std.process : Config, spawnProcess, wait;
+
+        auto config = Config.retainStderr | Config.retainStdout
+            | Config.stderrPassThrough | Config.inheritFDs;
+        auto prenv = cast(const(string[string])) null;
+
+        auto args = [
+            command, "--only-keep-debug", fileInfo.fullPath, debugInfoPath
+        ];
+        auto id = spawnProcess(args, stdin, stdout, stderr, prenv, config, ".");
+        auto status = wait(id);
+        enforce(status == 0, "Failed to invoke %s on %s: %s".format(command,
+                fileInfo.fullPath, status));
+
+        writeln("[debuginfo] ", fileInfo.path);
+
+        instance.collectPath(debugInfoPath, instance.profiles[0].installRoot);
+
         return AnalysisReturn.NextFunction;
     }
 
@@ -300,29 +335,30 @@ private:
     }
 
     /**
+        * Explicitly requested addition of some path, so add it now.
+        */
+    void collectPath(in string path, in string root)
+    {
+        import std.path : relativePath;
+        import std.string : format;
+
+        auto targetPath = path.relativePath(root);
+        if (targetPath[0] != '/')
+        {
+            targetPath = format!"/%s"(targetPath);
+        }
+        auto inf = FileInfo(targetPath, path);
+        inf.target = collector.packageTarget(targetPath);
+        analyser.addFile(inf);
+    }
+
+    /**
      * Begin collection on the given rootfs tree, from the collectAssets
      * call.
      */
     void collectRootfs(const(string) root)
     {
         import std.file : dirEntries, DirEntry, SpanMode;
-        import std.path : relativePath;
-        import std.string : format;
-
-        /**
-         * Explicitly requested addition of some path, so add it now.
-         */
-        void collectPath(in string path)
-        {
-            auto targetPath = path.relativePath(root);
-            if (targetPath[0] != '/')
-            {
-                targetPath = format!"/%s"(targetPath);
-            }
-            auto inf = FileInfo(targetPath, path);
-            inf.target = collector.packageTarget(targetPath);
-            analyser.addFile(inf);
-        }
 
         /**
          * Custom recursive dirEntries (DFS) style function which lets us
@@ -337,13 +373,13 @@ private:
             if (entries.empty)
             {
                 /* Include empty directory */
-                collectPath(path);
+                collectPath(path, root);
                 return;
             }
             else if (specialDirectory)
             {
                 /* Include directory with non standard mode */
-                collectPath(path);
+                collectPath(path, root);
             }
             /* Otherwise, ignore the directory and rely on mkdir recursive */
 
@@ -357,7 +393,7 @@ private:
                 }
                 else
                 {
-                    collectPath(entry.name);
+                    collectPath(entry.name, root);
                 }
                 entry.destroy();
             }
