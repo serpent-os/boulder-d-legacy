@@ -232,7 +232,8 @@ private:
 
             /* Handle ELF files */
             AnalysisChain("elves", [
-                    &acceptElfFiles, &scanElfFiles, &copyElfDebug, &stripElfFiles, &includeFile,
+                    &acceptElfFiles, &scanElfFiles, &copyElfDebug,
+                    &stripElfFiles, &includeFile,
                     ], 100),
 
             /* Default inclusion policy */
@@ -268,9 +269,33 @@ private:
     static AnalysisReturn stripElfFiles(scope Analyser analyser, in FileInfo fileInfo)
     {
         Builder instance = analyser.userdata!Builder();
+        import std.stdio : stdin, stdout, stderr, writeln;
+        import std.exception : enforce;
+        import std.string : format;
+
+        if (!buildContext.spec.options.strip)
+        {
+            return AnalysisReturn.NextFunction;
+        }
+
+        bool useLLVM = buildContext.spec.options.toolchain == "llvm";
+        auto command = useLLVM ? "/usr/bin/llvm-strip" : "/usr/bin/strip";
 
         /* TODO: Strip the file here */
-        /* TODO: Drop this file and add the newly stripped file */
+        /* Execute, TODO: Fix environment */
+        import std.process : Config, spawnProcess, wait;
+
+        auto config = Config.retainStderr | Config.retainStdout
+            | Config.stderrPassThrough | Config.inheritFDs;
+        auto prenv = cast(const(string[string])) null;
+
+        auto args = [command, "--strip-unneeded", fileInfo.fullPath];
+        auto id = spawnProcess(args, stdin, stdout, stderr, prenv, config, ".");
+        auto status = wait(id);
+        enforce(status == 0, "Failed to invoke %s on %s: %s".format(command,
+                fileInfo.fullPath, status));
+
+        writeln("[strip] ", fileInfo.path);
 
         return AnalysisReturn.NextFunction;
     }
