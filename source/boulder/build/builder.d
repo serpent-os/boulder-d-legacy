@@ -81,6 +81,7 @@ public:
         /* Collection + analysis */
         collector = new BuildCollector();
         analyser = new Analyser();
+        analyser.userdata = this;
         setupChains();
 
         auto plat = platform();
@@ -231,7 +232,7 @@ private:
 
             /* Handle ELF files */
             AnalysisChain("elves", [
-                    &acceptElfFiles, &scanElfFiles, &includeFile,
+                    &acceptElfFiles, &scanElfFiles, &copyElfDebug, &stripElfFiles, &includeFile,
                     ], 100),
 
             /* Default inclusion policy */
@@ -242,6 +243,36 @@ private:
             auto chain = cast(AnalysisChain) c;
             analyser.addChain(chain);
         }());
+    }
+
+    /**
+     * TODO: Copy the ELF debug section into debug files
+     */
+    static AnalysisReturn copyElfDebug(scope Analyser analyser, in FileInfo fileInfo)
+    {
+        auto instance = analyser.userdata!Builder;
+        auto buildID = analyser.getAttribute!string(fileInfo, AttributeBuildID);
+        if (buildID.isNull)
+        {
+            return AnalysisReturn.NextFunction;
+        }
+
+        /* TODO: Copy the debuginfo files */
+        return AnalysisReturn.NextFunction;
+    }
+
+    /**
+     * Interface back with boulder instance for file stripping. This is specific
+     * to ELF files only (i.e. split for debuginfo)
+     */
+    static AnalysisReturn stripElfFiles(scope Analyser analyser, in FileInfo fileInfo)
+    {
+        Builder instance = analyser.userdata!Builder();
+
+        /* TODO: Strip the file here */
+        /* TODO: Drop this file and add the newly stripped file */
+
+        return AnalysisReturn.NextFunction;
     }
 
     /**
