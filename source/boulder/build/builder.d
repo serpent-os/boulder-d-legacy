@@ -239,7 +239,7 @@ private:
             /* Handle ELF files */
             AnalysisChain("elves", [
                     &acceptElfFiles, &scanElfFiles, &copyElfDebug,
-                    &stripElfFiles, &includeFile,
+                    &stripElfFiles, &includeElfFiles,
                     ], 100),
 
             /* Default inclusion policy */
