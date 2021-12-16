@@ -23,6 +23,7 @@
 module boulder.build.controller;
 
 import moss.core.download.store;
+import moss.core.util : computeSHA256;
 import moss.fetcher;
 import boulder.build.builder;
 import boulder.build.context;
@@ -175,12 +176,40 @@ private:
             return;
         }
 
+        Fetchable[] failedDownloads;
+
+        /**
+         * Validate the checksum!
+         */
+        void validateChecksum(immutable(Fetchable) fe, long statusCode)
+        {
+            if (statusCode != 200)
+            {
+                synchronized (this)
+                {
+                    failedDownloads ~= fe;
+                }
+                return;
+            }
+
+            auto inpHash = computeSHA256(fe.destinationPath, true);
+            auto expectedHash = upstreams.filter!((u) => u.uri == fe.sourceURI).front;
+            if (inpHash != expectedHash.plain.hash)
+            {
+                synchronized (this)
+                {
+                    failedDownloads ~= fe;
+                }
+            }
+        }
+
         upstreams.filter!((u) => u.type == UpstreamType.Plain)
             .each!((u) {
                 const auto finalPath = downloadStore.fullPath(u.plain.hash);
                 auto pathDir = finalPath.dirName;
                 pathDir.mkdirRecurse();
-                auto fb = Fetchable(u.uri, finalPath, 0, FetchType.RegularFile, null);
+                auto fb = Fetchable(u.uri, finalPath, 0,
+                    FetchType.RegularFile, &validateChecksum);
                 fetchController.enqueue(fb);
             });
 
@@ -188,6 +217,8 @@ private:
         {
             fetchController.fetch();
         }
+
+        enforce(failedDownloads.length == 0, "One or more downloads have failed");
     }
 
     /**
