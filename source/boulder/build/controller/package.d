@@ -203,7 +203,8 @@ private:
             }
         }
 
-        upstreams.filter!((u) => u.type == UpstreamType.Plain)
+        upstreams.filter!((u) => u.type == UpstreamType.Plain
+                && !downloadStore.contains(u.plain.hash))
             .each!((u) {
                 const auto finalPath = downloadStore.fullPath(u.plain.hash);
                 auto pathDir = finalPath.dirName;
