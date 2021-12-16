@@ -23,9 +23,11 @@
 module boulder.build.controller;
 
 import moss.core.download.store;
+import moss.fetcher;
 import boulder.build.builder;
 import boulder.build.context;
 
+import std.algorithm : each, filter;
 import std.exception : enforce;
 import std.file : exists, mkdirRecurse;
 import std.path : dirName, absolutePath;
@@ -48,7 +50,18 @@ public final class BuildController
      */
     this()
     {
+        /* bound to max 4 fetches, or 2 for everyone else. */
+        fetchController = new FetchController(totalCPUs >= 4 ? 3 : 1);
+        fetchController.onComplete.connect(&onComplete);
+
         downloadStore = new DownloadStore(StoreType.User);
+    }
+
+    void onComplete(in Fetchable f, long code)
+    {
+        import std.stdio : writefln;
+
+        writefln!"Downloaded: %s"(f.sourceURI);
     }
 
     /**
@@ -156,25 +169,24 @@ private:
      */
     void fetchUpstreams()
     {
-        /* bound to max 4 fetches, or 2 for everyone else. */
-        auto tp = new TaskPool(totalCPUs >= 4 ? 3 : 1);
-        tp.isDaemon = true;
-
-        scope (exit)
-        {
-            tp.finish();
-        }
         auto upstreams = buildContext.spec.upstreams.values;
-
-        /* No upstreams */
-        if (upstreams.length == 0)
+        if (upstreams.length < 1)
         {
             return;
         }
 
-        foreach (upstream; tp.parallel(upstreams))
+        upstreams.filter!((u) => u.type == UpstreamType.Plain)
+            .each!((u) {
+                const auto finalPath = downloadStore.fullPath(u.plain.hash);
+                auto pathDir = finalPath.dirName;
+                pathDir.mkdirRecurse();
+                auto fb = Fetchable(u.uri, finalPath, 0, FetchType.RegularFile, null);
+                fetchController.enqueue(fb);
+            });
+
+        while (!fetchController.empty)
         {
-            fetchUpstream(upstream);
+            fetchController.fetch();
         }
     }
 
@@ -227,6 +239,7 @@ private:
     }
 
     DownloadStore downloadStore = null;
+    FetchController fetchController = null;
     Builder builder = null;
     bool running = true;
 }
