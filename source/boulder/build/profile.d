@@ -609,6 +609,21 @@ private:
                 ~ u.plain.stripdirs ~ " || (echo \"Failed to extract archive\"; exit 1);";
         }
 
+        /* Fetch a git commit or tag */
+        void fetchGit(ref UpstreamDefinition u)
+        {
+            ret ~= "mkdir -p " ~ u.git.clonedir ~ "\n";
+            ret ~= "git -C " ~ u.git.clonedir ~ " init || (echo \"Failed to init git repo\"; exit 1);";
+            ret ~= "git -C " ~ u.git.clonedir ~ " remote add origin " ~ u.uri
+                ~ " || (echo \"Failed to add git repo\"; exit 1);";
+            ret ~= "git -C " ~ u.git.clonedir ~ " fetch --depth 1 origin " ~ u.git.refID
+                ~ " || (echo \"Failed to fetch git repo\"; exit 1);";
+            ret ~= "git -C " ~ u.git.clonedir ~ " checkout FETCH_HEAD"
+                ~ " || (echo \"Failed to checkout " ~ u.git.refID ~ "\"; exit 1);";
+            ret ~= "git -C " ~ u.git.clonedir ~ " submodule update --init --recursive"
+                ~ " || (echo \"Failed to checkout submodules\"; exit 1);";
+        }
+
         foreach (source; buildContext.spec.upstreams)
         {
             final switch (source.type)
@@ -633,7 +648,12 @@ private:
                 }
                 break;
             case UpstreamType.Git:
-                assert(0, "GIT SOURCE NOT YET SUPPORTED");
+                /* Ensure a clone directory target */
+                if (source.git.clonedir is null)
+                {
+                    source.git.clonedir = buildContext.spec.source.name;
+                }
+                fetchGit(source);
             }
         }
 
