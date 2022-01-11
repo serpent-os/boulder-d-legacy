@@ -2,12 +2,10 @@ actions:
 
     # Perform cmake with the default options in a subdirectory
     - cmake: |
-        mkdir -p "%(builddir)" && cd "%(builddir)" && echo "The build directory is ${PWD}"
         cmake %(options_cmake)
 
     # Perform cmake with unity build enabled
     - cmake_unity: |
-        mkdir -p "%(builddir)" && cd "%(builddir)" && echo "The build directory is ${PWD}"
         cmake -DCMAKE_UNITY_BUILD=ON %(options_cmake)
 
     # Build the cmake project
@@ -22,8 +20,8 @@ definitions:
 
     # Default cmake options as passed to cmake
     - options_cmake: |
-        -G Ninja .. \
-        -DCMAKE_CFLAGS="%(cflags)" \
+        -G Ninja . -B "%(builddir)" \
+        -DCMAKE_C_FLAGS="%(cflags)" \
         -DCMAKE_CXX_FLAGS="%(cxxflags)" \
         -DCMAKE_LD_FLAGS="%(ldflags)" \
         -DCMAKE_BUILD_TYPE="Release" \
