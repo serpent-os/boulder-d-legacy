@@ -9,6 +9,9 @@
 	"name": "boulder",
 	"targetPath": "bin",
 	"dependencies": {
+		"moss-config": {
+			"path": "external/moss-config"
+		},
 		"moss-core": {
 			"path": "external/moss-core"
 		},
