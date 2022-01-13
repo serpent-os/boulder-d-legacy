@@ -29,3 +29,6 @@ else
     exit 1
 fi
 
+# We require two entry points!
+
+ln -f bin/boulder bin/build-stone
