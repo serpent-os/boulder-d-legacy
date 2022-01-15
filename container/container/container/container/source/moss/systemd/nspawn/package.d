@@ -20,4 +20,60 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-module moss.systemd.nspawn
+module moss.systemd.nspawn;
+
+import std.sumtype;
+
+/**
+ * The Spawner execute function's return type
+ */
+alias SpawnReturn = SumType!(bool, SpawnError);
+
+/**
+ * SpawnError is yielded (stack local) when we fail to run systemd-nspawn for
+ * some reason (likely permissions or kernel)
+ */
+struct SpawnError
+{
+
+    /**
+     * Tool exit code
+     */
+    int exitCode;
+
+    /**
+     * Error string encountered
+     */
+    string errorString;
+
+    /**
+     * Return string representation of the error
+     */
+    const(string) toString() const
+    {
+        return errorString;
+    }
+}
+
+/**
+ * The Spawner can invoke systemd-nspawn with the correct flags to
+ * vastly simplify utilisation
+ */
+public struct Spawner
+{
+
+    /**
+     * Request execution for this spawner and await completion
+     */
+    SpawnReturn execute()
+    {
+        return SpawnReturn(SpawnError(-1, "Not yet implemented"));
+    }
+}
+
+@("Super simple unit test during development")
+unittest
+{
+    Spawner s;
+    s.execute.match!((err) => assert(0 == 1, err.errorString), (bool b) {});
+}
