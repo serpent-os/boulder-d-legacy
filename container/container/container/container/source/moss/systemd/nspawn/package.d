@@ -23,6 +23,7 @@
 module moss.systemd.nspawn;
 
 import std.sumtype;
+import std.string : format;
 
 /**
  * The Spawner execute function's return type
@@ -62,11 +63,39 @@ struct SpawnError
 public struct Spawner
 {
 
+    /** Enable this if you need to disable host network access */
+    bool privateNetwork = false;
+
+    bool readOnlyFilesystem = false;
+
+    bool boot = false;
+
+    bool hostRegistered = true;
+
     /**
      * Request execution for this spawner and await completion
      */
-    SpawnReturn execute()
+    SpawnReturn execute(string rootfs)
     {
+        static immutable string toolPath = "/usr/bin/systemd-nspawn";
+        string[] spawnFlags;
+        spawnFlags ~= boot ? "--boot" : "--as-pid2";
+        spawnFlags ~= format!"--host-registered=%s"(hostRegistered ? "yes" : "no");
+
+        if (privateNetwork)
+        {
+            spawnFlags ~= "--private-network";
+        }
+
+        /**
+         * Finally set the root
+         */
+        spawnFlags ~= ["-D", rootfs];
+
+        import std.stdio : writeln;
+
+        writeln(toolPath, " ", spawnFlags);
+
         return SpawnReturn(SpawnError(-1, "Not yet implemented"));
     }
 }
@@ -75,5 +104,7 @@ public struct Spawner
 unittest
 {
     Spawner s;
-    s.execute.match!((err) => assert(0 == 1, err.errorString), (bool b) {});
+    s.privateNetwork = true;
+    s.execute("/home/ikey/serpent/moss/destdir").match!((err) => assert(0 == 1,
+            err.errorString), (bool b) {});
 }
