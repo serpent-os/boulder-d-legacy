@@ -57,6 +57,9 @@ struct SpawnError
     }
 }
 
+/**
+ * Bitwise mount type
+ */
 public enum MountType
 {
     Bind = 1 << 0,
@@ -64,6 +67,9 @@ public enum MountType
     TemporaryFilesystem = 1 << 2,
 }
 
+/**
+ * Making mounts available to nspawn
+ */
 public struct SpawnMount
 {
     string source = null;
@@ -71,6 +77,9 @@ public struct SpawnMount
     MountType type = MountType.Bind;
 }
 
+/**
+ * Alter the console mode of nspawn
+ */
 public enum ConsoleMode : string
 {
     Interactive = "interactive",
