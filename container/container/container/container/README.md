@@ -1,4 +1,3 @@
-### moss-systemd
+### moss-container
 
-A simplistic encapsulation module for systemd functionality, chiefly the
-nspawn CLI tool.
+Basic container functionality to power builds + smoke tests
