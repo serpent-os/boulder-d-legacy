@@ -24,6 +24,7 @@ module moss.systemd.nspawn;
 
 import std.sumtype;
 import std.string : format;
+import std.process;
 
 /**
  * The Spawner execute function's return type
@@ -91,12 +92,12 @@ public struct Spawner
     /**
      * Request execution for this spawner and await completion
      */
-    SpawnReturn execute(string rootfs)
+    SpawnReturn run(in string rootfs, in string[] command)
     {
         static immutable string toolPath = "/usr/bin/systemd-nspawn";
         string[] spawnFlags;
         spawnFlags ~= boot ? "--boot" : "--as-pid2";
-        spawnFlags ~= format!"--host-registered=%s"(hostRegistered ? "yes" : "no");
+        spawnFlags ~= format!"--register=%s"(hostRegistered ? "yes" : "no");
 
         if (privateNetwork)
         {
@@ -132,12 +133,22 @@ public struct Spawner
          * Finally set the root
          */
         spawnFlags ~= ["-D", rootfs];
+        spawnFlags ~= command;
 
         import std.stdio : writeln;
 
         writeln(toolPath, " ", spawnFlags);
 
-        return SpawnReturn(SpawnError(-1, "Not yet implemented"));
+        auto cmd = execute(toolPath ~ spawnFlags);
+        auto ret = cmd.status;
+
+        if (ret != 0)
+        {
+            return SpawnReturn(SpawnError(ret, cmd.output));
+        }
+
+        writeln(cmd.output);
+        return SpawnReturn(true);
     }
 }
 
@@ -146,7 +157,7 @@ unittest
 {
     Spawner s;
     s.privateNetwork = true;
-    s.mounts ~= SpawnMount("/some/random/path", "/help", MountType.Bind | MountType.ReadOnly);
-    s.execute("/home/ikey/serpent/moss/destdir").match!((err) => assert(0 == 1,
-            err.errorString), (bool b) {});
+    auto command = ["/bin/ls", "-la"];
+    s.run("/home/ikey/serpent/moss/destdir", command)
+        .match!((err) => assert(0 == 1, err.errorString), (bool b) {});
 }
