@@ -25,6 +25,7 @@ module moss.systemd.nspawn;
 import std.sumtype;
 import std.string : format;
 import std.process;
+import std.stdio : stdin, stdout, stderr;
 
 /**
  * The Spawner execute function's return type
@@ -42,19 +43,6 @@ struct SpawnError
      * Tool exit code
      */
     int exitCode;
-
-    /**
-     * Error string encountered
-     */
-    string errorString;
-
-    /**
-     * Return string representation of the error
-     */
-    const(string) toString() const
-    {
-        return errorString;
-    }
 }
 
 /**
@@ -191,15 +179,16 @@ public struct Spawner
 
         writeln(toolPath, " ", spawnFlags);
 
-        auto cmd = execute(toolPath ~ spawnFlags);
-        auto ret = cmd.status;
+        auto env = cast(string[string]) null;
+        auto conf = Config.newEnv;
+        auto pid = spawnProcess(toolPath ~ spawnFlags, stdin, stdout, stderr, env, conf, ".");
+        auto ret = wait(pid);
 
         if (ret != 0)
         {
-            return SpawnReturn(SpawnError(ret, cmd.output));
+            return SpawnReturn(SpawnError(ret));
         }
 
-        writeln(cmd.output);
         return SpawnReturn(true);
     }
 }
@@ -212,6 +201,6 @@ unittest
     auto command = ["/bin/bash", "--login"];
     s.runBehaviour = RunBehaviour.Pid1;
     s.consoleMode = ConsoleMode.Interactive;
-    s.run("/home/ikey/serpent/moss/destdir", command)
-        .match!((err) => assert(0 == 1, err.errorString), (bool b) {});
+    s.run("/home/ikey/serpent/moss/destdir", command).match!((err) => assert(0 == 1,
+            format!"Exited with code: %s"(err.exitCode)), (bool b) {});
 }
