@@ -90,6 +90,20 @@ public enum ConsoleMode : string
 }
 
 /**
+ * Most direct commands should run as Pid2 to ensure they have help in
+ * running and shutting down. Interactive shells should usually run as
+ * pid1 to alleviate fork issues.
+ *
+ * Lastly, "Boot" to actually boot it.
+ */
+public enum RunBehaviour
+{
+    Pid1,
+    Pid2,
+    Boot,
+}
+
+/**
  * The Spawner can invoke systemd-nspawn with the correct flags to
  * vastly simplify utilisation
  */
@@ -101,9 +115,12 @@ public struct Spawner
 
     bool readOnlyFilesystem = false;
 
-    bool boot = false;
-
     bool hostRegistered = true;
+
+    /**
+     * The default run behaviour is as Pid2
+     */
+    RunBehaviour runBehaviour = RunBehaviour.Pid2;
 
     ConsoleMode consoleMode = ConsoleMode.ReadOnly;
 
@@ -116,12 +133,25 @@ public struct Spawner
     {
         static immutable string toolPath = "/usr/bin/systemd-nspawn";
         string[] spawnFlags;
-        spawnFlags ~= boot ? "--boot" : "--as-pid2";
         spawnFlags ~= format!"--register=%s"(hostRegistered ? "yes" : "no");
 
         if (privateNetwork)
         {
             spawnFlags ~= "--private-network";
+        }
+
+        /* Establish run behaviour */
+        final switch (runBehaviour)
+        {
+        case RunBehaviour.Boot:
+            spawnFlags ~= "--boot";
+            break;
+        case RunBehaviour.Pid2:
+            spawnFlags ~= "--as-pid2";
+            break;
+        case RunBehaviour.Pid1:
+            /* Do nothing, default */
+            break;
         }
 
         foreach (m; mounts)
@@ -179,7 +209,9 @@ unittest
 {
     Spawner s;
     s.privateNetwork = true;
-    auto command = ["/bin/ls", "-la"];
+    auto command = ["/bin/bash", "--login"];
+    s.runBehaviour = RunBehaviour.Pid1;
+    s.consoleMode = ConsoleMode.Interactive;
     s.run("/home/ikey/serpent/moss/destdir", command)
         .match!((err) => assert(0 == 1, err.errorString), (bool b) {});
 }
