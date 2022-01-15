@@ -56,6 +56,20 @@ struct SpawnError
     }
 }
 
+public enum MountType
+{
+    Bind = 1 << 0,
+    ReadOnly = 1 << 1,
+    TemporaryFilesystem = 1 << 2,
+}
+
+public struct SpawnMount
+{
+    string source = null;
+    string target = null;
+    MountType type = MountType.Bind;
+}
+
 /**
  * The Spawner can invoke systemd-nspawn with the correct flags to
  * vastly simplify utilisation
@@ -72,6 +86,8 @@ public struct Spawner
 
     bool hostRegistered = true;
 
+    SpawnMount[] mounts;
+
     /**
      * Request execution for this spawner and await completion
      */
@@ -85,6 +101,31 @@ public struct Spawner
         if (privateNetwork)
         {
             spawnFlags ~= "--private-network";
+        }
+
+        foreach (m; mounts)
+        {
+            if ((m.type & MountType.TemporaryFilesystem) == MountType.TemporaryFilesystem)
+            {
+                assert(m.target !is null);
+                spawnFlags ~= format!"--tmpfs=%s"(m.target);
+            }
+            else if ((m.type & MountType.Bind) == MountType.Bind)
+            {
+                const auto readOnly = (m.type & MountType.ReadOnly) == MountType.ReadOnly;
+                if (readOnly)
+                {
+                    spawnFlags ~= format!"--bind-ro=%s:%s"(m.source, m.target);
+                }
+                else
+                {
+                    spawnFlags ~= format!"--bind=%s:%s"(m.source, m.target);
+                }
+            }
+            else
+            {
+                assert(0 == 1, "oh god you didnt");
+            }
         }
 
         /**
@@ -105,6 +146,7 @@ unittest
 {
     Spawner s;
     s.privateNetwork = true;
+    s.mounts ~= SpawnMount("/some/random/path", "/help", MountType.Bind | MountType.ReadOnly);
     s.execute("/home/ikey/serpent/moss/destdir").match!((err) => assert(0 == 1,
             err.errorString), (bool b) {});
 }
