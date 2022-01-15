@@ -3,9 +3,9 @@
 		"Serpent OS Developers"
 	],
 	"copyright": "Copyright © 2020-2022 Serpent OS Developers",
-	"description": "Encapsulation of systemd functionality",
+	"description": "Basic container functionality",
 	"license": "Zlib",
 	"version": "0.0.1",
-	"name": "moss-systemd",
+	"name": "moss-container",
 	"targetType": "autodetect"
 }
