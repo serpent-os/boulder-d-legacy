@@ -71,6 +71,15 @@ public struct SpawnMount
     MountType type = MountType.Bind;
 }
 
+public enum ConsoleMode : string
+{
+    Interactive = "interactive",
+    ReadOnly = "read-only",
+    Passive = "passive",
+    Pipe = "pipe",
+    AutoPipe = "autopipe",
+}
+
 /**
  * The Spawner can invoke systemd-nspawn with the correct flags to
  * vastly simplify utilisation
@@ -86,6 +95,8 @@ public struct Spawner
     bool boot = false;
 
     bool hostRegistered = true;
+
+    ConsoleMode consoleMode = ConsoleMode.ReadOnly;
 
     SpawnMount[] mounts;
 
@@ -128,6 +139,8 @@ public struct Spawner
                 assert(0 == 1, "oh god you didnt");
             }
         }
+
+        spawnFlags ~= format!"--console=%s"(cast(string) consoleMode);
 
         /**
          * Finally set the root
