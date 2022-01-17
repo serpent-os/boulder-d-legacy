@@ -7,5 +7,5 @@
 	"license": "Zlib",
 	"version": "0.0.1",
 	"name": "moss-container",
-	"targetType": "autodetect"
+	"targetType": "executable"
 }
