@@ -24,6 +24,13 @@ module moss.container;
 import std.stdio : stderr, stdin, stdout;
 import std.exception : enforce;
 import std.process;
+import std.file : exists;
+
+enum FakerootBinary : string
+{
+    Sysv = "/usr/bin/fakeroot-sysv",
+    Default = "/usr/bin/fakeroot"
+}
 
 /**
  * A Container is used for the purpose of isolating newly launched processes.
@@ -39,6 +46,18 @@ public final class Container
     {
         enforce(argv.length > 0);
         _args = cast(string[]) argv;
+
+        /* Find the correct fakeroot */
+        foreach (searchpath; [FakerootBinary.Sysv, FakerootBinary.Default])
+        {
+            if (searchpath.exists)
+            {
+                fakerootBinary = searchpath;
+                break;
+            }
+        }
+
+        enforce(fakerootBinary.exists, "Cannot run without fakeroot helper");
     }
 
     /**
@@ -99,7 +118,7 @@ public final class Container
         string[] finalArgs = _args;
         if (fakeroot)
         {
-            finalArgs = "/usr/bin/fakeroot" ~ finalArgs;
+            finalArgs = cast(string) fakerootBinary ~ finalArgs;
         }
         stdout.writefln("finalArgs: %s", finalArgs);
         auto pid = spawnProcess(finalArgs, stdin, stdout, stderr, _environ, config, _workDir);
@@ -113,4 +132,5 @@ private:
     bool _fakeroot = false;
     string _workDir = ".";
     string[string] _environ = null;
+    FakerootBinary fakerootBinary = FakerootBinary.Sysv;
 }
