@@ -25,6 +25,7 @@ import std.stdio : stderr, stdin, stdout;
 import std.exception : enforce;
 import std.process;
 import std.file : exists;
+import std.string : empty;
 
 enum FakerootBinary : string
 {
@@ -100,6 +101,22 @@ public final class Container
         _workDir = newDir;
     }
 
+    /** 
+     * Return the chroot directory we intend to use
+     */
+    pure @property const(string) chrootDir() @safe @nogc nothrow const
+    {
+        return cast(const(string)) _chrootDir;
+    }
+
+    /**
+     * Update the chroot directory
+     */
+    pure @property void chrootDir(in string d) @safe @nogc nothrow
+    {
+        _chrootDir = d;
+    }
+
     /**
      * Access the environment property
      */
@@ -113,7 +130,8 @@ public final class Container
      */
     int run() @system
     {
-        stderr.writeln("Derp i dunno how to do that, boss");
+        enforce(!_chrootDir.empty, "Cannot run without a valid chroot directory");
+
         auto config = Config.newEnv;
         string[] finalArgs = _args;
         if (fakeroot)
@@ -132,5 +150,6 @@ private:
     bool _fakeroot = false;
     string _workDir = ".";
     string[string] _environ = null;
+    string _chrootDir = null;
     FakerootBinary fakerootBinary = FakerootBinary.Sysv;
 }
