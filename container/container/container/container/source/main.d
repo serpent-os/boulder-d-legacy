@@ -34,5 +34,6 @@ int main(string[] args)
     c.chrootDir = "/home/ikey/moss/serpent/destdir";
     c.workDir = "/";
     c.environment["PATH"] = "/usr/bin:/bin";
+    c.networking = false;
     return c.run();
 }

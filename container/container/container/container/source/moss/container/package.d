@@ -26,6 +26,7 @@ import std.exception : enforce;
 import std.process;
 import std.file : exists;
 import std.string : empty;
+import core.sys.linux.sched;
 
 enum FakerootBinary : string
 {
@@ -126,11 +127,29 @@ public final class Container
     }
 
     /**
+     * Returns whether networking is enabled
+     */
+    pure @property bool networking() @safe @nogc nothrow const
+    {
+        return _networking;
+    }
+
+    /**
+     * Enable or disable networking
+     */
+    pure @property void networking(bool b) @safe @nogc nothrow
+    {
+        _networking = b;
+    }
+
+    /**
      * Run the associated args (cmdline) with various settings in place
      */
     int run() @system
     {
         enforce(!_chrootDir.empty, "Cannot run without a valid chroot directory");
+
+        detachNamespace();
 
         auto config = Config.newEnv;
         string[] finalArgs = _args;
@@ -146,8 +165,21 @@ public final class Container
 
 private:
 
+    void detachNamespace()
+    {
+        auto flags = CLONE_NEWNS | CLONE_NEWPID;
+        if (!networking)
+        {
+            flags |= CLONE_NEWNET | CLONE_NEWUTS;
+        }
+
+        auto ret = unshare(flags);
+        enforce(ret == 0, "derpy mcderpderp");
+    }
+
     string[] _args;
     bool _fakeroot = false;
+    bool _networking = true;
     string _workDir = ".";
     string[string] _environ = null;
     string _chrootDir = null;
