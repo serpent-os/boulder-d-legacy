@@ -96,7 +96,13 @@ public final class Container
     {
         stderr.writeln("Derp i dunno how to do that, boss");
         auto config = Config.newEnv;
-        auto pid = spawnProcess(args, stdin, stdout, stderr, _environ, config, _workDir);
+        string[] finalArgs = _args;
+        if (fakeroot)
+        {
+            finalArgs = "/usr/bin/fakeroot" ~ finalArgs;
+        }
+        stdout.writefln("finalArgs: %s", finalArgs);
+        auto pid = spawnProcess(finalArgs, stdin, stdout, stderr, _environ, config, _workDir);
         auto statusCode = wait(pid);
         return statusCode;
     }
