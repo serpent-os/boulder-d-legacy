@@ -25,8 +25,9 @@ import std.stdio : stderr, stdin, stdout;
 import std.exception : enforce;
 import std.process;
 import std.file : exists;
-import std.string : empty;
+import std.string : empty, toStringz, format;
 import core.sys.linux.sched;
+import std.path : buildPath;
 
 enum FakerootBinary : string
 {
@@ -48,18 +49,6 @@ public final class Container
     {
         enforce(argv.length > 0);
         _args = cast(string[]) argv;
-
-        /* Find the correct fakeroot */
-        foreach (searchpath; [FakerootBinary.Sysv, FakerootBinary.Default])
-        {
-            if (searchpath.exists)
-            {
-                fakerootBinary = searchpath;
-                break;
-            }
-        }
-
-        enforce(fakerootBinary.exists, "Cannot run without fakeroot helper");
     }
 
     /**
@@ -150,13 +139,28 @@ public final class Container
         enforce(!_chrootDir.empty, "Cannot run without a valid chroot directory");
 
         detachNamespace();
+        /* Find the correct fakeroot */
+        foreach (searchpath; [FakerootBinary.Sysv, FakerootBinary.Default])
+        {
+            const auto resolvedPath = _chrootDir.buildPath((cast(string) searchpath)[1 .. $]);
+            if (resolvedPath.exists)
+            {
+                fakerootBinary = searchpath;
+                break;
+            }
+        }
 
+        enforce(fakerootBinary.exists, "Cannot run without fakeroot helper");
         auto config = Config.newEnv;
         string[] finalArgs = _args;
         if (fakeroot)
         {
             finalArgs = cast(string) fakerootBinary ~ finalArgs;
         }
+
+        finalArgs = [
+            "/usr/sbin/chroot", "--userspec=%s:%s".format(user, user), chrootDir
+        ] ~ finalArgs;
         stdout.writefln("finalArgs: %s", finalArgs);
         auto pid = spawnProcess(finalArgs, stdin, stdout, stderr, _environ, config, _workDir);
         auto statusCode = wait(pid);
@@ -183,5 +187,6 @@ private:
     string _workDir = ".";
     string[string] _environ = null;
     string _chrootDir = null;
+    const string user = "nobody";
     FakerootBinary fakerootBinary = FakerootBinary.Sysv;
 }

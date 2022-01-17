@@ -31,7 +31,7 @@ int main(string[] args)
 {
     auto c = new Container(["/bin/bash", "--login"]);
     c.fakeroot = true;
-    c.chrootDir = "/home/ikey/moss/serpent/destdir";
+    c.chrootDir = "/home/ikey/serpent/moss/destdir";
     c.workDir = "/";
     c.environment["PATH"] = "/usr/bin:/bin";
     c.networking = false;
