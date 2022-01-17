@@ -21,3 +21,60 @@
  */
 
 module moss.container;
+import std.stdio : stderr;
+import std.exception : enforce;
+
+/**
+ * A Container is used for the purpose of isolating newly launched processes.
+ */
+public final class Container
+{
+    @disable this();
+
+    /**
+     * Create a new Container instance with the given args
+     */
+    this(in string[] argv)
+    {
+        enforce(argv.length > 0);
+        _args = cast(string[]) argv;
+    }
+
+    /**
+     * Return the arguments (CLI args) that we intend to dispatch
+     */
+    pure @property const(string)[] args() @safe @nogc nothrow const
+    {
+        return cast(const(string)[]) _args;
+    }
+
+    /**
+     * Returns true if fakeroot will be used
+     */
+    pure @property bool fakeroot() @safe @nogc nothrow const
+    {
+        return _fakeroot;
+    }
+
+    /**
+     * Enable or disable the use of fakeroot
+     */
+    pure @property void fakeroot(bool b) @safe @nogc nothrow
+    {
+        _fakeroot = b;
+    }
+
+    /**
+     * Run the associated args (cmdline) with various settings in place
+     */
+    int run() @system
+    {
+        stderr.writeln("Derp i dunno how to do that, boss");
+        return 1;
+    }
+
+private:
+
+    string[] _args;
+    bool _fakeroot = false;
+}

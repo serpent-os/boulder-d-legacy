@@ -22,7 +22,14 @@
 
 module main;
 
+import moss.container;
+
+/**
+ * Main entry point into moss-container
+ */
 int main(string[] args)
 {
-    return 0;
+    auto c = new Container(["/bin/ls", "-la", "/"]);
+    c.fakeroot = true;
+    return c.run();
 }
