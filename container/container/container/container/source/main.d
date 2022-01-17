@@ -31,5 +31,6 @@ int main(string[] args)
 {
     auto c = new Container(["/bin/ls", "-la", "/"]);
     c.fakeroot = true;
+    c.environment["PATH"] = "/usr/bin:/bin";
     return c.run();
 }

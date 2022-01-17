@@ -21,8 +21,9 @@
  */
 
 module moss.container;
-import std.stdio : stderr;
+import std.stdio : stderr, stdin, stdout;
 import std.exception : enforce;
+import std.process;
 
 /**
  * A Container is used for the purpose of isolating newly launched processes.
@@ -65,16 +66,45 @@ public final class Container
     }
 
     /**
+     * Return the working directory used for the process
+     */
+    pure @property const(string) workDir() @safe @nogc nothrow const
+    {
+        return cast(const(string)) workDir;
+    }
+
+    /**
+     * Set the working directory in which to execute the process
+     */
+    pure @property void workDir(in string newDir) @safe @nogc nothrow
+    {
+        _workDir = newDir;
+    }
+
+    /**
+     * Access the environment property
+     */
+    pragma(inline, true) pure @property inout(string[string]) environment() @safe @nogc nothrow inout
+    {
+        return _environ;
+    }
+
+    /**
      * Run the associated args (cmdline) with various settings in place
      */
     int run() @system
     {
         stderr.writeln("Derp i dunno how to do that, boss");
-        return 1;
+        auto config = Config.newEnv;
+        auto pid = spawnProcess(args, stdin, stdout, stderr, _environ, config, _workDir);
+        auto statusCode = wait(pid);
+        return statusCode;
     }
 
 private:
 
     string[] _args;
     bool _fakeroot = false;
+    string _workDir = ".";
+    string[string] _environ = null;
 }
