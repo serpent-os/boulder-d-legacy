@@ -1,5 +1,5 @@
 /*
- * This file is part of moss-config.
+ * This file is part of moss-container.
  *
  * Copyright © 2020-2022 Serpent OS Developers
  *
@@ -29,6 +29,8 @@ import std.string : empty, toStringz, format;
 import core.sys.linux.sched;
 import std.path : buildPath;
 
+public import moss.container.process;
+
 enum FakerootBinary : string
 {
     Sysv = "/usr/bin/fakeroot-sysv",
@@ -40,23 +42,12 @@ enum FakerootBinary : string
  */
 public final class Container
 {
-    @disable this();
-
     /**
-     * Create a new Container instance with the given args
+     * Add a process to this container
      */
-    this(in string[] argv)
+    void add(Process p) @safe
     {
-        enforce(argv.length > 0);
-        _args = cast(string[]) argv;
-    }
-
-    /**
-     * Return the arguments (CLI args) that we intend to dispatch
-     */
-    pure @property const(string)[] args() @safe @nogc nothrow const
-    {
-        return cast(const(string)[]) _args;
+        processes ~= p;
     }
 
     /**
@@ -151,6 +142,13 @@ public final class Container
         }
 
         enforce(fakerootBinary.exists, "Cannot run without fakeroot helper");
+
+        foreach (p; processes)
+        {
+            p.run(chrootDir, environment);
+        }
+
+        /*
         auto config = Config.newEnv;
         string[] finalArgs = _args;
         if (fakeroot)
@@ -163,8 +161,10 @@ public final class Container
         ] ~ finalArgs;
         stdout.writefln("finalArgs: %s", finalArgs);
         auto pid = spawnProcess(finalArgs, stdin, stdout, stderr, _environ, config, _workDir);
-        auto statusCode = wait(pid);
-        return statusCode;
+        auto statusCode = wait(pid)
+        return statusCode;*/
+
+        return 0;
     }
 
 private:
@@ -181,7 +181,6 @@ private:
         enforce(ret == 0, "derpy mcderpderp");
     }
 
-    string[] _args;
     bool _fakeroot = false;
     bool _networking = true;
     string _workDir = ".";
@@ -189,4 +188,6 @@ private:
     string _chrootDir = null;
     const string user = "nobody";
     FakerootBinary fakerootBinary = FakerootBinary.Sysv;
+
+    Process[] processes;
 }

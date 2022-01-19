@@ -29,7 +29,8 @@ import moss.container;
  */
 int main(string[] args)
 {
-    auto c = new Container(["/bin/bash", "--login"]);
+    auto c = new Container();
+    c.add(Process("/bin/bash", ["--login"]));
     c.fakeroot = true;
     c.chrootDir = "/home/ikey/serpent/moss/destdir";
     c.workDir = "/";
