@@ -123,7 +123,7 @@ private:
         assert(ret !is null);
         NodeType* node = cast(NodeType*) ret;
         assert(node !is null);
-        node.data = data;
+        node.data = cast(T) data;
         return node;
     }
 

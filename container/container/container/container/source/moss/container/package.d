@@ -23,6 +23,7 @@
 module moss.container;
 
 public import moss.container.mounts;
+public import moss.container.process;
 public import moss.container.slist;
 
 import core.sys.linux.sched;
@@ -58,6 +59,14 @@ public struct Container
     void addMount(Mount mountpoint)
     {
         mountPoints.append(mountpoint);
+    }
+
+    /**
+     * Append a process for execution
+     */
+    void addProcess(Process p)
+    {
+        processes.append(p);
     }
 
     /**
@@ -106,5 +115,6 @@ private:
     }
 
     SList!Mount mountPoints;
+    SList!Process processes;
     string rootfs = null;
 }
