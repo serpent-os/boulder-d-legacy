@@ -7,5 +7,6 @@
 	"license": "Zlib",
 	"version": "0.0.1",
 	"name": "moss-container",
-	"targetType": "executable"
+	"targetType": "executable",
+	"dflags": ["-betterC"]
 }

@@ -1,5 +1,5 @@
 /*
- * This file is part of moss-cintainer.
+ * This file is part of moss-container.
  *
  * Copyright © 2020-2022 Serpent OS Developers
  *
@@ -22,7 +22,18 @@
 
 module main;
 
-extern (C) int main(string[] args)
+import moss.container;
+
+/**
+ * Main entry point into moss-container
+ */
+int main(string[] args)
 {
-    return 0;
+    auto c = new Container(["/bin/bash", "--login"]);
+    c.fakeroot = true;
+    c.chrootDir = "/home/ikey/serpent/moss/destdir";
+    c.workDir = "/";
+    c.environment["PATH"] = "/usr/bin:/bin";
+    c.networking = false;
+    return c.run();
 }
