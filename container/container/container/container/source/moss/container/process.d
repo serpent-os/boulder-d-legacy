@@ -25,6 +25,8 @@ module moss.container.process;
 import core.sys.posix.unistd : setuid, setgid, fork, pid_t, uid_t, _exit;
 import core.sys.posix.sys.wait;
 import std.string : toStringz;
+import std.process;
+import std.stdio : stdin, stderr, stdout;
 
 /**
  * Chroot to another root filesystem
@@ -89,7 +91,12 @@ private:
         ret = setuid(requiredUser);
         assert(ret == 0);
 
-        return 0;
+        auto config = Config.newEnv;
+        string[] finalArgs = programName ~ args;
+
+        stdout.writefln("finalArgs: %s", finalArgs);
+        auto pid = spawnProcess(finalArgs, stdin, stdout, stderr, environment, config, "/");
+        return wait(pid);
     }
 
     static const uid_t requiredUser = 65534;

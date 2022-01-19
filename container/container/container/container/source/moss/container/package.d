@@ -148,22 +148,6 @@ public final class Container
             p.run(chrootDir, environment);
         }
 
-        /*
-        auto config = Config.newEnv;
-        string[] finalArgs = _args;
-        if (fakeroot)
-        {
-            finalArgs = cast(string) fakerootBinary ~ finalArgs;
-        }
-
-        finalArgs = [
-            "/usr/sbin/chroot", "--userspec=%s:%s".format(user, user), chrootDir
-        ] ~ finalArgs;
-        stdout.writefln("finalArgs: %s", finalArgs);
-        auto pid = spawnProcess(finalArgs, stdin, stdout, stderr, _environ, config, _workDir);
-        auto statusCode = wait(pid)
-        return statusCode;*/
-
         return 0;
     }
 
