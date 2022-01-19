@@ -60,6 +60,9 @@ public struct Container
         mountPoints.append(mountpoint);
     }
 
+    /**
+     * Enable or disable networking accessibility
+     */
     bool networking = false;
 
 private:
