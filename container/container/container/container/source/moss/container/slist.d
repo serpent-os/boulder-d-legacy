@@ -46,14 +46,24 @@ public struct SList(T)
      */
     void prepend()(auto const ref T data)
     {
-        void* ret = calloc(1, NodeType.sizeof);
-        assert(ret !is null);
-        NodeType* node = cast(NodeType*) ret;
-        assert(node !is null);
-        node.data = data;
+        auto node = createNode(data);
         node.next = nodes;
         nodes = node;
-        ++nodeCount;
+    }
+
+    /**
+     * Append to the list, significantly longer op
+     */
+    void append()(auto const ref T data)
+    {
+        auto end = tail();
+        auto node = createNode(data);
+        if (end is null)
+        {
+            nodes = node;
+            return;
+        }
+        nodes.next = node;
     }
 
     /**
@@ -70,8 +80,67 @@ public struct SList(T)
         }
     }
 
+    /**
+     * Add iteration semantics to the slist
+     */
+    int opApply(scope int delegate(in T) dg)
+    {
+
+        NodeType* node = nodes;
+        while (node !is null)
+        {
+            auto result = dg(node.data);
+            if (result)
+            {
+                return result;
+            }
+            node = node.next;
+        }
+
+        return 0;
+    }
+
+    /**
+     * Return the length of this list
+     */
+    pure @property ulong length() const
+    {
+        return nodeCount;
+    }
+
 private:
 
+    /**
+     * Create a new node
+     */
+    static auto createNode()(auto const ref T data)
+    {
+        void* ret = calloc(1, NodeType.sizeof);
+        assert(ret !is null);
+        NodeType* node = cast(NodeType*) ret;
+        assert(node !is null);
+        node.data = data;
+
+        ++nodeCount;
+
+        return node;
+    }
+
+    auto tail()
+    {
+        NodeType* prev = null;
+        NodeType* current = null;
+
+        current = nodes;
+        while (current !is null)
+        {
+            prev = current;
+            current = current.next;
+        }
+
+        return prev;
+    }
+
     NodeType* nodes = null;
-    uint nodeCount = 0;
+    ulong nodeCount = 0;
 }
