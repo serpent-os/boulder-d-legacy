@@ -45,4 +45,39 @@ public struct Container
     {
         return 0;
     }
+
+private:
+
+    /**
+     * Enter a new namespace by unsharing the execution context namespace
+     */
+    void bringupNamespace()
+    {
+
+    }
+
+    /**
+     * Construct the special requirements of our /dev filesystem
+     */
+    void constructDevfs()
+    {
+
+    }
+
+    /**
+     * Bring up new mounts
+     */
+    void bringupMounts()
+    {
+
+    }
+
+    /**
+     * Tear down the mounts in use
+     */
+    void teardownMounts()
+    {
+
+    }
+
 }
