@@ -22,6 +22,9 @@
 
 module moss.container;
 
+public import moss.container.mounts;
+public import moss.container.slist;
+
 /**
  * The Container type is used for managing the lifecycle of multiple processes,
  * chiefly the "main" process
@@ -44,6 +47,14 @@ public struct Container
     int run()
     {
         return 0;
+    }
+
+    /**
+     * Add a new mountpoint.
+     */
+    void addMount(Mount mountpoint)
+    {
+        mountPoints.append(mountpoint);
     }
 
 private:
@@ -80,4 +91,5 @@ private:
 
     }
 
+    SList!Mount mountPoints;
 }
