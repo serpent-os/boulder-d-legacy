@@ -27,6 +27,7 @@ public import moss.container.process;
 public import moss.container.slist;
 
 import core.sys.linux.sched;
+import core.stdc.stdio : printf, fflush, stdout;
 
 /**
  * The Container type is used for managing the lifecycle of multiple processes,
@@ -42,6 +43,7 @@ public struct Container
     this(in string rootfs)
     {
         this.rootfs = rootfs;
+        addMount(Mount("/dev", "target/dev"));
     }
 
     /**
@@ -50,6 +52,11 @@ public struct Container
     int run()
     {
         bringupNamespace();
+
+        foreach (m; mountPoints)
+        {
+            printf("MOUNT: %s -> %s\n", cast(char*) m.source, cast(char*) m.target);
+        }
         return 0;
     }
 

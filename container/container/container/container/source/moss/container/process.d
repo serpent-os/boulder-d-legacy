@@ -30,7 +30,7 @@ import moss.container.slist;
 public struct Process
 {
     /* Arg 0 should be the full path of the binary */
-    char*[] args = null;
+    char[][] args = null;
 
 package:
 
