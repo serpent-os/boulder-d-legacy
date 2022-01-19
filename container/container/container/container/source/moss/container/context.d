@@ -54,8 +54,36 @@ public Context context() @trusted
  * of sharing options and providing inspection capability of
  * the target filesystem
  */
-final class Context
+public final class Context
 {
+
+    /**
+     * Update the rootfs directory
+     */
+    pure @property void rootfs(in string dir) @safe @nogc nothrow
+    {
+        _rootfs = dir;
+    }
+
+    /**
+     * Return the rootfs directory
+     */
+    pure @property const(string) rootfs() @safe @nogc nothrow const
+    {
+        return _rootfs;
+    }
+
+package:
+
+    /**
+     * Called by the Container to inspect the root
+     */
+    void inspectRoot()
+    {
+        import std.stdio : writeln;
+
+        writeln("I R INSPECTING THE ROOT: ", rootfs);
+    }
 
 private:
 
@@ -67,4 +95,5 @@ private:
 
     }
 
+    string _rootfs = null;
 }

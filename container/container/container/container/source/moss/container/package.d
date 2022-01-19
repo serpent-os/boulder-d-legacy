@@ -32,6 +32,8 @@ import std.path : buildPath;
 public import moss.container.mounts;
 public import moss.container.process;
 
+import moss.container.context;
+
 enum FakerootBinary : string
 {
     Sysv = "/usr/bin/fakeroot-sysv",
@@ -139,6 +141,8 @@ public final class Container
         enforce(!_chrootDir.empty, "Cannot run without a valid chroot directory");
 
         detachNamespace();
+        context.inspectRoot();
+
         /* Find the correct fakeroot */
         foreach (searchpath; [FakerootBinary.Sysv, FakerootBinary.Default])
         {

@@ -25,11 +25,16 @@ module main;
 import moss.container;
 import std.path : buildPath;
 
+import moss.container.context;
+
 /**
  * Main entry point into moss-container
  */
 int main(string[] args)
 {
+    /* Establish working rules */
+    context.rootfs = "/home/ikey/serpent/moss/destdir";
+
     auto c = new Container();
     c.add(Process("/bin/bash", ["--login"]));
     c.fakeroot = true;
