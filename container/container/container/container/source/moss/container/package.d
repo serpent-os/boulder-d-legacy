@@ -1,5 +1,5 @@
 /*
- * This file is part of moss-cintainer.
+ * This file is part of moss-container.
  *
  * Copyright © 2020-2022 Serpent OS Developers
  *
@@ -20,15 +20,29 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-module main;
-
-import moss.container;
+module moss.container;
 
 /**
- * Main entry point into the moss-container binary
+ * The Container type is used for managing the lifecycle of multiple processes,
+ * chiefly the "main" process
  */
-extern (C) int main(string[] args)
+public struct Container
 {
-    Container c = Container("/home/ikey/serpent/moss/destdir");
-    return c.run();
+    @disable this();
+
+    /**
+     * Require initialisation with a valid rootfs location
+     */
+    this(in string rootfs)
+    {
+
+    }
+
+    /**
+     * Run the containers workload and processes
+     */
+    int run()
+    {
+        return 0;
+    }
 }
