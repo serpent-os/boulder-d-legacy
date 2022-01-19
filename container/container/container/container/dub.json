@@ -8,5 +8,4 @@
 	"version": "0.0.1",
 	"name": "moss-container",
 	"targetType": "executable",
-	"dflags": ["-betterC"]
 }
