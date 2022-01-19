@@ -25,6 +25,8 @@ module moss.container;
 public import moss.container.mounts;
 public import moss.container.slist;
 
+import core.sys.linux.sched;
+
 /**
  * The Container type is used for managing the lifecycle of multiple processes,
  * chiefly the "main" process
@@ -38,7 +40,7 @@ public struct Container
      */
     this(in string rootfs)
     {
-
+        this.rootfs = rootfs;
     }
 
     /**
@@ -46,6 +48,7 @@ public struct Container
      */
     int run()
     {
+        bringupNamespace();
         return 0;
     }
 
@@ -57,6 +60,8 @@ public struct Container
         mountPoints.append(mountpoint);
     }
 
+    bool networking = false;
+
 private:
 
     /**
@@ -64,7 +69,13 @@ private:
      */
     void bringupNamespace()
     {
-
+        auto flags = CLONE_NEWPID | CLONE_NEWNS;
+        if (!networking)
+        {
+            flags |= CLONE_NEWNET | CLONE_NEWUTS;
+        }
+        auto ret = unshare(flags);
+        assert(ret == 0);
     }
 
     /**
@@ -92,4 +103,5 @@ private:
     }
 
     SList!Mount mountPoints;
+    string rootfs = null;
 }
