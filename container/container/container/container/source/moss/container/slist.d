@@ -47,6 +47,8 @@ public struct SList(T)
     void prepend()(auto const ref T data)
     {
         auto node = createNode(data);
+        ++nodeCount;
+
         node.next = nodes;
         nodes = node;
     }
@@ -56,14 +58,16 @@ public struct SList(T)
      */
     void append()(auto const ref T data)
     {
-        auto end = tail();
         auto node = createNode(data);
-        if (end is null)
+        if (_tail !is null)
+        {
+            _tail.next = node;
+        }
+        if (nodes is null)
         {
             nodes = node;
-            return;
         }
-        nodes.next = node;
+        _tail = node;
     }
 
     /**
@@ -120,27 +124,10 @@ private:
         NodeType* node = cast(NodeType*) ret;
         assert(node !is null);
         node.data = data;
-
-        ++nodeCount;
-
         return node;
     }
 
-    auto tail()
-    {
-        NodeType* prev = null;
-        NodeType* current = null;
-
-        current = nodes;
-        while (current !is null)
-        {
-            prev = current;
-            current = current.next;
-        }
-
-        return prev;
-    }
-
     NodeType* nodes = null;
+    NodeType* _tail = null;
     ulong nodeCount = 0;
 }
