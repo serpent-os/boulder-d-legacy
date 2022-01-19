@@ -23,12 +23,20 @@
 module main;
 
 import moss.container;
+import core.sys.posix.unistd;
+import core.stdc.stdio;
 
 /**
  * Main entry point into the moss-container binary
  */
-extern (C) int main(string[] args)
+extern (C) int main(const char*[] argv)
 {
+    auto euid = geteuid();
+    if (euid != 0)
+    {
+        fprintf(stderr, "%s must be run as root, aborting\n", argv[0]);
+        return 1;
+    }
     Container c = Container("/home/ikey/serpent/moss/destdir");
     return c.run();
 }
