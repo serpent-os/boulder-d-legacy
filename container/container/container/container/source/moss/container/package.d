@@ -29,6 +29,7 @@ import std.string : empty, toStringz, format;
 import core.sys.linux.sched;
 import std.path : buildPath;
 
+public import moss.container.mounts;
 public import moss.container.process;
 
 enum FakerootBinary : string
@@ -48,6 +49,14 @@ public final class Container
     void add(Process p) @safe
     {
         processes ~= p;
+    }
+
+    /**
+     * Add a mountpoint to the system
+     */
+    void add(MountPoint p) @safe
+    {
+        mountPoints ~= p;
     }
 
     /**
@@ -143,9 +152,21 @@ public final class Container
 
         enforce(fakerootBinary.exists, "Cannot run without fakeroot helper");
 
+        /* Setup mounts */
+        foreach (m; mountPoints)
+        {
+            m.up();
+        }
+
         foreach (p; processes)
         {
             p.run(chrootDir, environment);
+        }
+
+        for (auto i = mountPoints.length; i > 0; i--)
+        {
+            auto m = &mountPoints[i - 1];
+            m.down();
         }
 
         return 0;
@@ -174,4 +195,5 @@ private:
     FakerootBinary fakerootBinary = FakerootBinary.Sysv;
 
     Process[] processes;
+    MountPoint[] mountPoints;
 }

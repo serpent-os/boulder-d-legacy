@@ -23,6 +23,7 @@
 module main;
 
 import moss.container;
+import std.path : buildPath;
 
 /**
  * Main entry point into moss-container
@@ -36,5 +37,7 @@ int main(string[] args)
     c.workDir = "/";
     c.environment["PATH"] = "/usr/bin:/bin";
     c.networking = false;
+    c.add(MountPoint("/dev", c.chrootDir.buildPath("dev"), null,
+            MountOptions.Bind | MountOptions.Private));
     return c.run();
 }
