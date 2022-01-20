@@ -27,6 +27,9 @@ import std.concurrency : initOnce;
 public import moss.container.fakeroot : FakerootBinary;
 import moss.container.fakeroot : discoverFakeroot;
 
+import std.path : buildPath;
+import std.string : startsWith;
+
 /**
  * Shared singleton instance
  */
@@ -98,6 +101,14 @@ public final class Context
     pure @property bool fakeroot() @safe @nogc nothrow const
     {
         return _fakeroot;
+    }
+
+    /**
+     * Safely join the path onto the rootfs tree
+     */
+    auto joinPath(in string target) @safe
+    {
+        return rootfs.buildPath(target.startsWith("/") ? target[1 .. $] : target);
     }
 
 package:
