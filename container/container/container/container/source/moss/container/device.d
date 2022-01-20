@@ -85,10 +85,6 @@ package struct DeviceNode
     bool create()
     {
         auto fullPath = context.joinPath(target);
-        if (fullPath.exists)
-        {
-            return true;
-        }
         if (mknod(fullPath.toStringz, mode, dev) != 0)
         {
             return false;
@@ -99,11 +95,8 @@ package struct DeviceNode
             charPath.mkdir();
         }
         auto charDevPath = charPath.buildPath(format!"%d:%d"(dev.major, dev.minor));
-        if (!charDevPath.exists)
-        {
-            auto sourceLink = format!"../%s"(fullPath.baseName);
-            symlink(sourceLink, charDevPath);
-        }
+        auto sourceLink = format!"../%s"(fullPath.baseName);
+        symlink(sourceLink, charDevPath);
         return chmod(fullPath.toStringz, mode ^ S_IFCHR) == 0;
     }
 }

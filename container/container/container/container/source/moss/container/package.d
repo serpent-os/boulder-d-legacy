@@ -56,6 +56,7 @@ public final class Container
             MountPoint("tmpfs", "tmpfs", MountOptions.NoSuid | MountOptions.NoDev, "/tmp"),
 
             /* /dev points */
+            MountPoint("tmpfs", "tmpfs", MountOptions.NoSuid | MountOptions.NoExec, "/dev"),
             MountPoint("tmpfs", "tmpfs", MountOptions.NoSuid | MountOptions.NoDev, "/dev/shm"),
             MountPoint("devpts", "devpts",
                     MountOptions.NoSuid | MountOptions.NoExec | MountOptions.RelativeAccessTime,
