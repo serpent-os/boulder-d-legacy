@@ -44,7 +44,7 @@ int main(string[] args)
     bool fakeroot = false;
     bool networking = false;
 
-    auto opts = getopt(args, std.getopt.config.bundling, "directory|d",
+    auto opts = getopt(args, std.getopt.config.bundling, "directory|D",
             "Set the directory to use for container rootfs", &rootfsDir, "fakeroot|f",
             "Utilise fakeroot for root permission emulation", &fakeroot,
             "networking|n", "Enable networking for the container", &networking);
