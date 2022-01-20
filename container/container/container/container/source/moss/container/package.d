@@ -55,6 +55,9 @@ public final class Container
 
             /* /dev points */
             MountPoint("tmpfs", "tmpfs", MountOptions.NoSuid | MountOptions.NoDev, "/dev/shm"),
+            MountPoint("devpts", "devpts",
+                    MountOptions.NoSuid | MountOptions.NoExec | MountOptions.RelativeAccessTime,
+                    "/dev/pts"),
         ];
     }
 
