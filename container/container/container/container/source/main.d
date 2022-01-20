@@ -26,12 +26,16 @@ import moss.container;
 import std.path : buildPath;
 
 import moss.container.context;
+import core.sys.posix.sys.stat : umask;
+import std.conv : octal;
 
 /**
  * Main entry point into moss-container
  */
 int main(string[] args)
 {
+    umask(octal!22);
+
     /* Establish working rules */
     context.rootfs = "/home/ikey/serpent/moss/destdir";
     context.fakeroot = true;

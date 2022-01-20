@@ -29,6 +29,7 @@ import std.string : empty, toStringz, format;
 import core.sys.linux.sched;
 import std.path : buildPath;
 
+public import moss.container.device;
 public import moss.container.mounts;
 public import moss.container.process;
 
@@ -197,6 +198,15 @@ private:
             "/dev/fd", "/dev/stdin", "/dev/stdout", "/dev/stderr", "/dev/ptmx"
         ];
 
+        static DeviceNode[] nodes = [
+            DeviceNode("/dev/null", S_IFCHR | octal!666, mkdev(1, 3)),
+            DeviceNode("/dev/zero", S_IFCHR | octal!666, mkdev(1, 5)),
+            DeviceNode("/dev/full", S_IFCHR | octal!666, mkdev(1, 7)),
+            DeviceNode("/dev/random", S_IFCHR | octal!666, mkdev(1, 8)),
+            DeviceNode("/dev/urandom", S_IFCHR | octal!666, mkdev(1, 9)),
+            DeviceNode("/dev/tty", S_IFCHR | octal!666, mkdev(5, 0)),
+        ];
+
         /* Link sources to targets */
         foreach (i; 0 .. symlinkSources.length)
         {
@@ -211,6 +221,12 @@ private:
 
             /* Link source to target */
             symlink(source, target);
+        }
+
+        /* Create our nodes */
+        foreach (ref n; nodes)
+        {
+            n.create();
         }
     }
 
