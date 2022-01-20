@@ -138,7 +138,7 @@ private:
         }
 
         auto ret = unshare(flags);
-        enforce(ret == 0, "derpy mcderpderp");
+        enforce(ret == 0, "Failed to detach namespace");
     }
 
     /**
