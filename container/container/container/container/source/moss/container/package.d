@@ -49,6 +49,9 @@ public final class Container
             MountPoint("proc", "proc",
                     MountOptions.NoSuid | MountOptions.NoDev | MountOptions.NoExec | MountOptions.RelativeAccessTime,
                     "/proc"),
+            MountPoint("sysfs", "sysfs",
+                    MountOptions.NoSuid | MountOptions.NoDev | MountOptions.NoExec | MountOptions.RelativeAccessTime,
+                    "/sys"),
         ];
     }
 
