@@ -52,6 +52,9 @@ public final class Container
             MountPoint("sysfs", "sysfs",
                     MountOptions.NoSuid | MountOptions.NoDev | MountOptions.NoExec | MountOptions.RelativeAccessTime,
                     "/sys"),
+
+            /* /dev points */
+            MountPoint("tmpfs", "tmpfs", MountOptions.NoSuid | MountOptions.NoDev, "/dev/shm"),
         ];
     }
 
