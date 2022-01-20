@@ -24,6 +24,9 @@ module moss.container.context;
 
 import std.concurrency : initOnce;
 
+public import moss.container.fakeroot : FakerootBinary;
+import moss.container.fakeroot : discoverFakeroot;
+
 /**
  * Shared singleton instance
  */
@@ -73,6 +76,14 @@ public final class Context
         return _rootfs;
     }
 
+    /**
+     * Return location of fakeroot binary
+     */
+    pure @property FakerootBinary fakerootBinary() @safe @nogc nothrow const
+    {
+        return _fakeroot;
+    }
+
 package:
 
     /**
@@ -83,6 +94,8 @@ package:
         import std.stdio : writeln;
 
         writeln("I R INSPECTING THE ROOT: ", rootfs);
+        _fakeroot = discoverFakeroot();
+        writeln("Fakeroot: ", cast(string) _fakeroot);
     }
 
 private:
@@ -96,4 +109,5 @@ private:
     }
 
     string _rootfs = null;
+    FakerootBinary _fakeroot = FakerootBinary.None;
 }

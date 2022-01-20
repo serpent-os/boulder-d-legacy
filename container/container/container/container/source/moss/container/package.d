@@ -34,12 +34,6 @@ public import moss.container.process;
 
 import moss.container.context;
 
-enum FakerootBinary : string
-{
-    Sysv = "/usr/bin/fakeroot-sysv",
-    Default = "/usr/bin/fakeroot"
-}
-
 /**
  * A Container is used for the purpose of isolating newly launched processes.
  */
@@ -141,26 +135,15 @@ public final class Container
         enforce(!_chrootDir.empty, "Cannot run without a valid chroot directory");
 
         detachNamespace();
-        context.inspectRoot();
-
-        /* Find the correct fakeroot */
-        foreach (searchpath; [FakerootBinary.Sysv, FakerootBinary.Default])
-        {
-            const auto resolvedPath = _chrootDir.buildPath((cast(string) searchpath)[1 .. $]);
-            if (resolvedPath.exists)
-            {
-                fakerootBinary = searchpath;
-                break;
-            }
-        }
-
-        enforce(fakerootBinary.exists, "Cannot run without fakeroot helper");
 
         /* Setup mounts */
         foreach (m; mountPoints)
         {
             m.up();
         }
+
+        /* Inspect now the environment is ready */
+        context.inspectRoot();
 
         foreach (p; processes)
         {
@@ -196,7 +179,6 @@ private:
     string[string] _environ = null;
     string _chrootDir = null;
     const string user = "nobody";
-    FakerootBinary fakerootBinary = FakerootBinary.Sysv;
 
     Process[] processes;
     MountPoint[] mountPoints;
