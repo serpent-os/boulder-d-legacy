@@ -118,9 +118,8 @@ public final class Container
             p.run();
         }
 
-        for (auto i = mountPoints.length; i > 0; i--)
+        foreach_reverse (m; mountPoints)
         {
-            auto m = &mountPoints[i - 1];
             m.down();
         }
 
