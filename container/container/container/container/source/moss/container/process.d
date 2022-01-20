@@ -102,7 +102,6 @@ private:
             finalArgs = cast(string) context.fakerootBinary ~ finalArgs;
         }
 
-        stdout.writefln("finalArgs: %s", finalArgs);
         auto pid = spawnProcess(finalArgs, stdin, stdout, stderr, environment, config, "/");
         return wait(pid);
     }
