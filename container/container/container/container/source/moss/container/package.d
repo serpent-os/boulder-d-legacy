@@ -40,6 +40,19 @@ import moss.container.context;
 public final class Container
 {
     /**
+     * Create a new container
+     */
+    this()
+    {
+        /* Default mount points */
+        mountPoints = [
+            MountPoint("proc", "proc",
+                    MountOptions.NoSuid | MountOptions.NoDev | MountOptions.NoExec | MountOptions.RelativeAccessTime,
+                    "/proc"),
+        ];
+    }
+
+    /**
      * Add a process to this container
      */
     void add(Process p) @safe

@@ -23,6 +23,10 @@
 module moss.container.mounts;
 
 import std.string : toStringz;
+import std.path : buildPath;
+import std.string : startsWith;
+
+import moss.container.context;
 
 /**
  * Set mount specific options
@@ -68,16 +72,26 @@ extern (C) int umount(const(char*) specialFile);
 public struct MountPoint
 {
     string source;
-    string target;
     string fstype = null;
     MountOptions options = MountOptions.None;
+
+    /**
+     * Semi sane constructor
+     */
+    this(in string source, in string fstype, in MountOptions options, in string target)
+    {
+        this.source = source;
+        this.fstype = fstype;
+        this.options = options;
+        this.target = target;
+    }
 
     /**
      * Try to bring the mountpoint
      */
     bool up()
     {
-        return mount(source.toStringz, target.toStringz, fstype.toStringz, options, "".toStringz) == 0;
+        return mount(source.toStringz, realTarget.toStringz, fstype.toStringz, options, null) == 0;
     }
 
     /**
@@ -85,6 +99,30 @@ public struct MountPoint
      */
     bool down()
     {
-        return umount(target.toStringz) == 0;
+        return umount(realTarget.toStringz) == 0;
     }
+
+    /**
+     * Return the target
+     */
+    pure @property const(string) target() @safe @nogc nothrow const
+    {
+        return _target;
+    }
+
+    /**
+     * Set the target and implicitly set the fully resolved (chroot specific)
+     * target to ease use.
+     */
+    @property void target(in string target) @safe
+    {
+        _target = target;
+        /* Join the localised target to the rootfs, removing / for buildPath to work */
+        realTarget = context.rootfs.buildPath(target.startsWith("/") ? target[1 .. $] : target);
+    }
+
+private:
+
+    string realTarget = null;
+    string _target = null;
 }
