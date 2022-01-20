@@ -80,46 +80,6 @@ public final class Container
     }
 
     /**
-     * Return the working directory used for the process
-     */
-    pure @property const(string) workDir() @safe @nogc nothrow const
-    {
-        return cast(const(string)) workDir;
-    }
-
-    /**
-     * Set the working directory in which to execute the process
-     */
-    pure @property void workDir(in string newDir) @safe @nogc nothrow
-    {
-        _workDir = newDir;
-    }
-
-    /** 
-     * Return the chroot directory we intend to use
-     */
-    pure @property const(string) chrootDir() @safe @nogc nothrow const
-    {
-        return cast(const(string)) _chrootDir;
-    }
-
-    /**
-     * Update the chroot directory
-     */
-    pure @property void chrootDir(in string d) @safe @nogc nothrow
-    {
-        _chrootDir = d;
-    }
-
-    /**
-     * Access the environment property
-     */
-    pragma(inline, true) pure @property inout(string[string]) environment() @safe @nogc nothrow inout
-    {
-        return _environ;
-    }
-
-    /**
      * Returns whether networking is enabled
      */
     pure @property bool networking() @safe @nogc nothrow const
@@ -140,8 +100,6 @@ public final class Container
      */
     int run() @system
     {
-        enforce(!_chrootDir.empty, "Cannot run without a valid chroot directory");
-
         detachNamespace();
 
         /* Setup mounts */
@@ -157,7 +115,7 @@ public final class Container
 
         foreach (p; processes)
         {
-            p.run(chrootDir, environment);
+            p.run();
         }
 
         for (auto i = mountPoints.length; i > 0; i--)
@@ -231,11 +189,6 @@ private:
     }
 
     bool _networking = true;
-    string _workDir = ".";
-    string[string] _environ = null;
-    string _chrootDir = null;
-    const string user = "nobody";
-
     Process[] processes;
     MountPoint[] mountPoints;
 }

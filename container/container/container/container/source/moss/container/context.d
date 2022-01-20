@@ -104,6 +104,30 @@ public final class Context
     }
 
     /**
+     * Return the working directory used for the process
+     */
+    pure @property const(string) workDir() @safe @nogc nothrow const
+    {
+        return cast(const(string)) workDir;
+    }
+
+    /**
+     * Set the working directory in which to execute the process
+     */
+    pure @property void workDir(in string newDir) @safe @nogc nothrow
+    {
+        _workDir = newDir;
+    }
+
+    /**
+     * Access the environment property
+     */
+    pragma(inline, true) pure @property inout(string[string]) environment() @safe @nogc nothrow inout
+    {
+        return _environ;
+    }
+
+    /**
      * Safely join the path onto the rootfs tree
      */
     auto joinPath(in string target) @safe
@@ -134,4 +158,6 @@ private:
     string _rootfs = null;
     FakerootBinary _fakerootBinary = FakerootBinary.None;
     bool _fakeroot = false;
+    string _workDir = ".";
+    string[string] _environ = null;
 }

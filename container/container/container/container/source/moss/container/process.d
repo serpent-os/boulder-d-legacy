@@ -56,7 +56,7 @@ package:
     /**
      * Fork and run the process
      */
-    int run(in string rootfs, in string[string] environment)
+    int run()
     {
         pid_t child = fork();
         int status = 0;
@@ -64,7 +64,7 @@ package:
         /* We're the fork */
         if (child == 0)
         {
-            _exit(executeChild(rootfs, environment));
+            _exit(executeChild());
         }
         else
         {
@@ -81,10 +81,10 @@ package:
 
 private:
 
-    int executeChild(in string rootfs, in string[string] environment)
+    int executeChild()
     {
         /* Chroot into working system */
-        auto ret = chroot(rootfs.toStringz);
+        auto ret = chroot(context.rootfs.toStringz);
         assert(ret == 0);
 
         /* Drop permissions permanently */
@@ -102,7 +102,8 @@ private:
             finalArgs = cast(string) context.fakerootBinary ~ finalArgs;
         }
 
-        auto pid = spawnProcess(finalArgs, stdin, stdout, stderr, environment, config, "/");
+        auto pid = spawnProcess(finalArgs, stdin, stdout, stderr,
+                context.environment, config, "/");
         return wait(pid);
     }
 

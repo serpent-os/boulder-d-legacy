@@ -39,12 +39,12 @@ int main(string[] args)
     /* Establish working rules */
     context.rootfs = "/home/ikey/serpent/moss/destdir";
     context.fakeroot = true;
+    context.workDir = "/";
+    context.environment["PATH"] = "/usr/bin:/bin";
 
     auto c = new Container();
-    c.add(Process("/bin/bash", ["--login"]));
-    c.chrootDir = "/home/ikey/serpent/moss/destdir";
-    c.workDir = "/";
-    c.environment["PATH"] = "/usr/bin:/bin";
     c.networking = false;
+    c.add(Process("/bin/bash", ["--login"]));
+
     return c.run();
 }
