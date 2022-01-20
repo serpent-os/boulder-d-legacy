@@ -97,7 +97,7 @@ private:
         string[] finalArgs = programName ~ args;
 
         /* Fakeroot available */
-        if (context.fakerootBinary != FakerootBinary.None)
+        if (context.fakeroot && context.fakerootBinary != FakerootBinary.None)
         {
             finalArgs = cast(string) context.fakerootBinary ~ finalArgs;
         }

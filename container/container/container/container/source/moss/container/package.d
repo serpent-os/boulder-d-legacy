@@ -56,22 +56,6 @@ public final class Container
     }
 
     /**
-     * Returns true if fakeroot will be used
-     */
-    pure @property bool fakeroot() @safe @nogc nothrow const
-    {
-        return _fakeroot;
-    }
-
-    /**
-     * Enable or disable the use of fakeroot
-     */
-    pure @property void fakeroot(bool b) @safe @nogc nothrow
-    {
-        _fakeroot = b;
-    }
-
-    /**
      * Return the working directory used for the process
      */
     pure @property const(string) workDir() @safe @nogc nothrow const
@@ -173,7 +157,6 @@ private:
         enforce(ret == 0, "derpy mcderpderp");
     }
 
-    bool _fakeroot = false;
     bool _networking = true;
     string _workDir = ".";
     string[string] _environ = null;

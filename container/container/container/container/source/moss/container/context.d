@@ -81,6 +81,22 @@ public final class Context
      */
     pure @property FakerootBinary fakerootBinary() @safe @nogc nothrow const
     {
+        return _fakerootBinary;
+    }
+
+    /**
+     * Update whether we want to use fakeroot
+     */
+    pure @property void fakeroot(bool b) @safe @nogc nothrow
+    {
+        _fakeroot = b;
+    }
+
+    /**
+     * Returns true if fakeroot has been requested
+     */
+    pure @property bool fakeroot() @safe @nogc nothrow const
+    {
         return _fakeroot;
     }
 
@@ -91,11 +107,7 @@ package:
      */
     void inspectRoot()
     {
-        import std.stdio : writeln;
-
-        writeln("I R INSPECTING THE ROOT: ", rootfs);
-        _fakeroot = discoverFakeroot();
-        writeln("Fakeroot: ", cast(string) _fakeroot);
+        _fakerootBinary = discoverFakeroot();
     }
 
 private:
@@ -109,5 +121,6 @@ private:
     }
 
     string _rootfs = null;
-    FakerootBinary _fakeroot = FakerootBinary.None;
+    FakerootBinary _fakerootBinary = FakerootBinary.None;
+    bool _fakeroot = false;
 }

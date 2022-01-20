@@ -34,10 +34,10 @@ int main(string[] args)
 {
     /* Establish working rules */
     context.rootfs = "/home/ikey/serpent/moss/destdir";
+    context.fakeroot = true;
 
     auto c = new Container();
     c.add(Process("/bin/bash", ["--login"]));
-    c.fakeroot = true;
     c.chrootDir = "/home/ikey/serpent/moss/destdir";
     c.workDir = "/";
     c.environment["PATH"] = "/usr/bin:/bin";
