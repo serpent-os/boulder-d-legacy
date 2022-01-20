@@ -190,11 +190,11 @@ private:
 
         auto symlinkSources = [
             "/proc/self/fd", "/proc/self/fd/0", "/proc/self/fd/1",
-            "/proc/self/fd/2",
+            "/proc/self/fd/2", "pts/ptmx"
         ];
 
         auto symlinkTargets = [
-            "/dev/fd", "/dev/stdin", "/dev/stdout", "/dev/stderr",
+            "/dev/fd", "/dev/stdin", "/dev/stdout", "/dev/stderr", "/dev/ptmx"
         ];
 
         /* Link sources to targets */
