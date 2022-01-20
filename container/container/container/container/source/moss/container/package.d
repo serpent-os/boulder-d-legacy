@@ -24,7 +24,7 @@ module moss.container;
 import std.stdio : stderr, stdin, stdout;
 import std.exception : enforce;
 import std.process;
-import std.file : exists;
+import std.file : exists, remove, symlink;
 import std.string : empty, toStringz, format;
 import core.sys.linux.sched;
 import std.path : buildPath;
@@ -149,6 +149,8 @@ public final class Container
             m.up();
         }
 
+        configureDevfs();
+
         /* Inspect now the environment is ready */
         context.inspectRoot();
 
@@ -178,6 +180,38 @@ private:
 
         auto ret = unshare(flags);
         enforce(ret == 0, "derpy mcderpderp");
+    }
+
+    /**
+     * Configure the /dev tree to be valid
+     */
+    void configureDevfs()
+    {
+
+        auto symlinkSources = [
+            "/proc/self/fd", "/proc/self/fd/0", "/proc/self/fd/1",
+            "/proc/self/fd/2",
+        ];
+
+        auto symlinkTargets = [
+            "/dev/fd", "/dev/stdin", "/dev/stdout", "/dev/stderr",
+        ];
+
+        /* Link sources to targets */
+        foreach (i; 0 .. symlinkSources.length)
+        {
+            auto source = symlinkSources[i];
+            auto target = context.joinPath(symlinkTargets[i]);
+
+            /* Remove old target */
+            if (target.exists)
+            {
+                target.remove();
+            }
+
+            /* Link source to target */
+            symlink(source, target);
+        }
     }
 
     bool _networking = true;
