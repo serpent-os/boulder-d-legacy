@@ -28,6 +28,8 @@ import std.string : toStringz;
 import std.process;
 import std.stdio : stdin, stderr, stdout;
 
+import moss.container.context;
+
 /**
  * Chroot to another root filesystem
  */
@@ -93,6 +95,12 @@ private:
 
         auto config = Config.newEnv;
         string[] finalArgs = programName ~ args;
+
+        /* Fakeroot available */
+        if (context.fakerootBinary != FakerootBinary.None)
+        {
+            finalArgs = cast(string) context.fakerootBinary ~ finalArgs;
+        }
 
         stdout.writefln("finalArgs: %s", finalArgs);
         auto pid = spawnProcess(finalArgs, stdin, stdout, stderr, environment, config, "/");
