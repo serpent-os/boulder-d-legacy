@@ -42,7 +42,5 @@ int main(string[] args)
     c.workDir = "/";
     c.environment["PATH"] = "/usr/bin:/bin";
     c.networking = false;
-    c.add(MountPoint("/dev", c.chrootDir.buildPath("dev"), null,
-            MountOptions.Bind | MountOptions.Private));
     return c.run();
 }
