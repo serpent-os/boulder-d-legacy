@@ -24,8 +24,6 @@ module moss.container.mounts;
 
 import std.string : toStringz;
 import std.file : exists, mkdirRecurse;
-import std.path : buildPath;
-import std.string : startsWith;
 
 import moss.container.context;
 
@@ -124,7 +122,7 @@ public struct MountPoint
     {
         _target = target;
         /* Join the localised target to the rootfs, removing / for buildPath to work */
-        realTarget = context.rootfs.buildPath(target.startsWith("/") ? target[1 .. $] : target);
+        realTarget = context.joinPath(target);
     }
 
 private:
