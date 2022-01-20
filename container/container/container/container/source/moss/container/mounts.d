@@ -23,6 +23,7 @@
 module moss.container.mounts;
 
 import std.string : toStringz;
+import std.file : exists, mkdir;
 import std.path : buildPath;
 import std.string : startsWith;
 
@@ -91,6 +92,11 @@ public struct MountPoint
      */
     bool up()
     {
+        if (!realTarget.exists)
+        {
+            realTarget.mkdir();
+        }
+
         return mount(source.toStringz, realTarget.toStringz, fstype.toStringz, options, null) == 0;
     }
 
