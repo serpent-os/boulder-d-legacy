@@ -31,4 +31,4 @@ fi
 
 # We require two entry points!
 
-ln -f bin/boulder bin/build-stone
+ln -f bin/boulder bin/mason
