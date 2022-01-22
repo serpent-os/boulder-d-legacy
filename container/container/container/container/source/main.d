@@ -126,7 +126,7 @@ public struct ContainerCLI
         /* Work the bindmounts in */
         foreach (source, target; bindMounts)
         {
-            auto mnt = MountPoint(source, null, MountOptions.Bind, target);
+            auto mnt = MountPoint(source, null, MountOptions.Bind | MountOptions.ReadOnly, target);
             c.add(mnt);
         }
         return c.run();
