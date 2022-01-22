@@ -59,18 +59,32 @@ package:
     int run()
     {
         pid_t child = fork();
+        pid_t waiter;
         int status = 0;
 
         /* We're the fork */
         if (child == 0)
         {
-            _exit(executeChild());
+            auto ret = executeChild();
+            scope (exit)
+            {
+                _exit(ret);
+            }
+            return ret;
         }
         else
         {
             do
             {
-                status = waitpid(child, &status, WCONTINUED);
+                waiter = waitpid(child, &status, WUNTRACED | WCONTINUED);
+                if (waiter < 0)
+                {
+                    import core.stdc.errno : errno;
+                    import core.stdc.string : strerror;
+                    import std.string : fromStringz;
+
+                    stderr.writeln("waitpid: Error: ", strerror(errno).fromStringz);
+                }
             }
             while (!WIFEXITED(status) && !WIFSIGNALED(status));
 
