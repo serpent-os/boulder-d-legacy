@@ -8,4 +8,10 @@
 	"version": "0.0.1",
 	"name": "moss-container",
 	"targetType": "executable",
+        "dependencies": {
+                "moss-core": {
+                        "path": "external/moss-core"
+                }
+        }
+
 }
