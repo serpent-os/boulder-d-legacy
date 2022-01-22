@@ -20,9 +20,9 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-module boulder.build.emitter;
+module mason.build.emitter;
 
-import boulder.build.context : BuildContext;
+import mason.build.context : BuildContext;
 
 import moss.format.source.package_definition;
 import moss.format.source.source_definition;

@@ -23,6 +23,7 @@
 module mason.cli;
 
 public import moss.core.cli;
+public import mason.cli.build_command;
 
 /**
  * The MasonCLI type holds some global configuration bits

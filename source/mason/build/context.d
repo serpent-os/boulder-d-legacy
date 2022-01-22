@@ -20,7 +20,7 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-module boulder.build.context;
+module mason.build.context;
 
 import moss.format.source.macros;
 import moss.format.source.spec;

@@ -20,9 +20,9 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-module boulder.build;
+module mason.build;
 
-public import boulder.build.builder;
-public import boulder.build.context;
-public import boulder.build.profile;
-public import boulder.build.stage;
+public import mason.build.builder;
+public import mason.build.context;
+public import mason.build.profile;
+public import mason.build.stage;

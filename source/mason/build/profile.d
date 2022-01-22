@@ -20,14 +20,14 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-module boulder.build.profile;
+module mason.build.profile;
 
 import moss.format.source.spec;
 import moss.format.source.script;
-import boulder.build.collector;
-import boulder.build.context;
-import boulder.build.stage;
-import boulder.build.manifest;
+import mason.build.collector;
+import mason.build.context;
+import mason.build.stage;
+import mason.build.manifest;
 import std.path : buildPath;
 import moss.deps.analysis;
 
@@ -162,7 +162,7 @@ public:
      */
     bool runStage(ExecutionStage* stage, string workDir, ref string script) @system
     {
-        import boulder.build.util;
+        import mason.build.util;
 
         import std.stdio : File, fflush, stdin, stderr, stdout, writefln;
         import std.string : format;

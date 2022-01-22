@@ -20,14 +20,14 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-module boulder.cli.build_command;
+module mason.cli.build_command;
 
 public import moss.core.cli;
 import moss.core;
 import std.stdio;
-import boulder.build.context;
-import boulder.build.controller;
-import boulder.cli : BoulderCLI;
+import mason.build.context;
+import mason.build.controller;
+import mason.cli : MasonCLI;
 
 /**
  * The BuildCommand is responsible for handling requests to build stone.yml

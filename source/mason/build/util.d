@@ -20,7 +20,7 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-module boulder.build.util;
+module mason.build.util;
 
 public import std.sumtype;
 import core.exception : RangeError;

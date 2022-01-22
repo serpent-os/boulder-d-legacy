@@ -20,7 +20,7 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-module boulder.build.manifest;
+module mason.build.manifest;
 
 public import moss.deps.analysis.fileinfo;
 
@@ -57,5 +57,5 @@ private:
     string _fileName = null;
 }
 
-public import boulder.build.manifest.json_manifest;
-public import boulder.build.manifest.binary_manifest;
+public import mason.build.manifest.json_manifest;
+public import mason.build.manifest.binary_manifest;

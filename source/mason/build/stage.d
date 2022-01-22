@@ -20,9 +20,9 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-module boulder.build.stage;
+module mason.build.stage;
 
-import boulder.build.profile : BuildProfile;
+import mason.build.profile : BuildProfile;
 
 /**
  * Valid stage types.

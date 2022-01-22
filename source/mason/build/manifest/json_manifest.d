@@ -20,14 +20,14 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-module boulder.build.manifest.json_manifest;
+module mason.build.manifest.json_manifest;
 
-public import boulder.build.manifest;
+public import mason.build.manifest;
 
 import std.stdio : File;
 import std.conv : to;
 import std.json;
-import boulder.build.context;
+import mason.build.context;
 import std.path : buildPath;
 
 /**

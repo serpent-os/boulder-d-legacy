@@ -20,13 +20,13 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-module boulder.build.controller;
+module mason.build.controller;
 
 import moss.core.download.store;
 import moss.core.util : computeSHA256;
 import moss.fetcher;
-import boulder.build.builder;
-import boulder.build.context;
+import mason.build.builder;
+import mason.build.context;
 
 import std.algorithm : each, filter;
 import std.exception : enforce;

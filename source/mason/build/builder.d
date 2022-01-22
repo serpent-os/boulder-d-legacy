@@ -20,14 +20,14 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-module boulder.build.builder;
+module mason.build.builder;
 
 import moss.format.source.spec;
-import boulder.build.context;
-import boulder.build.collector;
-import boulder.build.profile;
-import boulder.build.emitter;
-import boulder.build.util;
+import mason.build.context;
+import mason.build.collector;
+import mason.build.profile;
+import mason.build.emitter;
+import mason.build.util;
 import moss.core.platform;
 import moss.deps.analysis;
 import std.algorithm : each, filter;

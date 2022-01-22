@@ -33,7 +33,6 @@ import std.path : baseName;
 int boulderMain(string[] args)
 {
     auto clip = cliProcessor!BoulderCLI(args);
-    clip.addCommand!BuildCommand;
     clip.addCommand!VersionCommand;
     clip.addCommand!HelpCommand;
     return clip.process(args);
@@ -45,6 +44,8 @@ int boulderMain(string[] args)
 int masonMain(string[] args)
 {
     auto clip = cliProcessor!MasonCLI(args);
+    clip.addCommand!BuildCommand;
+    clip.addCommand!HelpCommand;
     return clip.process(args);
 }
 

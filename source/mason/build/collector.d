@@ -20,7 +20,7 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-module boulder.build.collector;
+module mason.build.collector;
 
 import std.path;
 import std.file;
