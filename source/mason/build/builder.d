@@ -32,8 +32,9 @@ import moss.core.platform;
 import moss.deps.analysis;
 import std.algorithm : each, filter;
 import moss.deps.analysis.elves;
+import std.path : dirName, baseName;
 import std.stdio : stderr;
-import std.string : startsWith;
+import std.string : startsWith, endsWith;
 
 import core.sys.posix.sys.stat;
 
@@ -242,6 +243,10 @@ private:
                     &stripElfFiles, &includeElfFiles,
                     ], 100),
 
+            AnalysisChain("pkgconfig", [
+                    &acceptPkgconfigFiles, &handlePkgconfigFiles, &includeFile
+                    ], 50),
+
             /* Default inclusion policy */
             AnalysisChain("default", [&includeFile], 0),
         ];
@@ -250,6 +255,39 @@ private:
             auto chain = cast(AnalysisChain) c;
             analyser.addChain(chain);
         }());
+    }
+
+    /**
+     * Does this look like a valid pkgconfig file?
+     */
+    static AnalysisReturn acceptPkgconfigFiles(scope Analyser analyser, ref FileInfo fileInfo)
+    {
+        auto filename = fileInfo.fullPath;
+        auto directory = filename.dirName;
+
+        if (directory == "pkgconfig")
+        {
+            return AnalysisReturn.NextHandler;
+        }
+
+        if (!filename.endsWith(".pc"))
+        {
+            return AnalysisReturn.NextHandler;
+        }
+
+        return AnalysisReturn.NextFunction;
+    }
+
+    /**
+     * Do something with the pkgconfig file, for now we only
+     * add providers.
+     */
+    static AnalysisReturn handlePkgconfigFiles(scope Analyser analyser, ref FileInfo fileInfo)
+    {
+        auto providerName = fileInfo.path.baseName()[0 .. $ - 3];
+        auto prov = Provider(providerName, ProviderType.PkgconfigName);
+        analyser.bucket(fileInfo).addProvider(prov);
+        return AnalysisReturn.NextHandler;
     }
 
     /**
