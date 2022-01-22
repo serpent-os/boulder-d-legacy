@@ -24,12 +24,37 @@ module main;
 
 import std.stdio;
 import boulder.cli;
+import std.path : baseName;
 
-int main(string[] args)
+/**
+ * Handle main entry for the boulder subtool
+ */
+int boulderMain(string[] args)
 {
     auto clip = cliProcessor!BoulderCLI(args);
     clip.addCommand!BuildCommand;
     clip.addCommand!VersionCommand;
     clip.addCommand!HelpCommand;
     return clip.process(args);
+}
+
+/**
+ * Handle main entry for the mason subtool
+ */
+int masonMain(string[] args)
+{
+    stderr.writeln("mason: Not yet implemented");
+    return 1;
+}
+
+int main(string[] args)
+{
+    auto programName = args[0].baseName;
+    switch (programName)
+    {
+    case "mason":
+        return masonMain(args);
+    default:
+        return boulderMain(args);
+    }
 }
