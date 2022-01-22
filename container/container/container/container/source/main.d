@@ -28,70 +28,84 @@ import std.path : buildPath;
 import moss.container.context;
 import core.sys.posix.sys.stat : umask;
 import std.conv : octal;
-import std.getopt;
 import std.file : exists, isDir;
 import std.string : empty;
 import std.stdio : stderr;
 import core.sys.posix.unistd : geteuid;
 
+import moss.core.cli;
+
 /**
- * Main entry point into moss-container
+ * The BoulderCLI type holds some global configuration bits
  */
-int main(string[] args)
+@RootCommand @CommandName("moss-container")
+@CommandHelp("Manage lightweight containers", `
+Use moss-container to manage lightweight containers using Linux namespaces.
+Typically moss-container sits between boulder and mason to provide isolation
+support, however you can also use moss-container for smoketesting and
+general testing.`)
+@CommandUsage("[flags] --directory $someRootfs [command]")
+
+public struct ContainerCLI
 {
-    umask(octal!22);
+    /** Extend BaseCommand to give a root command for our CLI */
+    BaseCommand pt;
+    alias pt this;
+
+    @Option("d", "directory", "Directory to find a root filesystem")
     string rootfsDir = null;
+
+    @Option("f", "fakeroot", "Enable fakeroot integration")
     bool fakeroot = false;
+
+    @Option("n", "networking", "Enable network access")
     bool networking = false;
 
-    auto opts = getopt(args, std.getopt.config.bundling, "directory|D",
-            "Set the directory to use for container rootfs", &rootfsDir, "fakeroot|f",
-            "Utilise fakeroot for root permission emulation", &fakeroot,
-            "networking|n", "Enable networking for the container", &networking);
-
-    if (opts.helpWanted)
+    @CommandEntry() int run(ref string[] args)
     {
-        defaultGetoptPrinter("Usage: ", opts.options);
-        return 0;
+        umask(octal!22);
+
+        if (rootfsDir.empty)
+        {
+            stderr.writeln("You must set a directory with the -d option");
+            return 1;
+        }
+
+        if (!rootfsDir.exists || !rootfsDir.isDir)
+        {
+            stderr.writefln("The directory specified does not exist: %s", rootfsDir);
+        }
+
+        /* Setup rootfs - ensure we're running as root too */
+        context.rootfs = rootfsDir;
+        if (geteuid() != 0)
+        {
+            stderr.writeln("You must run moss-container as root");
+            return 1;
+        }
+
+        string[] commandLine = args;
+        if (commandLine.length < 1)
+        {
+            commandLine = ["/bin/bash", "--login"];
+        }
+
+        string programName = commandLine[0];
+        string[] programArgs = commandLine[0].length > 0 ? commandLine[1 .. $] : null;
+
+        context.fakeroot = fakeroot;
+        context.workDir = "/";
+        context.environment["PATH"] = "/usr/bin:/bin";
+
+        auto c = new Container();
+        c.networking = networking;
+        c.add(Process(programName, programArgs));
+        return c.run();
     }
+}
 
-    /* Ensure rootfs directory set */
-    if (rootfsDir.empty)
-    {
-        stderr.writeln("You must set a directory with the -d option");
-        return 1;
-    }
-
-    if (!rootfsDir.exists || !rootfsDir.isDir)
-    {
-        stderr.writefln("The directory specified does not exist: %s", rootfsDir);
-    }
-
-    /* Set the rootfs */
-    context.rootfs = rootfsDir;
-
-    /* Ensure we're running as root */
-    if (geteuid() != 0)
-    {
-        stderr.writefln("%s: Needs to run as root", args[0]);
-        return 1;
-    }
-
-    string[] commandLine = args.length > 0 ? args[1 .. $] : null;
-    if (commandLine.length < 1)
-    {
-        commandLine = ["/bin/bash", "--login"];
-    }
-
-    string programName = commandLine[0];
-    string[] programArgs = commandLine[0].length > 0 ? commandLine[1 .. $] : null;
-
-    context.fakeroot = fakeroot;
-    context.workDir = "/";
-    context.environment["PATH"] = "/usr/bin:/bin";
-
-    auto c = new Container();
-    c.networking = networking;
-    c.add(Process(programName, programArgs));
-    return c.run();
+int main(string[] args)
+{
+    auto clip = cliProcessor!ContainerCLI(args);
+    return clip.process(args);
 }
