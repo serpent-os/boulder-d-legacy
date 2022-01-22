@@ -1,7 +1,7 @@
 /*
- * This file is part of moss.
+ * This file is part of boulder.
  *
- * Copyright © 2020-2021 Serpent OS Developers
+ * Copyright © 2020-2022 Serpent OS Developers
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -20,42 +20,22 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-module main;
+module mason.cli;
 
-import std.stdio;
-import boulder.cli;
-import mason.cli;
-import std.path : baseName;
+public import moss.core.cli;
 
 /**
- * Handle main entry for the boulder subtool
+ * The MasonCLI type holds some global configuration bits
  */
-int boulderMain(string[] args)
+@RootCommand @CommandName("mason")
+@CommandHelp("mason - build stone packages using YML recipes")
+@CommandUsage("[--args] [command]")
+public struct MasonCLI
 {
-    auto clip = cliProcessor!BoulderCLI(args);
-    clip.addCommand!BuildCommand;
-    clip.addCommand!VersionCommand;
-    clip.addCommand!HelpCommand;
-    return clip.process(args);
-}
+    /** Extend BaseCommand to give a root command for our CLI */
+    BaseCommand pt;
+    alias pt this;
 
-/**
- * Handle main entry for the mason subtool
- */
-int masonMain(string[] args)
-{
-    auto clip = cliProcessor!MasonCLI(args);
-    return clip.process(args);
-}
-
-int main(string[] args)
-{
-    auto programName = args[0].baseName;
-    switch (programName)
-    {
-    case "mason":
-        return masonMain(args);
-    default:
-        return boulderMain(args);
-    }
+    /** Select an alternative output location than the current working directory */
+    @Option("o", "output", "Directory to store build results") string outputDirectory = ".";
 }
