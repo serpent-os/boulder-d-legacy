@@ -65,11 +65,11 @@ public struct ContainerCLI
     @Option("n", "networking", "Enable network access")
     bool networking = false;
 
-    @Option("v", "version", "Show program version and exit")
-    bool showVersion = false;
-
     @Option("s", "set", "Set an environmental variable")
     string[string] environment;
+
+    @Option("v", "version", "Show program version and exit")
+    bool showVersion = false;
 
     @CommandEntry() int run(ref string[] args)
     {
