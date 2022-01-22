@@ -61,10 +61,18 @@ public enum MountOptions
     NoUser = 1 << 31,
 }
 
+enum UnmountFlags
+{
+    Force = 1,
+    Detach = 2,
+}
+
 /* Bindings to sys/mount.h */
 extern (C) int mount(const(char*) specialFile, const(char*) dir,
         const(char*) fstype, ulong rwflag, const void* data);
 extern (C) int umount(const(char*) specialFile);
+extern (C) int umount2(const(char*) specialFile, int flags);
+
 /**
  * Used to manage system mount points.
  */
@@ -99,11 +107,40 @@ public struct MountPoint
     }
 
     /**
-     * Try to teardown the mountpoint
+     * Try to teardown the mountpoint. This may take multiple attempts but
+     * generally will succeed due to DETACH + FORCE usage.
      */
     bool down()
     {
-        return umount(realTarget.toStringz) == 0;
+        import core.thread.osthread : Thread;
+        import std.datetime : seconds;
+
+        int attempts = 0;
+
+        /* Try 3 times, 1 second apart each time, to get it unmounted */
+        while (attempts < 3)
+        {
+            int ret = 0;
+            if (attempts == 0)
+            {
+                ret = umount2(realTarget.toStringz, UnmountFlags.Force | UnmountFlags.Detach);
+            }
+            else
+            {
+                ret = umount(realTarget.toStringz);
+            }
+
+            if (ret == 0)
+            {
+                return true;
+            }
+
+            Thread.sleep(1.seconds);
+
+            ++attempts;
+        }
+
+        return false;
     }
 
     /**

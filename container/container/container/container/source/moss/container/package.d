@@ -136,7 +136,10 @@ private:
     {
         foreach_reverse (m; mountPoints)
         {
-            m.down();
+            if (!m.down())
+            {
+                stderr.writeln("Failed to bring down mountpoint: ", m);
+            }
         }
     }
 
