@@ -21,6 +21,7 @@
  */
 
 module boulder.controller;
+import std.stdio : writeln;
 
 /**
  * This is the main entry point for all build commands which will be dispatched
@@ -31,5 +32,13 @@ public final class Controller
     this()
     {
 
+    }
+
+    /**
+     * Begin the build process for a specific recipe
+     */
+    void build(in string filename)
+    {
+        writeln("Derp Cannot build: ", filename);
     }
 }

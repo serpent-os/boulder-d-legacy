@@ -26,6 +26,7 @@ public import moss.core.cli;
 import moss.core;
 import std.stdio;
 import boulder.cli : BoulderCLI;
+import boulder.controller;
 
 /**
  * The BuildCommand is responsible for handling requests to build stone.yml
@@ -54,6 +55,11 @@ public struct BuildControlCommand
      */
     @CommandEntry() int run(ref string[] argv)
     {
+        auto controller = new Controller();
+        foreach (recipe; argv)
+        {
+            controller.build(recipe);
+        }
         return ExitStatus.Success;
     }
 
