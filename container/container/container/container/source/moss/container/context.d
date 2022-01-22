@@ -121,20 +121,17 @@ public final class Context
     }
 
     /**
-     * Access the environment property
-     */
-    pragma(inline, true) pure @property inout(string[string]) environment() @safe @nogc nothrow inout
-    {
-        return _environ;
-    }
-
-    /**
      * Safely join the path onto the rootfs tree
      */
     auto joinPath(in string target) @safe
     {
         return rootfs.buildPath(target.startsWith("/") ? target[1 .. $] : target);
     }
+
+    /**
+     * Provide environment access
+     */
+    string[string] environment;
 
 package:
 
@@ -168,5 +165,4 @@ private:
     FakerootBinary _fakerootBinary = FakerootBinary.None;
     bool _fakeroot = false;
     string _workDir = ".";
-    string[string] _environ = null;
 }

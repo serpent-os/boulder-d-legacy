@@ -68,6 +68,9 @@ public struct ContainerCLI
     @Option("v", "version", "Show program version and exit")
     bool showVersion = false;
 
+    @Option("s", "set", "Set an environmental variable")
+    string[string] environment;
+
     @CommandEntry() int run(ref string[] args)
     {
         umask(octal!22);
@@ -110,7 +113,11 @@ public struct ContainerCLI
 
         context.fakeroot = fakeroot;
         context.workDir = "/";
-        context.environment["PATH"] = "/usr/bin:/bin";
+        context.environment = environment;
+        if (!("PATH" in context.environment))
+        {
+            context.environment["PATH"] = "/usr/bin:/bin";
+        }
 
         auto c = new Container();
         c.networking = networking;
