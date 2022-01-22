@@ -24,6 +24,7 @@ module boulder.controller;
 import std.stdio : writeln, File;
 
 import moss.format.source;
+import std.process;
 
 enum RecipeStage
 {
@@ -31,7 +32,9 @@ enum RecipeStage
     Resolve,
     FetchSources,
     ConstructRoot,
+    RunBuild,
     Failed,
+    Complete,
 }
 
 /**
@@ -74,7 +77,11 @@ public final class Controller
             case RecipeStage.ConstructRoot:
                 constructRoot();
                 break;
+            case RecipeStage.RunBuild:
+                performBuild();
+                break;
             case RecipeStage.Failed:
+            case RecipeStage.Complete:
                 break build_loop;
             }
         }
@@ -87,9 +94,38 @@ private:
      */
     void constructRoot()
     {
-        scope (exit)
+        auto cmd = ["install", "-D", destDirectory,] ~ buildDeps;
+
+        auto pid = spawnProcess(mossBinary ~ cmd);
+        auto exitCode = pid.wait();
+        if (exitCode != 0)
         {
             stage = RecipeStage.Failed;
+        }
+        else
+        {
+            stage = RecipeStage.RunBuild;
+        }
+    }
+
+    /**
+     * Invoke mason via moss-container
+     */
+    void performBuild()
+    {
+        auto cmd = [
+            "--fakeroot", "-D", destDirectory, "--", "mason", "build",
+            "/stone.yml",
+        ];
+        auto pid = spawnProcess(containerBinary ~ cmd);
+        auto exitCode = pid.wait();
+        if (exitCode != 0)
+        {
+            stage = RecipeStage.Failed;
+        }
+        else
+        {
+            stage = RecipeStage.Complete;
         }
     }
 
@@ -100,5 +136,8 @@ private:
 
     RecipeStage stage = RecipeStage.None;
     string[] buildDeps;
+    string destDirectory = "./dest";
+    string mossBinary = "../moss/bin/moss";
+    string containerBinary = "../moss-container/moss-container";
     Spec* recipe = null;
 }
