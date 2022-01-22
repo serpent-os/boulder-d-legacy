@@ -30,6 +30,7 @@ enum RecipeStage
     None = 0,
     Resolve,
     FetchSources,
+    ConstructRoot,
     Failed,
 }
 
@@ -50,6 +51,7 @@ public final class Controller
     {
         auto fi = File(filename, "r");
         recipe = new Spec(fi);
+        recipe.parse();
         scope (exit)
         {
             fi.close();
@@ -67,9 +69,11 @@ public final class Controller
                 stage = RecipeStage.FetchSources;
                 break;
             case RecipeStage.FetchSources:
-                stage = RecipeStage.Failed;
+                stage = RecipeStage.ConstructRoot;
                 break;
-
+            case RecipeStage.ConstructRoot:
+                constructRoot();
+                break;
             case RecipeStage.Failed:
                 break build_loop;
             }
@@ -78,11 +82,23 @@ public final class Controller
 
 private:
 
+    /**
+     * Use moss to construct a new rootfs
+     */
+    void constructRoot()
+    {
+        scope (exit)
+        {
+            stage = RecipeStage.Failed;
+        }
+    }
+
     void resolveDependencies()
     {
-        writeln("Resolving dependencies");
+        buildDeps = recipe.rootBuild.buildDependencies;
     }
 
     RecipeStage stage = RecipeStage.None;
+    string[] buildDeps;
     Spec* recipe = null;
 }
