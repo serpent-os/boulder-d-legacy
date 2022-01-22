@@ -103,7 +103,11 @@ public struct MountPoint
             realTarget.mkdirRecurse();
         }
 
-        return mount(source.toStringz, realTarget.toStringz, fstype.toStringz, options, null) == 0;
+        auto result = mount(source.toStringz, realTarget.toStringz,
+                fstype.toStringz, options, null);
+
+        mounted = result == 0 ? true : false;
+        return mounted;
     }
 
     /**
@@ -116,6 +120,11 @@ public struct MountPoint
         import std.datetime : seconds;
 
         int attempts = 0;
+
+        if (!mounted)
+        {
+            return true;
+        }
 
         /* Try 3 times, 1 second apart each time, to get it unmounted */
         while (attempts < 3)
@@ -132,6 +141,7 @@ public struct MountPoint
 
             if (ret == 0)
             {
+                mounted = false;
                 return true;
             }
 
@@ -166,4 +176,5 @@ private:
 
     string realTarget = null;
     string _target = null;
+    bool mounted = false;
 }

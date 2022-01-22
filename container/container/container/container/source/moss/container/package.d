@@ -111,7 +111,7 @@ public final class Container
         }
 
         /* Setup mounts */
-        foreach (m; mountPoints)
+        foreach (ref m; mountPoints)
         {
             if (!m.up())
             {
@@ -142,7 +142,7 @@ private:
 
     void downMounts()
     {
-        foreach_reverse (m; mountPoints)
+        foreach_reverse (ref m; mountPoints)
         {
             if (!m.down())
             {

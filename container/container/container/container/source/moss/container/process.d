@@ -102,9 +102,17 @@ private:
             finalArgs = cast(string) context.fakerootBinary ~ finalArgs;
         }
 
-        auto pid = spawnProcess(finalArgs, stdin, stdout, stderr,
-                context.environment, config, "/");
-        return wait(pid);
+        try
+        {
+            auto pid = spawnProcess(finalArgs, stdin, stdout, stderr,
+                    context.environment, config, "/");
+            return wait(pid);
+        }
+        catch (ProcessException px)
+        {
+            stderr.writeln("Failed to run container: ", px.message);
+            return 1;
+        }
     }
 
     static const uid_t requiredUser = 65534;
