@@ -30,7 +30,7 @@ import core.sys.posix.sys.stat : umask;
 import std.conv : octal;
 import std.file : exists, isDir;
 import std.string : empty;
-import std.stdio : stderr;
+import std.stdio : stderr, stdout;
 import core.sys.posix.unistd : geteuid;
 
 import moss.core.cli;
@@ -61,9 +61,20 @@ public struct ContainerCLI
     @Option("n", "networking", "Enable network access")
     bool networking = false;
 
+    @Option("v", "version", "Show program version and exit")
+    bool showVersion = false;
+
     @CommandEntry() int run(ref string[] args)
     {
         umask(octal!22);
+
+        if (showVersion)
+        {
+            stdout.writefln("moss-container, version %s", "0.0.0");
+            stdout.writeln("\nCopyright © 2020-2022 Serpent OS Developers");
+            stdout.writeln("Available under the terms of the ZLib license");
+            return 0;
+        }
 
         if (rootfsDir.empty)
         {
