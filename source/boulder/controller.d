@@ -21,7 +21,17 @@
  */
 
 module boulder.controller;
-import std.stdio : writeln;
+import std.stdio : writeln, File;
+
+import moss.format.source;
+
+enum RecipeStage
+{
+    None = 0,
+    Resolve,
+    FetchSources,
+    Failed,
+}
 
 /**
  * This is the main entry point for all build commands which will be dispatched
@@ -31,7 +41,6 @@ public final class Controller
 {
     this()
     {
-
     }
 
     /**
@@ -39,6 +48,41 @@ public final class Controller
      */
     void build(in string filename)
     {
-        writeln("Derp Cannot build: ", filename);
+        auto fi = File(filename, "r");
+        recipe = new Spec(fi);
+        scope (exit)
+        {
+            fi.close();
+        }
+
+        build_loop: while (true)
+        {
+            final switch (stage)
+            {
+            case RecipeStage.None:
+                stage = RecipeStage.Resolve;
+                resolveDependencies();
+                break;
+            case RecipeStage.Resolve:
+                stage = RecipeStage.FetchSources;
+                break;
+            case RecipeStage.FetchSources:
+                stage = RecipeStage.Failed;
+                break;
+
+            case RecipeStage.Failed:
+                break build_loop;
+            }
+        }
     }
+
+private:
+
+    void resolveDependencies()
+    {
+        writeln("Resolving dependencies");
+    }
+
+    RecipeStage stage = RecipeStage.None;
+    Spec* recipe = null;
 }
