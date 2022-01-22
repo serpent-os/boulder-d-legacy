@@ -130,12 +130,14 @@ public final class Container
             return 1;
         }
 
+        auto ret = 0;
+        /* TODO: Handle exit code for more processes */
         foreach (p; processes)
         {
-            p.run();
+            ret = p.run();
         }
 
-        return 0;
+        return ret;
     }
 
 private:
