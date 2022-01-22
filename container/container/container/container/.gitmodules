@@ -1,0 +1,3 @@
+[submodule "external/moss-core"]
+	path = external/moss-core
+	url = https://gitlab.com/serpent-os/core/moss-core.git
