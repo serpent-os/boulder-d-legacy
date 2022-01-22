@@ -33,6 +33,7 @@ import std.path : baseName;
 int boulderMain(string[] args)
 {
     auto clip = cliProcessor!BoulderCLI(args);
+    clip.addCommand!BuildControlCommand;
     clip.addCommand!VersionCommand;
     clip.addCommand!HelpCommand;
     return clip.process(args);
