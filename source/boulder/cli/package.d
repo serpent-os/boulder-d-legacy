@@ -30,8 +30,7 @@ public import boulder.cli.version_command;
  * The BoulderCLI type holds some global configuration bits
  */
 @RootCommand @CommandName("boulder")
-@CommandHelp("boulder - the Serpent OS package build tool",
-        "Build software packages from source, with sanity retained")
+@CommandHelp("boulder - produce packages for moss", "A core component of the Serpent tooling")
 @CommandUsage("[--args] [command]")
 public struct BoulderCLI
 {
