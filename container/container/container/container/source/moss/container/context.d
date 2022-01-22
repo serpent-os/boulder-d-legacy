@@ -29,6 +29,7 @@ import moss.container.fakeroot : discoverFakeroot;
 
 import std.path : buildPath;
 import std.string : startsWith;
+import std.stdio : stderr;
 
 /**
  * Shared singleton instance
@@ -140,9 +141,17 @@ package:
     /**
      * Called by the Container to inspect the root
      */
-    void inspectRoot()
+    bool inspectRoot()
     {
         _fakerootBinary = discoverFakeroot();
+
+        if (_fakerootBinary == FakerootBinary.None && fakeroot)
+        {
+            stderr.writeln("Fakeroot requested but not available in rootfs, exiting..");
+            return false;
+        }
+
+        return true;
     }
 
 private:

@@ -109,25 +109,36 @@ public final class Container
             m.up();
         }
 
+        scope (exit)
+        {
+            downMounts();
+        }
+
         configureDevfs();
 
         /* Inspect now the environment is ready */
-        context.inspectRoot();
+        if (!context.inspectRoot())
+        {
+            return 1;
+        }
 
         foreach (p; processes)
         {
             p.run();
         }
 
-        foreach_reverse (m; mountPoints)
-        {
-            m.down();
-        }
-
         return 0;
     }
 
 private:
+
+    void downMounts()
+    {
+        foreach_reverse (m; mountPoints)
+        {
+            m.down();
+        }
+    }
 
     void detachNamespace()
     {
