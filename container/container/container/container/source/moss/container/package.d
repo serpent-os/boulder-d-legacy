@@ -101,17 +101,25 @@ public final class Container
      */
     int run() @system
     {
-        detachNamespace();
+        import std.algorithm : remove;
 
-        /* Setup mounts */
-        foreach (m; mountPoints)
-        {
-            m.up();
-        }
+        detachNamespace();
 
         scope (exit)
         {
             downMounts();
+        }
+
+        /* Setup mounts */
+        foreach (m; mountPoints)
+        {
+            if (!m.up())
+            {
+                stderr.writeln("Failed to activate mountpoint: ", m.target);
+                /* Remove the mountpoint now */
+                mountPoints = mountPoints.remove!((m2) => m.target == m2.target);
+                return 1;
+            }
         }
 
         configureDevfs();

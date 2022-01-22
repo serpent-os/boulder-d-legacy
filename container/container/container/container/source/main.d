@@ -26,6 +26,7 @@ import moss.container;
 import std.path : buildPath;
 
 import moss.container.context;
+import moss.container.mounts;
 import core.sys.posix.sys.stat : umask;
 import std.conv : octal;
 import std.file : exists, isDir;
@@ -51,6 +52,9 @@ public struct ContainerCLI
     /** Extend BaseCommand to give a root command for our CLI */
     BaseCommand pt;
     alias pt this;
+
+    @Option("b", "bind", "Bind a host location into the container")
+    string[string] bindMounts;
 
     @Option("d", "directory", "Directory to find a root filesystem")
     string rootfsDir = null;
@@ -111,6 +115,13 @@ public struct ContainerCLI
         auto c = new Container();
         c.networking = networking;
         c.add(Process(programName, programArgs));
+
+        /* Work the bindmounts in */
+        foreach (source, target; bindMounts)
+        {
+            auto mnt = MountPoint(source, null, MountOptions.Bind, target);
+            c.add(mnt);
+        }
         return c.run();
     }
 }
