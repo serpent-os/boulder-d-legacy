@@ -107,6 +107,25 @@ public struct MountPoint
                 fstype.toStringz, options, null);
 
         mounted = result == 0 ? true : false;
+
+        if (!mounted)
+        {
+            return false;
+        }
+
+        /* Remount for read-only */
+        if ((options & MountOptions.ReadOnly) == MountOptions.ReadOnly)
+        {
+            auto newOptions = MountOptions.Remount | MountOptions.ReadOnly;
+            if ((options & MountOptions.Bind) == MountOptions.Bind)
+            {
+                newOptions |= MountOptions.Bind;
+            }
+            result = mount(source.toStringz, realTarget.toStringz,
+                    fstype.toStringz, newOptions, null);
+        }
+
+        mounted = result == 0 ? true : false;
         return mounted;
     }
 
