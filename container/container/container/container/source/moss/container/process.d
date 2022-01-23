@@ -88,7 +88,7 @@ package:
             }
             while (!WIFEXITED(status) && !WIFSIGNALED(status));
 
-            return status;
+            return WEXITSTATUS(status);
         }
         assert(0);
     }
