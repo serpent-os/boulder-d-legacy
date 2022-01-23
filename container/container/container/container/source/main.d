@@ -84,7 +84,7 @@ public struct ContainerCLI
 
         if (showVersion)
         {
-            stdout.writefln("moss-container, version %s", "0.0.0");
+            stdout.writefln("moss-container, version %s", "0.1");
             stdout.writeln("\nCopyright © 2020-2022 Serpent OS Developers");
             stdout.writeln("Available under the terms of the ZLib license");
             return 0;
