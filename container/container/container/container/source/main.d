@@ -57,8 +57,11 @@ public struct ContainerCLI
     BaseCommand pt;
     alias pt this;
 
-    @Option("b", "bind", "Bind a host location into the container")
-    string[string] bindMounts;
+    @Option("bind-ro", null, "Bind a read-only host location into the container")
+    string[string] bindMountsRO;
+
+    @Option("bind-rw", null, "Bind a read-write host location into the container")
+    string[string] bindMountsRW;
 
     @Option("d", "directory", "Directory to find a root filesystem")
     string rootfsDir = null;
@@ -72,7 +75,7 @@ public struct ContainerCLI
     @Option("s", "set", "Set an environmental variable")
     string[string] environment;
 
-    @Option("v", "version", "Show program version and exit")
+    @Option("version", null, "Show program version and exit")
     bool showVersion = false;
 
     @CommandEntry() int run(ref string[] args)
@@ -134,11 +137,15 @@ public struct ContainerCLI
         auto c = new Container();
         c.add(Process(programName, programArgs));
 
-        /* Work the bindmounts in */
-        foreach (source, target; bindMounts)
+        /* Work the RO bindmounts in */
+        foreach (source, target; bindMountsRO)
         {
-            auto mnt = MountPoint(source, null, MountOptions.Bind | MountOptions.ReadOnly, target);
-            c.add(mnt);
+            c.add(MountPoint(source, null, MountOptions.Bind | MountOptions.ReadOnly, target));
+        }
+        /* Likewise for RW mounts */
+        foreach (source, target; bindMountsRW)
+        {
+            c.add(MountPoint(source, null, MountOptions.Bind, target));
         }
         return c.run();
     }
