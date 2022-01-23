@@ -27,12 +27,16 @@ import std.path : buildPath;
 
 import moss.container.context;
 import moss.container.mounts;
-import core.sys.posix.sys.stat : umask;
 import std.conv : octal;
 import std.file : exists, isDir;
+import std.exception : enforce;
 import std.string : empty;
 import std.stdio : stderr, stdout;
-import core.sys.posix.unistd : geteuid;
+import core.stdc.stdlib : _Exit;
+import core.sys.posix.unistd : geteuid, fork;
+import core.sys.posix.sys.wait;
+import core.sys.posix.sys.stat : umask;
+import core.sys.linux.sched;
 
 import moss.core.cli;
 
@@ -94,12 +98,20 @@ public struct ContainerCLI
             stderr.writefln("The directory specified does not exist: %s", rootfsDir);
         }
 
-        /* Setup rootfs - ensure we're running as root too */
-        context.rootfs = rootfsDir;
         if (geteuid() != 0)
         {
             stderr.writeln("You must run moss-container as root");
-            return 1;
+            //return 1;
+        }
+
+        /* Setup rootfs - ensure we're running as root too */
+        context.rootfs = rootfsDir;
+        context.fakeroot = fakeroot;
+        context.workDir = "/";
+        context.environment = environment;
+        if (!("PATH" in context.environment))
+        {
+            context.environment["PATH"] = "/usr/bin:/bin";
         }
 
         return enterNamespace(args);
@@ -119,16 +131,7 @@ public struct ContainerCLI
         string programName = commandLine[0];
         string[] programArgs = commandLine[0].length > 0 ? commandLine[1 .. $] : null;
 
-        context.fakeroot = fakeroot;
-        context.workDir = "/";
-        context.environment = environment;
-        if (!("PATH" in context.environment))
-        {
-            context.environment["PATH"] = "/usr/bin:/bin";
-        }
-
         auto c = new Container();
-        c.networking = networking;
         c.add(Process(programName, programArgs));
 
         /* Work the bindmounts in */
@@ -140,12 +143,43 @@ public struct ContainerCLI
         return c.run();
     }
 
+    void detachNamespace()
+    {
+        auto flags = CLONE_NEWNS | CLONE_NEWPID | CLONE_NEWIPC;
+        if (!networking)
+        {
+            flags |= CLONE_NEWNET | CLONE_NEWUTS;
+        }
+
+        auto ret = unshare(flags);
+        enforce(ret == 0, "Failed to detach namespace");
+    }
+
     /**
      * Enter the namespace. Will vfork() and execute runContainer()
      */
     int enterNamespace(ref string[] args)
     {
-        return runContainer(args);
+        auto childPid = fork();
+        int status = 0;
+        int ret = 0;
+
+        detachNamespace();
+
+        /* Run child process */
+        if (childPid == 0)
+        {
+            _Exit(runContainer(args));
+        }
+
+        do
+        {
+            ret = waitpid(childPid, &status, WUNTRACED | WCONTINUED);
+            enforce(ret >= 0);
+        }
+        while (!WIFEXITED(status) && !WIFSIGNALED(status));
+
+        return WEXITSTATUS(status);
     }
 }
 

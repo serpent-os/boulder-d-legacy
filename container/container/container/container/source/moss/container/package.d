@@ -26,7 +26,6 @@ import std.exception : enforce;
 import std.process;
 import std.file : exists, remove, symlink;
 import std.string : empty, toStringz, format;
-import core.sys.linux.sched;
 import std.path : buildPath;
 
 public import moss.container.device;
@@ -81,29 +80,11 @@ public final class Container
     }
 
     /**
-     * Returns whether networking is enabled
-     */
-    pure @property bool networking() @safe @nogc nothrow const
-    {
-        return _networking;
-    }
-
-    /**
-     * Enable or disable networking
-     */
-    pure @property void networking(bool b) @safe @nogc nothrow
-    {
-        _networking = b;
-    }
-
-    /**
      * Run the associated args (cmdline) with various settings in place
      */
     int run() @system
     {
         import std.algorithm : remove;
-
-        detachNamespace();
 
         scope (exit)
         {
@@ -153,18 +134,6 @@ private:
         }
     }
 
-    void detachNamespace()
-    {
-        auto flags = CLONE_NEWNS | CLONE_NEWPID;
-        if (!networking)
-        {
-            flags |= CLONE_NEWNET | CLONE_NEWUTS;
-        }
-
-        auto ret = unshare(flags);
-        enforce(ret == 0, "Failed to detach namespace");
-    }
-
     /**
      * Configure the /dev tree to be valid
      */
@@ -212,7 +181,6 @@ private:
         }
     }
 
-    bool _networking = true;
     Process[] processes;
     MountPoint[] mountPoints;
 }
