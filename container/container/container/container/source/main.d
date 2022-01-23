@@ -102,6 +102,14 @@ public struct ContainerCLI
             return 1;
         }
 
+        return enterNamespace(args);
+    }
+
+    /**
+     * Perform actual container run
+     */
+    int runContainer(ref string[] args)
+    {
         string[] commandLine = args;
         if (commandLine.length < 1)
         {
@@ -130,6 +138,14 @@ public struct ContainerCLI
             c.add(mnt);
         }
         return c.run();
+    }
+
+    /**
+     * Enter the namespace. Will vfork() and execute runContainer()
+     */
+    int enterNamespace(ref string[] args)
+    {
+        return runContainer(args);
     }
 }
 
