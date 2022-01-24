@@ -243,8 +243,14 @@ private:
                     &stripElfFiles, &includeElfFiles,
                     ], 100),
 
+            /* Handle pkgconfig files */
             AnalysisChain("pkgconfig", [
                     &acceptPkgconfigFiles, &handlePkgconfigFiles, &includeFile
+                    ], 50),
+
+            /* Handle cmake files */
+            AnalysisChain("cmake", [
+                    &acceptCmakeFiles, &handleCmakeFiles, &includeFile
                     ], 50),
 
             /* Default inclusion policy */
@@ -286,6 +292,37 @@ private:
     {
         auto providerName = fileInfo.path.baseName()[0 .. $ - 3];
         auto prov = Provider(providerName, ProviderType.PkgconfigName);
+        analyser.bucket(fileInfo).addProvider(prov);
+        return AnalysisReturn.NextHandler;
+    }
+
+    /**
+     * Does this look like a valid cmake provider?
+     */
+    static AnalysisReturn acceptCmakeFiles(scope Analyser analyser, ref FileInfo fileInfo)
+    {
+        auto filename = fileInfo.fullPath;
+        auto directory = filename.dirName;
+
+
+        if (!filename.endsWith("Config.cmake") && !filename.endsWith("-config.cmake"))
+        {
+            return AnalysisReturn.NextHandler;
+        }
+
+        return AnalysisReturn.NextFunction;
+    }
+
+    /**
+     * Do something with the cmake file, for now we only
+     * add providers.
+     */
+    static AnalysisReturn handleCmakeFiles(scope Analyser analyser, ref FileInfo fileInfo)
+    {
+        auto extension = fileInfo.fullPath.endsWith("-config.cmake") ? 13 : 12;
+
+        auto providerName = fileInfo.path.baseName()[0 .. $ - extension];
+        auto prov = Provider(providerName, ProviderType.CmakeName);
         analyser.bucket(fileInfo).addProvider(prov);
         return AnalysisReturn.NextHandler;
     }
