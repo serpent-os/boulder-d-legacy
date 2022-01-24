@@ -91,7 +91,7 @@ public struct ContainerCLI
         if (geteuid() != 0)
         {
             stderr.writeln("You must run moss-container as root");
-            //return 1;
+            return 1;
         }
 
         /* Setup rootfs - ensure we're running as root too */
