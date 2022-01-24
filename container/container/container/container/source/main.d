@@ -44,27 +44,44 @@ public struct ContainerCLI
     BaseCommand pt;
     alias pt this;
 
+    /** Read-only bind mounts */
     @Option("bind-ro", null, "Bind a read-only host location into the container")
     string[string] bindMountsRO;
 
+    /** Read-write bind mounts */
     @Option("bind-rw", null, "Bind a read-write host location into the container")
     string[string] bindMountsRW;
 
+    /** Root filesystem directory */
     @Option("d", "directory", "Directory to find a root filesystem")
     string rootfsDir = null;
 
+    /** Toggle fakeroot use */
     @Option("f", "fakeroot", "Enable fakeroot integration")
     bool fakeroot = false;
 
+    /** Toggle networking availability */
     @Option("n", "networking", "Enable network access")
     bool networking = false;
 
+    /** Environmental variables for sub processes */
     @Option("s", "set", "Set an environmental variable")
     string[string] environment;
 
+    /** Toggle displaying program version */
     @Option("version", null, "Show program version and exit")
     bool showVersion = false;
 
+    /**
+     * Begin container dispatch cycle
+     *
+     * Prior to container run the namespace will be unshared already
+     * and we will be executing in a namespaced fork.
+     *
+     * Params:
+     *      args = Command line arguments for the process
+     * Returns: Exit code of the primary containerised process
+     */
     @CommandEntry() int run(ref string[] args)
     {
         umask(octal!22);
@@ -108,7 +125,13 @@ public struct ContainerCLI
     }
 
     /**
-     * Perform actual container run
+     * Bring up the child container
+     *
+     * Pass off to the [Container][Container] class for bringup.
+     *
+     * Params:
+     *      args = Command line arguments for the process
+     * Returns: Exit code of the primary containerised process
      */
     int runContainer(ref string[] args)
     {
@@ -137,6 +160,14 @@ public struct ContainerCLI
         return c.run();
     }
 
+    /**
+     * Detach from current namespace
+     *
+     * Detach the main process from the namespace and create a new one for
+     * ourselves.
+     *
+     * Throws: Exception on `unshare()` failure
+     */
     void detachNamespace()
     {
         auto flags = CLONE_NEWNS | CLONE_NEWPID | CLONE_NEWIPC;
@@ -150,13 +181,18 @@ public struct ContainerCLI
     }
 
     /**
-     * Enter the namespace. Will vfork() and execute runContainer()
+     * Enter the namespace. Will fork() and execute runContainer()
+     *
+     * Params:
+     *      args = Command line arguments for the process
+     * Throws: Exception on `waitpid`/`fork` failure
+     * Returns: Exit code of the primary containerised process
      */
     int enterNamespace(ref string[] args)
     {
         auto childPid = fork();
-        int status = 0;
-        int ret = 0;
+        int status;
+        int ret;
 
         detachNamespace();
 
