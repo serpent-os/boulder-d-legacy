@@ -11,10 +11,9 @@
  */
 module moss.container.mounts;
 
-import std.string : toStringz;
-import std.file : exists, mkdirRecurse;
-
 import moss.container.context;
+import std.file : exists, mkdirRecurse;
+import std.string : toStringz;
 
 /**
  * Set mount specific options

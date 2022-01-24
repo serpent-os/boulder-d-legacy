@@ -11,23 +11,21 @@
  */
 module main;
 
+import core.stdc.stdlib : _Exit;
+import core.sys.linux.sched;
+import core.sys.posix.sys.stat : umask;
+import core.sys.posix.sys.wait;
+import core.sys.posix.unistd : fork, geteuid;
 import moss.container;
-import std.path : buildPath;
-
 import moss.container.context;
 import moss.container.mounts;
-import std.conv : octal;
-import std.file : exists, isDir;
-import std.exception : enforce;
-import std.string : empty;
-import std.stdio : stderr, stdout;
-import core.stdc.stdlib : _Exit;
-import core.sys.posix.unistd : geteuid, fork;
-import core.sys.posix.sys.wait;
-import core.sys.posix.sys.stat : umask;
-import core.sys.linux.sched;
-
 import moss.core.cli;
+import std.conv : octal;
+import std.exception : enforce;
+import std.file : exists, isDir;
+import std.path : buildPath;
+import std.stdio : stderr, stdout;
+import std.string : empty;
 
 /**
  * The BoulderCLI type holds some global configuration bits

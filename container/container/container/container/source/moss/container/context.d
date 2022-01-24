@@ -11,14 +11,12 @@
  */
 module moss.container.context;
 
-import std.concurrency : initOnce;
-
 public import moss.container.fakeroot : FakerootBinary;
 import moss.container.fakeroot : discoverFakeroot;
-
+import std.concurrency : initOnce;
 import std.path : buildPath;
-import std.string : startsWith;
 import std.stdio : stderr;
+import std.string : startsWith;
 
 /**
  * Shared singleton instance

@@ -11,15 +11,14 @@
  */
 module moss.container.device;
 
-import core.sys.posix.sys.stat;
-import std.stdint : uint32_t;
-import moss.container.context;
-import std.string : toStringz, format;
-import std.file : exists, mkdir, symlink;
-import std.path : buildPath, baseName;
-
-public import std.conv : octal;
 public import core.sys.posix.sys.stat : S_IFCHR;
+public import std.conv : octal;
+import core.sys.posix.sys.stat;
+import moss.container.context;
+import std.file : exists, mkdir, symlink;
+import std.path : baseName, buildPath;
+import std.stdint : uint32_t;
+import std.string : format, toStringz;
 
 alias DeviceIdentifer = dev_t;
 

@@ -10,18 +10,17 @@
  * License: ZLib
  */
 module moss.container;
-import std.stdio : stderr, stdin, stdout;
-import std.exception : enforce;
-import std.process;
-import std.file : exists, remove, symlink;
-import std.string : empty, toStringz, format;
-import std.path : buildPath;
 
 public import moss.container.device;
 public import moss.container.mounts;
 public import moss.container.process;
-
 import moss.container.context;
+import std.exception : enforce;
+import std.file : exists, remove, symlink;
+import std.path : buildPath;
+import std.process;
+import std.stdio : stderr, stdin, stdout;
+import std.string : empty, format, toStringz;
 
 /**
  * A Container is used for the purpose of isolating newly launched processes.
