@@ -30,7 +30,7 @@ import mason.build.emitter;
 import mason.build.util;
 import moss.core.platform;
 import moss.deps.analysis;
-import std.algorithm : each, filter;
+import std.algorithm : each, filter, canFind;
 import moss.deps.analysis.elves;
 import std.path : dirName, baseName;
 import std.stdio : stderr;
@@ -268,10 +268,10 @@ private:
      */
     static AnalysisReturn acceptPkgconfigFiles(scope Analyser analyser, ref FileInfo fileInfo)
     {
-        auto filename = fileInfo.fullPath;
+        auto filename = fileInfo.path;
         auto directory = filename.dirName;
 
-        if (directory == "pkgconfig")
+        if (!directory.canFind("/pkgconfig"))
         {
             return AnalysisReturn.NextHandler;
         }
@@ -301,9 +301,13 @@ private:
      */
     static AnalysisReturn acceptCmakeFiles(scope Analyser analyser, ref FileInfo fileInfo)
     {
-        auto filename = fileInfo.fullPath;
+        auto filename = fileInfo.path;
         auto directory = filename.dirName;
 
+        if (!directory.canFind("/cmake"))
+        {
+            return AnalysisReturn.NextHandler;
+        }
 
         if (!filename.endsWith("Config.cmake") && !filename.endsWith("-config.cmake"))
         {
