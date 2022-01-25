@@ -87,8 +87,19 @@ private struct Container
 
         root = SharedRootBase.buildPath("root", subpath);
         build = SharedRootBase.buildPath("build", subpath);
+        output = SharedRootBase.buildPath("output", subpath);
 
-        [root, build, ccache].each!((d) => d.mkdirRecurse());
+        import core.sys.posix.sys.stat;
+        import std.conv : octal;
+        import std.string : toStringz;
+        import std.exception : enforce;
+
+        [root, build, ccache, output].each!((d) => d.mkdirRecurse());
+
+        auto ret = chmod(output.toStringz,
+                S_IRUSR | S_IWUSR | S_IWOTH | S_IROTH | S_IWGRP | S_IRGRP
+                | S_IXUSR | S_IXOTH | S_IXGRP);
+        enforce(ret == 0);
     }
 }
 
@@ -113,7 +124,6 @@ public final class Controller
         recipe.parse();
         container = Container(recipe);
         container.input = filename.dirName;
-        container.output = ".".absolutePath;
         scope (exit)
         {
             fi.close();
@@ -187,7 +197,7 @@ private:
         ];
 
         /* Merge mason command */
-        containerCmd ~= ["--", "ls", "-la", specFile];
+        // containerCmd ~= ["--", "ls", "-la", specFile];
 
         auto pid = spawnProcess(containerBinary ~ containerCmd);
         auto exitCode = pid.wait();
