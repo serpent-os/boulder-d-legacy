@@ -21,10 +21,15 @@
  */
 
 module boulder.controller;
-import std.stdio : writeln, File;
 
+import moss.core.platform : platform;
 import moss.format.source;
 import std.process;
+import std.path : buildPath;
+import std.stdio : File, writeln;
+import std.string : format;
+
+immutable static private auto SharedRootBase = "/var/cache/boulder";
 
 enum RecipeStage
 {
@@ -35,6 +40,40 @@ enum RecipeStage
     RunBuild,
     Failed,
     Complete,
+}
+
+/**
+ * Encapsulate some basic directory properties
+ */
+private struct Container
+{
+    /** Installation root for the container */
+    string root;
+
+    /** Build directory (where we .. build.) */
+    string build;
+
+    /** Ccache directory (global shared) */
+    string ccache;
+
+    /** Output directory (bind-rw) */
+    string output;
+
+    /** Recipe directory (bind-ro) */
+    string input;
+
+    this(scope Spec* spec)
+    {
+        auto p = platform();
+
+        /* Reusable path component */
+        auto subpath = format!"%s-%s-%d-%s"(spec.source.name,
+                spec.source.versionIdentifier, spec.source.release, p.name);
+
+        root = SharedRootBase.buildPath("root", subpath);
+        build = SharedRootBase.buildPath("build", subpath);
+        ccache = SharedRootBase.buildPath("ccache");
+    }
 }
 
 /**
@@ -55,6 +94,7 @@ public final class Controller
         auto fi = File(filename, "r");
         recipe = new Spec(fi);
         recipe.parse();
+        container = Container(recipe);
         scope (exit)
         {
             fi.close();
@@ -75,7 +115,8 @@ public final class Controller
                 stage = RecipeStage.ConstructRoot;
                 break;
             case RecipeStage.ConstructRoot:
-                constructRoot();
+                //constructRoot();
+                stage = RecipeStage.RunBuild;
                 break;
             case RecipeStage.RunBuild:
                 performBuild();
@@ -94,7 +135,7 @@ private:
      */
     void constructRoot()
     {
-        auto cmd = ["install", "-D", destDirectory,] ~ buildDeps;
+        auto cmd = ["install", "-D", container.root] ~ buildDeps;
 
         auto pid = spawnProcess(mossBinary ~ cmd);
         auto exitCode = pid.wait();
@@ -113,10 +154,7 @@ private:
      */
     void performBuild()
     {
-        auto cmd = [
-            "--fakeroot", "-D", destDirectory, "--", "mason", "build",
-            "/stone.yml",
-        ];
+        auto cmd = ["--fakeroot", "-d", container.root, "--", "ls", "-la"];
         auto pid = spawnProcess(containerBinary ~ cmd);
         auto exitCode = pid.wait();
         if (exitCode != 0)
@@ -136,8 +174,11 @@ private:
 
     RecipeStage stage = RecipeStage.None;
     string[] buildDeps;
-    string destDirectory = "./dest";
+
+    /* TEMP */
     string mossBinary = "../moss/bin/moss";
     string containerBinary = "../moss-container/moss-container";
+
     Spec* recipe = null;
+    Container container;
 }
