@@ -24,8 +24,10 @@ module boulder.controller;
 
 import moss.core.platform : platform;
 import moss.format.source;
+import std.algorithm : each;
+import std.file : mkdirRecurse;
+import std.path : buildPath, dirName, baseName, absolutePath;
 import std.process;
-import std.path : buildPath;
 import std.stdio : File, writeln;
 import std.string : format;
 
@@ -53,14 +55,27 @@ private struct Container
     /** Build directory (where we .. build.) */
     string build;
 
+    /** Target build tree */
+    static immutable(string) targetBuild = "/mason/build";
+
     /** Ccache directory (global shared) */
-    string ccache;
+    static immutable(string) ccache = SharedRootBase.buildPath("ccache");
+
+    /** Recipe directory (bind-ro) */
+    string input;
+
+    /**
+     * The input directory in the container
+     */
+    static immutable(string) targetInput = "/mason/input";
 
     /** Output directory (bind-rw) */
     string output;
 
-    /** Recipe directory (bind-ro) */
-    string input;
+    /**
+     * The output directory in the container
+     */
+    static immutable(string) targetOutput = "/mason/output";
 
     this(scope Spec* spec)
     {
@@ -72,7 +87,8 @@ private struct Container
 
         root = SharedRootBase.buildPath("root", subpath);
         build = SharedRootBase.buildPath("build", subpath);
-        ccache = SharedRootBase.buildPath("ccache");
+
+        [root, build, ccache].each!((d) => d.mkdirRecurse());
     }
 }
 
@@ -91,10 +107,13 @@ public final class Controller
      */
     void build(in string filename)
     {
+        buildable = filename.baseName;
         auto fi = File(filename, "r");
         recipe = new Spec(fi);
         recipe.parse();
         container = Container(recipe);
+        container.input = filename.dirName;
+        container.output = ".".absolutePath;
         scope (exit)
         {
             fi.close();
@@ -154,8 +173,23 @@ private:
      */
     void performBuild()
     {
-        auto cmd = ["--fakeroot", "-d", container.root, "--", "ls", "-la"];
-        auto pid = spawnProcess(containerBinary ~ cmd);
+        /* Basic moss-container configuration */
+        auto containerCmd = ["--fakeroot", "-d", container.root];
+
+        auto specFile = container.targetInput.buildPath(buildable);
+
+        /* Essential bind paths */
+        containerCmd ~= [
+            "--bind-ro", format!"%s=%s"(container.input, container.targetInput),
+            "--bind-rw", format!"%s=%s"(container.output, container.targetOutput),
+            /* TODO: Support tmpfs for build tree */
+            "--bind-rw", format!"%s=%s"(container.build, container.targetBuild),
+        ];
+
+        /* Merge mason command */
+        containerCmd ~= ["--", "ls", "-la", specFile];
+
+        auto pid = spawnProcess(containerBinary ~ containerCmd);
         auto exitCode = pid.wait();
         if (exitCode != 0)
         {
@@ -180,5 +214,7 @@ private:
     string containerBinary = "../moss-container/moss-container";
 
     Spec* recipe = null;
+    /* What we intend to build in the container */
+    string buildable = null;
     Container container;
 }
