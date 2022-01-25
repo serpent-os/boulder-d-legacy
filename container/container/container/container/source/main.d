@@ -190,11 +190,11 @@ public struct ContainerCLI
      */
     int enterNamespace(ref string[] args)
     {
+        detachNamespace();
+
         auto childPid = fork();
         int status;
         int ret;
-
-        detachNamespace();
 
         /* Run child process */
         if (childPid == 0)
