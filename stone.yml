@@ -5,15 +5,15 @@ summary     : GNU Text Editor
 license     : GPL-3.0-or-later
 homepage    : https://www.nano-editor.org/
 description : |
-  The GNU Text Editor
+    The GNU Text Editor
 upstreams   :
-- https://www.nano-editor.org/dist/v5/nano-5.5.tar.xz: 390b81bf9b41ff736db997aede4d1f60b4453fbd75a519a4ddb645f6fd687e4a
+    - https://www.nano-editor.org/dist/v5/nano-5.5.tar.xz: 390b81bf9b41ff736db997aede4d1f60b4453fbd75a519a4ddb645f6fd687e4a
 builddeps   :
-- pkgconfig(ncurses)
+    - pkgconfig(ncurses)
 setup       : |
-  %configure
+    %configure
 build       : |
-  %make
+    %make
 install     : |
-  %make_install
+    %make_install
 toolchain   : gnu
