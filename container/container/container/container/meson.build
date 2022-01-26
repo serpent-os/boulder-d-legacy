@@ -31,11 +31,12 @@ container_deps = [
 	link_mosscore,
 ]
 
-# Compile as a static library 
+# Compile as a static library
 container = executable(
 	'moss-container',
 	container_sources,
 	dependencies: container_deps,
 	install: true,
 	include_directories: container_includes,
+	link_args: '--link-defaultlib-shared=false',
 )
