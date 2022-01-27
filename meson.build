@@ -70,5 +70,5 @@ boulder = executable(
 	install: true,
 	dependencies: boulder_deps,
 	include_directories: boulder_includes,
-	link_args: '--link-defaultlib-shared=false',
+	link_args: ['--link-defaultlib-shared=false', 'subprojects/moss-core/libmoss-core.a'],
 )
