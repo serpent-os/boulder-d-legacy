@@ -24,11 +24,11 @@ container_includes = [
 ]
 
 # Right now we'll only build against a local moss-core checkout
-mosscore = subproject('moss-core')
+moss_core = subproject('moss-core')
+link_libmoss_core = moss_core.get_variable('link_libmoss_core')
 
-link_mosscore = mosscore.get_variable('link_libcore')
 container_deps = [
-	link_mosscore,
+	link_libmoss_core,
 ]
 
 # Compile as a static library
