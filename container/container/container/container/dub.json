@@ -1,0 +1,17 @@
+{
+       "authors": [
+               "Serpent OS Developers"
+       ],
+       "copyright": "Copyright © 2020-2022 Serpent OS Developers",
+       "description": "Basic container functionality",
+       "license": "Zlib",
+       "version": "0.0.0",
+       "name": "moss-container",
+       "targetType": "executable",
+        "dependencies": {
+                "moss-core": {
+                        "path": "../moss-core"
+                }
+        }
+
+}
