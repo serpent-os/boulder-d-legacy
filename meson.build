@@ -9,6 +9,17 @@ project(
 
 pkgconf = import('pkgconfig')
 
+# Pre-configure moss-vendor
+subproject('moss-vendor',
+    default_options: [
+        'with_elf=true',
+        'with_rocksdb=true',
+        'with_xxhash=true',
+        'with_yaml=true',
+        'with_zstd=true',
+    ],
+)
+
 # Grab moss-config
 moss_config = subproject('moss-config')
 link_libmoss_config = moss_config.get_variable('link_libmoss_config')
