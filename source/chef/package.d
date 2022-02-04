@@ -14,6 +14,7 @@ module chef;
 
 import moss.fetcher;
 import moss.deps.analysis;
+public import moss.format.source.upstream_definition;
 
 /**
  * Main class for analysis of incoming sources to generate an output recipe
@@ -24,6 +25,11 @@ public final class Chef
      * Construct a new Chef
      */
     this()
+    {
+        fetcher = new FetchController();
+    }
+
+    void addSource(string uri, UpstreamType type = UpstreamType.Plain)
     {
 
     }
@@ -50,4 +56,5 @@ private:
     string _recipeVersion;
     static const uint64_t recipeRelease = 0;
     static const(string) recipeFile = "stone.yml";
+    FetchController fetcher;
 }

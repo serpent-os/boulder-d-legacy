@@ -26,6 +26,7 @@ public import moss.core.cli;
 import boulder.cli : BoulderCLI;
 import chef;
 import moss.core;
+import std.algorithm : each;
 import std.stdio;
 
 /**
@@ -47,6 +48,12 @@ public struct NewCommand
     @CommandEntry() int run(ref string[] argv)
     {
         auto chef = new Chef();
+
+        argv.each!((a) => chef.addSource(a));
+        vcsSources.each!((a) => chef.addSource(a, UpstreamType.Git));
         return ExitStatus.Failure;
     }
+
+    @Option("g", "git", "Git sources to utilise")
+    string[] vcsSources;
 }
