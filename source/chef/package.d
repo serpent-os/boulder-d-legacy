@@ -46,7 +46,13 @@ public final class Chef
         import std.stdio : writeln;
 
         writeln("ret: ", code);
-        writeln("Fetched: ", f.destinationPath);
+        if (code == 200)
+        {
+            processPaths ~= f.destinationPath;
+            writeln("Fetched: ", f.destinationPath);
+            return;
+        }
+        onFail(f, "Server returned non-200 status code");
     }
 
     /**
@@ -54,10 +60,13 @@ public final class Chef
      */
     void run()
     {
+        import std.stdio : writeln;
+
         while (!controller.empty)
         {
             controller.fetch();
         }
+        writeln("To process: ", processPaths);
     }
     /**
      * Add some kind of input URI into chef for ... analysing
@@ -93,4 +102,5 @@ private:
     static const(string) recipeFile = "stone.yml";
     FetchController controller;
     Analyser analyser;
+    string[] processPaths;
 }
