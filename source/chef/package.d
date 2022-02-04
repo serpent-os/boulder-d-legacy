@@ -16,6 +16,8 @@ import moss.fetcher;
 import moss.deps.analysis;
 import std.exception : enforce;
 import std.path : baseName;
+import std.range : empty;
+
 public import moss.format.source.upstream_definition;
 
 /**
@@ -66,7 +68,14 @@ public final class Chef
         {
             controller.fetch();
         }
-        writeln("To process: ", processPaths);
+
+        if (processPaths.empty)
+        {
+            writeln("Nothing for us to process, exiting");
+            return;
+        }
+
+        writeln("Processing: ", processPaths);
     }
     /**
      * Add some kind of input URI into chef for ... analysing
