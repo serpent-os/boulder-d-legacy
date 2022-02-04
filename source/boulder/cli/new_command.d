@@ -23,9 +23,10 @@
 module boulder.cli.new_command;
 
 public import moss.core.cli;
+import boulder.cli : BoulderCLI;
+import chef;
 import moss.core;
 import std.stdio;
-import boulder.cli : BoulderCLI;
 
 /**
  * The BuildCommand is responsible for handling requests to build stone.yml
@@ -45,6 +46,7 @@ public struct NewCommand
      */
     @CommandEntry() int run(ref string[] argv)
     {
+        auto chef = new Chef();
         return ExitStatus.Failure;
     }
 }
