@@ -15,33 +15,36 @@
  *    claim that you wrote the original software. If you use this software
  *    in a product, an acknowledgment in the product documentation would be
  *    appreciated but is not required.
- * 2. Altered source versions must be plainly marked as such, and must not be
+ * 2. Altered source builds must be plainly marked as such, and must not be
  *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-module boulder.cli;
+module boulder.cli.new_command;
 
 public import moss.core.cli;
-public import boulder.cli.build_command;
-public import boulder.cli.new_command;
-public import boulder.cli.version_command;
+import moss.core;
+import std.stdio;
+import boulder.cli : BoulderCLI;
 
 /**
- * The BoulderCLI type holds some global configuration bits
+ * The BuildCommand is responsible for handling requests to build stone.yml
+ * formatted files into useful binary packages.
  */
-@RootCommand @CommandName("boulder")
-@CommandHelp("boulder - produce packages for moss", "A core component of the Serpent tooling")
-@CommandUsage("[--args] [command]")
-public struct BoulderCLI
+@CommandName("new")
+@CommandHelp("Create skeletal recipe")
+@CommandUsage("[tarball]")
+public struct NewCommand
 {
-    /** Extend BaseCommand to give a root command for our CLI */
+    /** Extend BaseCommand with NewCommand specific functionality */
     BaseCommand pt;
     alias pt this;
 
-    /** Select an alternative output location than the current working directory */
-    @Option("o", "output", "Directory to store build results") string outputDirectory = ".";
-
-    /** When set to true, we enable debug output */
-    @Option("d", "debug", "Enable debugging output") bool debugMode = false;
+    /**
+     * Manipulation of recipes
+     */
+    @CommandEntry() int run(ref string[] argv)
+    {
+        return ExitStatus.Failure;
+    }
 }

@@ -42,6 +42,7 @@ link_libmoss_format = moss_format.get_variable('link_libmoss_format')
 
 boulder_sources = [
     'source/boulder/cli/package.d',
+    'source/boulder/cli/new_command.d',
     'source/boulder/cli/version_command.d',
     'source/boulder/cli/build_command.d',
     'source/boulder/controller.d',
