@@ -14,6 +14,8 @@ module chef;
 
 import moss.fetcher;
 import moss.deps.analysis;
+import std.exception : enforce;
+import std.path : baseName;
 public import moss.format.source.upstream_definition;
 
 /**
@@ -26,12 +28,45 @@ public final class Chef
      */
     this()
     {
-        fetcher = new FetchController();
+        controller = new FetchController();
+        analyser = new Analyser();
+        controller.onFail.connect(&onFail);
+        controller.onComplete.connect(&onComplete);
     }
 
+    void onFail(in Fetchable f, in string msg)
+    {
+        import std.stdio : stderr;
+
+        stderr.writeln(msg);
+    }
+
+    void onComplete(in Fetchable f, long code)
+    {
+        import std.stdio : writeln;
+
+        writeln("ret: ", code);
+        writeln("Fetched: ", f.destinationPath);
+    }
+
+    /**
+     * Run Chef lifecycle to completion
+     */
+    void run()
+    {
+        while (!controller.empty)
+        {
+            controller.fetch();
+        }
+    }
+    /**
+     * Add some kind of input URI into chef for ... analysing
+     */
     void addSource(string uri, UpstreamType type = UpstreamType.Plain)
     {
-
+        enforce(type == UpstreamType.Plain, "Chef only supports plain sources");
+        auto f = Fetchable(uri, "/tmp/boulderChefURI-XXXXXX", 0, FetchType.TemporaryFile, null);
+        controller.enqueue(f);
     }
 
     /**
@@ -56,5 +91,6 @@ private:
     string _recipeVersion;
     static const uint64_t recipeRelease = 0;
     static const(string) recipeFile = "stone.yml";
-    FetchController fetcher;
+    FetchController controller;
+    Analyser analyser;
 }

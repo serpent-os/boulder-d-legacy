@@ -51,6 +51,7 @@ public struct NewCommand
 
         argv.each!((a) => chef.addSource(a));
         vcsSources.each!((a) => chef.addSource(a, UpstreamType.Git));
+        chef.run();
         return ExitStatus.Failure;
     }
 
