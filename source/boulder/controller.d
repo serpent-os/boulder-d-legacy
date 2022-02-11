@@ -22,12 +22,13 @@
 
 module boulder.controller;
 
-import moss.format.source;
-import std.exception : enforce;
-import std.file : exists;
-import std.stdio : File, writeln;
 import boulder.buildjob;
-import std.path : dirName, buildNormalizedPath;
+import moss.format.source;
+import std.algorithm : filter;
+import std.exception : enforce;
+import std.file : exists, rmdirRecurse;
+import std.path : buildNormalizedPath, dirName;
+import std.stdio : File, stderr, writeln, writefln;
 
 alias RecipeStageFunction = RecipeStageReturn delegate();
 
@@ -97,7 +98,7 @@ public final class Controller
         recipe = new Spec(fi);
         recipe.parse();
 
-        auto job = new BuildJob(recipe, filename);
+        job = new BuildJob(recipe, filename);
         writeln(job.guestPaths);
         writeln(job.hostPaths);
         scope (exit)
@@ -120,7 +121,17 @@ public final class Controller
             enforce(stage.functor !is null);
 
             writeln("[boulder] ", stage.name);
-            auto result = stage.functor();
+            RecipeStageReturn result = RecipeStageReturn.Fail;
+            try
+            {
+                result = stage.functor();
+            }
+            catch (Exception e)
+            {
+                stderr.writefln!"Exception: %s"(e.message);
+                result = RecipeStageReturn.Fail;
+            }
+
             final switch (result)
             {
             case RecipeStageReturn.Fail:
@@ -143,7 +154,19 @@ public final class Controller
      */
     RecipeStageReturn cleanRoot()
     {
-        return RecipeStageReturn.Fail;
+        auto paths = [job.hostPaths.artefacts, job.hostPaths.buildRoot,];
+        auto existing = paths.filter!((p) => p.exists);
+        if (existing.empty)
+        {
+            return RecipeStageReturn.Skip;
+        }
+
+        foreach (p; existing)
+        {
+            writefln!"[boulder] Removing stale build directory: %s"(p);
+            rmdirRecurse(p);
+        }
+        return RecipeStageReturn.Succeed;
     }
 
     /**
@@ -207,4 +230,5 @@ public final class Controller
 
     Spec* recipe = null;
     RecipeStage[] stages;
+    BuildJob job;
 }
