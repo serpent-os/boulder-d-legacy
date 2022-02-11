@@ -27,15 +27,19 @@ import std.stdio : File, writeln;
 
 import boulder.buildjob;
 
-enum RecipeStage
+alias RecipeStageFunction = RecipeStageReturn delegate();
+
+enum RecipeStageReturn
 {
-    None = 0,
-    Resolve,
-    FetchSources,
-    ConstructRoot,
-    RunBuild,
-    Failed,
-    Complete,
+    Skip,
+    Succeed,
+    Fail,
+}
+
+struct RecipeStage
+{
+    string name;
+    RecipeStageFunction functor;
 }
 
 /**
@@ -46,6 +50,16 @@ public final class Controller
 {
     this()
     {
+        /* Construct recipe stages here */
+        stages = [
+            RecipeStage("clean-root", () { return RecipeStageReturn.Fail; }),
+            RecipeStage("fetch-sources", () { return RecipeStageReturn.Fail; }),
+            RecipeStage("prepare-root", () { return RecipeStageReturn.Fail; }),
+            RecipeStage("stage-sources", () { return RecipeStageReturn.Fail; }),
+            RecipeStage("install-rootfs", () { return RecipeStageReturn.Fail; }),
+            RecipeStage("run-build", () { return RecipeStageReturn.Fail; }),
+            RecipeStage("collect-artefacts", () { return RecipeStageReturn.Fail; }),
+        ];
     }
 
     /**
@@ -64,7 +78,9 @@ public final class Controller
         {
             fi.close();
         }
+
     }
 
     Spec* recipe = null;
+    RecipeStage[] stages;
 }
