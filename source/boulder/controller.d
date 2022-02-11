@@ -22,18 +22,10 @@
 
 module boulder.controller;
 
-import moss.core.platform : platform;
 import moss.format.source;
-import std.algorithm : each;
-import std.file : mkdirRecurse;
-import std.path : buildPath, dirName, baseName, absolutePath;
-import std.process;
 import std.stdio : File, writeln;
-import std.string : format;
 
 import boulder.buildjob;
-
-immutable static private auto SharedRootBase = "/var/cache/boulder";
 
 enum RecipeStage
 {
@@ -44,65 +36,6 @@ enum RecipeStage
     RunBuild,
     Failed,
     Complete,
-}
-
-/**
- * Encapsulate some basic directory properties
- */
-private struct Container
-{
-    /** Installation root for the container */
-    string root;
-
-    /** Build directory (where we .. build.) */
-    string build;
-
-    /** Target build tree */
-    static immutable(string) targetBuild = "/mason/build";
-
-    /** Ccache directory (global shared) */
-    static immutable(string) ccache = SharedRootBase.buildPath("ccache");
-
-    /** Recipe directory (bind-ro) */
-    string input;
-
-    /**
-     * The input directory in the container
-     */
-    static immutable(string) targetInput = "/mason/input";
-
-    /** Output directory (bind-rw) */
-    string output;
-
-    /**
-     * The output directory in the container
-     */
-    static immutable(string) targetOutput = "/mason/output";
-
-    this(scope Spec* spec)
-    {
-        auto p = platform();
-
-        /* Reusable path component */
-        auto subpath = format!"%s-%s-%d-%s"(spec.source.name,
-                spec.source.versionIdentifier, spec.source.release, p.name);
-
-        root = SharedRootBase.buildPath("root", subpath);
-        build = SharedRootBase.buildPath("build", subpath);
-        output = SharedRootBase.buildPath("output", subpath);
-
-        import core.sys.posix.sys.stat;
-        import std.conv : octal;
-        import std.string : toStringz;
-        import std.exception : enforce;
-
-        [root, build, ccache, output].each!((d) => d.mkdirRecurse());
-
-        auto ret = chmod(output.toStringz,
-                S_IRUSR | S_IWUSR | S_IWOTH | S_IROTH | S_IWGRP | S_IRGRP
-                | S_IXUSR | S_IXOTH | S_IXGRP);
-        enforce(ret == 0);
-    }
 }
 
 /**
