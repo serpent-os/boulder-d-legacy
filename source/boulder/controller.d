@@ -24,9 +24,10 @@ module boulder.controller;
 
 import moss.format.source;
 import std.exception : enforce;
+import std.file : exists;
 import std.stdio : File, writeln;
-
 import boulder.buildjob;
+import std.path : dirName, buildNormalizedPath;
 
 alias RecipeStageFunction = RecipeStageReturn delegate();
 
@@ -62,6 +63,29 @@ public final class Controller
             RecipeStage("run-build", &runBuild),
             RecipeStage("collect-artefacts", &collectArtefacts),
         ];
+
+        /* Figure out where our utils are */
+        debug
+        {
+            import std.file : thisExePath;
+
+            pragma(msg,
+                    "\n\n!!!!!!!!!!\n\nUSING UNSAFE DEBUG BUILD PATHS. DO NOT USE IN PRODUCTION\n\n");
+            mossBinary = thisExePath.dirName.buildNormalizedPath("../../moss/build/moss");
+            containerBinary = thisExePath.dirName.buildNormalizedPath(
+                    "../../moss-container/build/moss-container");
+        }
+        else
+        {
+            mossBinary = "/usr/bin/moss";
+            containerBinary = "/usr/bin/moss-container";
+        }
+
+        enforce(mossBinary.exists, "not found: " ~ mossBinary);
+        enforce(containerBinary.exists, "not found: " ~ containerBinary);
+
+        writeln("moss: ", mossBinary);
+        writeln("moss-container: ", containerBinary);
     }
 
     /**
@@ -177,6 +201,9 @@ public final class Controller
     {
         return RecipeStageReturn.Fail;
     }
+
+    string mossBinary;
+    string containerBinary;
 
     Spec* recipe = null;
     RecipeStage[] stages;
