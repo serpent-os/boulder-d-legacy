@@ -31,6 +31,8 @@ import std.process;
 import std.stdio : File, writeln;
 import std.string : format;
 
+import boulder.buildjob;
+
 immutable static private auto SharedRootBase = "/var/cache/boulder";
 
 enum RecipeStage
@@ -118,113 +120,18 @@ public final class Controller
      */
     void build(in string filename)
     {
-        buildable = filename.baseName;
         auto fi = File(filename, "r");
         recipe = new Spec(fi);
         recipe.parse();
-        container = Container(recipe);
-        container.input = filename.dirName;
+
+        auto job = new BuildJob(recipe, filename);
+        writeln(job.guestPaths);
+        writeln(job.hostPaths);
         scope (exit)
         {
             fi.close();
         }
-
-        build_loop: while (true)
-        {
-            final switch (stage)
-            {
-            case RecipeStage.None:
-                stage = RecipeStage.Resolve;
-                resolveDependencies();
-                break;
-            case RecipeStage.Resolve:
-                stage = RecipeStage.FetchSources;
-                break;
-            case RecipeStage.FetchSources:
-                stage = RecipeStage.ConstructRoot;
-                break;
-            case RecipeStage.ConstructRoot:
-                //constructRoot();
-                stage = RecipeStage.RunBuild;
-                break;
-            case RecipeStage.RunBuild:
-                performBuild();
-                break;
-            case RecipeStage.Failed:
-            case RecipeStage.Complete:
-                break build_loop;
-            }
-        }
     }
-
-private:
-
-    /**
-     * Use moss to construct a new rootfs
-     */
-    void constructRoot()
-    {
-        auto cmd = ["install", "-D", container.root] ~ buildDeps;
-
-        auto pid = spawnProcess(mossBinary ~ cmd);
-        auto exitCode = pid.wait();
-        if (exitCode != 0)
-        {
-            stage = RecipeStage.Failed;
-        }
-        else
-        {
-            stage = RecipeStage.RunBuild;
-        }
-    }
-
-    /**
-     * Invoke mason via moss-container
-     */
-    void performBuild()
-    {
-        /* Basic moss-container configuration */
-        auto containerCmd = ["--fakeroot", "-d", container.root];
-
-        auto specFile = container.targetInput.buildPath(buildable);
-
-        /* Essential bind paths */
-        containerCmd ~= [
-            "--bind-ro", format!"%s=%s"(container.input, container.targetInput),
-            "--bind-rw", format!"%s=%s"(container.output, container.targetOutput),
-            /* TODO: Support tmpfs for build tree */
-            "--bind-rw", format!"%s=%s"(container.build, container.targetBuild),
-        ];
-
-        /* Merge mason command */
-        // containerCmd ~= ["--", "ls", "-la", specFile];
-
-        auto pid = spawnProcess(containerBinary ~ containerCmd);
-        auto exitCode = pid.wait();
-        if (exitCode != 0)
-        {
-            stage = RecipeStage.Failed;
-        }
-        else
-        {
-            stage = RecipeStage.Complete;
-        }
-    }
-
-    void resolveDependencies()
-    {
-        buildDeps = recipe.rootBuild.buildDependencies;
-    }
-
-    RecipeStage stage = RecipeStage.None;
-    string[] buildDeps;
-
-    /* TEMP */
-    string mossBinary = "../moss/bin/moss";
-    string containerBinary = "../moss-container/moss-container";
 
     Spec* recipe = null;
-    /* What we intend to build in the container */
-    string buildable = null;
-    Container container;
 }
