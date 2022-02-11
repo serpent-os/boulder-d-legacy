@@ -23,6 +23,7 @@
 module boulder.controller;
 
 import moss.format.source;
+import std.exception : enforce;
 import std.stdio : File, writeln;
 
 import boulder.buildjob;
@@ -79,6 +80,37 @@ public final class Controller
             fi.close();
         }
 
+        int stageIndex = 0;
+        int nStages = cast(int) stages.length;
+
+        build_loop: while (true)
+        {
+            /* Dun dun dun */
+            if (stageIndex > nStages - 1)
+            {
+                break build_loop;
+            }
+
+            RecipeStage* stage = &stages[stageIndex];
+            enforce(stage.functor !is null);
+
+            writeln("[boulder] ", stage.name);
+            auto result = stage.functor();
+            final switch (result)
+            {
+            case RecipeStageReturn.Fail:
+                writeln("[boulder] Failed ", stage.name);
+                break build_loop;
+            case RecipeStageReturn.Succeed:
+                writeln("[boulder] Success ", stage.name);
+                ++stageIndex;
+                break;
+            case RecipeStageReturn.Skip:
+                writeln("[boulder] Skipped ", stage.name);
+                ++stageIndex;
+                break;
+            }
+        }
     }
 
     Spec* recipe = null;
