@@ -444,6 +444,8 @@ flags               :
 
     # Toggle relr (OFF)
     - relr:
+        gnu:
+            ld        : "-Wl,-z,pack-relative-relocs"
         llvm:
             ld        : "-Wl,--pack-dyn-relocs=relr"
 
