@@ -53,13 +53,14 @@ public final class Controller
     {
         /* Construct recipe stages here */
         stages = [
-            RecipeStage("clean-root", () { return RecipeStageReturn.Fail; }),
-            RecipeStage("fetch-sources", () { return RecipeStageReturn.Fail; }),
-            RecipeStage("prepare-root", () { return RecipeStageReturn.Fail; }),
-            RecipeStage("stage-sources", () { return RecipeStageReturn.Fail; }),
-            RecipeStage("install-rootfs", () { return RecipeStageReturn.Fail; }),
-            RecipeStage("run-build", () { return RecipeStageReturn.Fail; }),
-            RecipeStage("collect-artefacts", () { return RecipeStageReturn.Fail; }),
+            RecipeStage("clean-root", &cleanRoot),
+            RecipeStage("fetch-sources", &fetchSources),
+            RecipeStage("prepare-root", &prepareRoot),
+            RecipeStage("stage-sources", &stageSources),
+            RecipeStage("configure-rootfs", &configureRootfs),
+            RecipeStage("install-rootfs", &installRootfs),
+            RecipeStage("run-build", &runBuild),
+            RecipeStage("collect-artefacts", &collectArtefacts),
         ];
     }
 
@@ -111,6 +112,70 @@ public final class Controller
                 break;
             }
         }
+    }
+
+    /**
+     * Clean roots for build
+     */
+    RecipeStageReturn cleanRoot()
+    {
+        return RecipeStageReturn.Fail;
+    }
+
+    /**
+     * Fetch missing sources
+     */
+    RecipeStageReturn fetchSources()
+    {
+        return RecipeStageReturn.Fail;
+    }
+
+    /**
+     * Prepare/create roots
+     */
+    RecipeStageReturn prepareRoot()
+    {
+        return RecipeStageReturn.Fail;
+    }
+
+    /**
+     * Stage sources for the build
+     */
+    RecipeStageReturn stageSources()
+    {
+        return RecipeStageReturn.Fail;
+    }
+
+    /**
+     * Configure the rootfs properties
+     */
+    RecipeStageReturn configureRootfs()
+    {
+        return RecipeStageReturn.Fail;
+    }
+
+    /**
+     * Install the rootfs
+     */
+    RecipeStageReturn installRootfs()
+    {
+        return RecipeStageReturn.Fail;
+    }
+
+    /**
+     * Run the build
+     */
+    RecipeStageReturn runBuild()
+    {
+        return RecipeStageReturn.Fail;
+    }
+
+    /**
+     * Collect all of the artefacts
+     */
+    RecipeStageReturn collectArtefacts()
+    {
+        return RecipeStageReturn.Fail;
     }
 
     Spec* recipe = null;
