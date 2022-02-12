@@ -14,11 +14,12 @@ module boulder.stages;
 
 public import boulder.buildjob : BuildJob;
 public import boulder.stages.clean_root;
+public import boulder.stages.create_root;
 
 /**
  * Default boulder stages
  */
-static auto boulderStages = [&stageCleanRoot,];
+static auto boulderStages = [&stageCleanRoot, &stageCreateRoot];
 
 /** 
  * The StageContext (i.e. BoulderController) exposes some useful properties
