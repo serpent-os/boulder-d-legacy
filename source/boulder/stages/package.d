@@ -13,6 +13,12 @@
 module boulder.stages;
 
 public import boulder.buildjob : BuildJob;
+public import boulder.stages.clean_root;
+
+/**
+ * Default boulder stages
+ */
+static auto boulderStages = [&stageCleanRoot,];
 
 /** 
  * The StageContext (i.e. BoulderController) exposes some useful properties
@@ -25,7 +31,7 @@ public interface StageContext
      *
      * Returns: Const reference to the BuildJob
      */
-    pure @property BuildJob job() @safe @nogc nothrow const;
+    pure @property const(BuildJob) job() @safe @nogc nothrow const;
 
     /**
      * Path to moss

@@ -29,41 +29,17 @@ import std.exception : enforce;
 import std.file : exists, rmdirRecurse;
 import std.path : buildNormalizedPath, dirName;
 import std.stdio : File, stderr, writeln, writefln;
-
-alias RecipeStageFunction = RecipeStageReturn delegate();
-
-enum RecipeStageReturn
-{
-    Skip,
-    Succeed,
-    Fail,
-}
-
-struct RecipeStage
-{
-    string name;
-    RecipeStageFunction functor;
-}
+import boulder.stages;
 
 /**
  * This is the main entry point for all build commands which will be dispatched
  * to mason in the chroot environment via moss-container.
  */
-public final class Controller
+public final class Controller : StageContext
 {
     this()
     {
         /* Construct recipe stages here */
-        stages = [
-            RecipeStage("clean-root", &cleanRoot),
-            RecipeStage("fetch-sources", &fetchSources),
-            RecipeStage("prepare-root", &prepareRoot),
-            RecipeStage("stage-sources", &stageSources),
-            RecipeStage("configure-rootfs", &configureRootfs),
-            RecipeStage("install-rootfs", &installRootfs),
-            RecipeStage("run-build", &runBuild),
-            RecipeStage("collect-artefacts", &collectArtefacts),
-        ];
 
         /* Figure out where our utils are */
         debug
@@ -72,21 +48,45 @@ public final class Controller
 
             pragma(msg,
                     "\n\n!!!!!!!!!!\n\nUSING UNSAFE DEBUG BUILD PATHS. DO NOT USE IN PRODUCTION\n\n");
-            mossBinary = thisExePath.dirName.buildNormalizedPath("../../moss/build/moss");
-            containerBinary = thisExePath.dirName.buildNormalizedPath(
+            _mossBinary = thisExePath.dirName.buildNormalizedPath("../../moss/build/moss");
+            _containerBinary = thisExePath.dirName.buildNormalizedPath(
                     "../../moss-container/build/moss-container");
         }
         else
         {
-            mossBinary = "/usr/bin/moss";
-            containerBinary = "/usr/bin/moss-container";
+            _mossBinary = "/usr/bin/moss";
+            _containerBinary = "/usr/bin/moss-container";
         }
 
-        enforce(mossBinary.exists, "not found: " ~ mossBinary);
-        enforce(containerBinary.exists, "not found: " ~ containerBinary);
+        enforce(_mossBinary.exists, "not found: " ~ _mossBinary);
+        enforce(_containerBinary.exists, "not found: " ~ _containerBinary);
 
-        writeln("moss: ", mossBinary);
-        writeln("moss-container: ", containerBinary);
+        writeln("moss: ", _mossBinary);
+        writeln("moss-container: ", _containerBinary);
+    }
+
+    /**
+     * Return our job
+     */
+    pure override @property const(BuildJob) job() @safe @nogc nothrow const
+    {
+        return _job;
+    }
+
+    /**
+     * Return moss path
+     */
+    pure override immutable(string) mossBinary() @safe @nogc nothrow const
+    {
+        return _mossBinary;
+    }
+
+    /**
+     * Return container path
+     */
+    pure override immutable(string) containerBinary() @safe @nogc nothrow const
+    {
+        return _containerBinary;
     }
 
     /**
@@ -98,16 +98,16 @@ public final class Controller
         recipe = new Spec(fi);
         recipe.parse();
 
-        job = new BuildJob(recipe, filename);
-        writeln(job.guestPaths);
-        writeln(job.hostPaths);
+        _job = new BuildJob(recipe, filename);
+        writeln(_job.guestPaths);
+        writeln(_job.hostPaths);
         scope (exit)
         {
             fi.close();
         }
 
         int stageIndex = 0;
-        int nStages = cast(int) stages.length;
+        int nStages = cast(int) boulderStages.length;
 
         build_loop: while (true)
         {
@@ -117,31 +117,31 @@ public final class Controller
                 break build_loop;
             }
 
-            RecipeStage* stage = &stages[stageIndex];
+            auto stage = boulderStages[stageIndex];
             enforce(stage.functor !is null);
 
             writeln("[boulder] ", stage.name);
-            RecipeStageReturn result = RecipeStageReturn.Fail;
+            StageReturn result = StageReturn.Failure;
             try
             {
-                result = stage.functor();
+                result = stage.functor(this);
             }
             catch (Exception e)
             {
                 stderr.writefln!"Exception: %s"(e.message);
-                result = RecipeStageReturn.Fail;
+                result = StageReturn.Failure;
             }
 
             final switch (result)
             {
-            case RecipeStageReturn.Fail:
+            case StageReturn.Failure:
                 writeln("[boulder] Failed ", stage.name);
                 break build_loop;
-            case RecipeStageReturn.Succeed:
+            case StageReturn.Success:
                 writeln("[boulder] Success ", stage.name);
                 ++stageIndex;
                 break;
-            case RecipeStageReturn.Skip:
+            case StageReturn.Skipped:
                 writeln("[boulder] Skipped ", stage.name);
                 ++stageIndex;
                 break;
@@ -149,86 +149,11 @@ public final class Controller
         }
     }
 
-    /**
-     * Clean roots for build
-     */
-    RecipeStageReturn cleanRoot()
-    {
-        auto paths = [job.hostPaths.artefacts, job.hostPaths.buildRoot,];
-        auto existing = paths.filter!((p) => p.exists);
-        if (existing.empty)
-        {
-            return RecipeStageReturn.Skip;
-        }
+private:
 
-        foreach (p; existing)
-        {
-            writefln!"[boulder] Removing stale build directory: %s"(p);
-            rmdirRecurse(p);
-        }
-        return RecipeStageReturn.Succeed;
-    }
-
-    /**
-     * Fetch missing sources
-     */
-    RecipeStageReturn fetchSources()
-    {
-        return RecipeStageReturn.Fail;
-    }
-
-    /**
-     * Prepare/create roots
-     */
-    RecipeStageReturn prepareRoot()
-    {
-        return RecipeStageReturn.Fail;
-    }
-
-    /**
-     * Stage sources for the build
-     */
-    RecipeStageReturn stageSources()
-    {
-        return RecipeStageReturn.Fail;
-    }
-
-    /**
-     * Configure the rootfs properties
-     */
-    RecipeStageReturn configureRootfs()
-    {
-        return RecipeStageReturn.Fail;
-    }
-
-    /**
-     * Install the rootfs
-     */
-    RecipeStageReturn installRootfs()
-    {
-        return RecipeStageReturn.Fail;
-    }
-
-    /**
-     * Run the build
-     */
-    RecipeStageReturn runBuild()
-    {
-        return RecipeStageReturn.Fail;
-    }
-
-    /**
-     * Collect all of the artefacts
-     */
-    RecipeStageReturn collectArtefacts()
-    {
-        return RecipeStageReturn.Fail;
-    }
-
-    string mossBinary;
-    string containerBinary;
+    string _mossBinary;
+    string _containerBinary;
 
     Spec* recipe = null;
-    RecipeStage[] stages;
-    BuildJob job;
+    BuildJob _job;
 }

@@ -47,6 +47,7 @@ boulder_sources = [
     'source/boulder/cli/build_command.d',
     'source/boulder/buildjob.d',
     'source/boulder/controller.d',
+    'source/boulder/stages/clean_root.d',
     'source/boulder/stages/package.d',
     'source/chef/package.d',
     'source/mason/cli/build_command.d',
