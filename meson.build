@@ -50,7 +50,7 @@ boulder_sources = [
     'source/boulder/stages/clean_root.d',
     'source/boulder/stages/create_root.d',
     'source/boulder/stages/configure_root.d',
-    'source/boulder/stages/install_root.d',
+    'source/boulder/stages/populate_root.d',
     'source/boulder/stages/package.d',
     'source/chef/package.d',
     'source/mason/cli/build_command.d',

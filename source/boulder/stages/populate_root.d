@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Zlib */
 
 /**
- * Stage: Install root
+ * Stage: Populate root
  *
  * Populate root with useful packages
  *
@@ -9,7 +9,7 @@
  * License: ZLib
  */
 
-module boulder.stages.install_root;
+module boulder.stages.populate_root;
 
 public import boulder.stages : Stage, StageReturn, StageContext;
 import mason.build.util : executeCommand, ExecutionError;
@@ -19,7 +19,7 @@ import std.sumtype : match;
  * Go ahead and configure the tree
  *
  */
-public static immutable(Stage) stageInstallRoot = Stage("install-root", (StageContext context) {
+public static immutable(Stage) stagePopulateRoot = Stage("populate-root", (StageContext context) {
     /* TODO: Find a way to not hardcode these? */
     auto requiredInstalled = ["boulder", "fakeroot",];
     /* TODO: Extend to other architectures.. */
