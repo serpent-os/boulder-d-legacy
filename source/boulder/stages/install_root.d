@@ -28,7 +28,7 @@ public static immutable(Stage) stageInstallRoot = Stage("install-root", (StageCo
     string[string] env;
     env["PATH"] = "/usr/bin";
     auto result = executeCommand(context.mossBinary, [
-            "it", "-D", context.job.hostPaths.rootfs
+            "install", "-D", context.job.hostPaths.rootfs
         ] ~ requiredInstalled, env);
     return result.match!((i) => i == 0 ? StageReturn.Success
         : StageReturn.Failure, (ExecutionError e) => StageReturn.Failure);
