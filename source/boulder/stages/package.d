@@ -16,12 +16,13 @@ public import boulder.buildjob : BuildJob;
 public import boulder.stages.clean_root;
 public import boulder.stages.create_root;
 public import boulder.stages.configure_root;
+public import boulder.stages.install_root;
 
 /**
  * Default boulder stages
  */
 static auto boulderStages = [
-    &stageCleanRoot, &stageCreateRoot, &stageConfigureRoot
+    &stageCleanRoot, &stageCreateRoot, &stageConfigureRoot, &stageInstallRoot,
 ];
 
 /** 
