@@ -21,7 +21,8 @@ import std.file : rmdirRecurse, exists;
  */
 public static immutable(Stage) stageCleanRoot = Stage("clean-root", (StageContext context) {
     auto paths = [
-        context.job.hostPaths.artefacts, context.job.hostPaths.buildRoot
+        context.job.hostPaths.artefacts, context.job.hostPaths.buildRoot,
+        context.job.hostPaths.rootfs
     ];
     auto existing = paths.filter!((p) => p.exists);
     if (existing.empty)

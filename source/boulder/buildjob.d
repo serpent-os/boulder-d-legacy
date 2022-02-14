@@ -36,6 +36,11 @@ package struct BuildPaths
      * Location for the build tree
      */
     string buildRoot;
+
+    /**
+     * Where is the rootfs?
+     */
+    string rootfs;
 }
 
 /**
@@ -60,6 +65,8 @@ public final class BuildJob
         _hostPaths.compilerCache = SharedRootBase.buildPath("ccache");
         /* Where is the recipe..? */
         _hostPaths.recipe = path.dirName.absolutePath.buildNormalizedPath;
+        /* And where is the rootfs? */
+        _hostPaths.rootfs = SharedRootBase.buildPath("root", subpath);
     }
 
     /**
@@ -80,7 +87,7 @@ public final class BuildJob
     @property ref immutable(BuildPaths) guestPaths() @safe @nogc nothrow const
     {
         static BuildPaths p = BuildPaths("/mason/artefacts", "/mason/recipe",
-                "/mason/ccache", "/mason/build",);
+                "/mason/ccache", "/mason/build", "/");
 
         return cast(immutable(BuildPaths)) p;
     }
