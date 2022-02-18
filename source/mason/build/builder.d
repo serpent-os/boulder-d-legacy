@@ -309,7 +309,7 @@ private:
             return AnalysisReturn.NextHandler;
         }
 
-        if (!filename.endsWith("Config.cmake") && !filename.endsWith("-config.cmake"))
+        if ( (!filename.endsWith("Config.cmake") && !filename.endsWith("-config.cmake")) || filename.endsWith("-Config.cmake"))
         {
             return AnalysisReturn.NextHandler;
         }
