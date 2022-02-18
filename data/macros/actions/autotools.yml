@@ -40,5 +40,4 @@ definitions:
         --sysconfdir="%(sysconfdir)" \
         --localstatedir="%(localstatedir)" \
         --sharedstatedir="%(sharedstatedir)" \
-        --runstatedir="%(runstatedir)" \
         --libexecdir="%(libexecdir)"
