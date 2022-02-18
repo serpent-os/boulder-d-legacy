@@ -404,7 +404,7 @@ private:
         /* Enable these tuning groups by default */
         auto wanted = [
             "base", "fortify", "optimize", "avxwidth", "harden", "asneeded",
-            "bindnow", "icf", "symbolic"
+            "bindnow", "icf", "symbolic", "relr"
         ];
 
         foreach (w; wanted)
