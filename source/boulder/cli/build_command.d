@@ -27,6 +27,7 @@ import moss.core;
 import std.stdio;
 import boulder.cli : BoulderCLI;
 import boulder.controller;
+import core.sys.posix.unistd : geteuid;
 
 /**
  * The BuildCommand is responsible for handling requests to build stone.yml
@@ -55,6 +56,13 @@ public struct BuildControlCommand
      */
     @CommandEntry() int run(ref string[] argv)
     {
+        /* Ensure root permissions */
+        if (geteuid() != 0)
+        {
+            stderr.writeln("This program must be run with root permissions");
+            return ExitStatus.Failure;
+        }
+
         auto controller = new Controller();
         foreach (recipe; argv)
         {
