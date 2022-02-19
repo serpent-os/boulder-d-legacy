@@ -11,6 +11,8 @@
 
 module boulder.upstreamcache;
 
+import std.exception : enforce;
+import std.conv : to;
 import std.path : buildPath;
 import std.file : mkdirRecurse;
 public import moss.format.source.upstream_definition;
@@ -43,6 +45,30 @@ public final class UpstreamCache
         {
             p.mkdirRecurse();
         }
+    }
+
+    /**
+     * Return the staging path for the definition
+     */
+    const(string) stagingPath(in UpstreamDefinition def) @trusted
+    {
+        enforce(def.type == UpstreamType.Plain, "UpstreamCache: git not yet supported");
+        enforce(def.plain.hash.length >= 5,
+                "UpstreamCache: Hash too short: " ~ to!string(def.plain));
+        return stagingDirectory.buildPath(def.plain.hash);
+    }
+
+    /**
+     * Return the final path for the definition
+     */
+    const(string) finalPath(in UpstreamDefinition def) @trusted
+    {
+        enforce(def.type == UpstreamType.Plain, "UpstreamCache: git not yet supported");
+        enforce(def.plain.hash.length >= 5,
+                "UpstreamCache: Hash too short: " ~ to!string(def.plain));
+
+        return plainDirectory.buildPath(def.plain.hash[0 .. 5],
+                def.plain.hash[5 .. $], def.plain.hash);
     }
 
 private:
