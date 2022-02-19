@@ -50,6 +50,7 @@ boulder_sources = [
     'source/boulder/stages/clean_root.d',
     'source/boulder/stages/create_root.d',
     'source/boulder/stages/configure_root.d',
+    'source/boulder/stages/fetch_upstreams.d',
     'source/boulder/stages/populate_root.d',
     'source/boulder/stages/package.d',
     'source/chef/package.d',
