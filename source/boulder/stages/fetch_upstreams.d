@@ -18,11 +18,9 @@ import std.algorithm : each;
 /**
  * Grab all sources for build
  */
-public static immutable(Stage) stageFetchUpstreams = Stage("fetch-upstreams", (StageContext context) {
-    return StageReturn.Failure;
-});
+public static immutable(Stage) stageFetchUpstreams = Stage("fetch-upstreams", &fetchUpstreams);
 
-static private StageReturn fetchUpstreams(StageContext context)
+static private StageReturn fetchUpstreams(scope StageContext context)
 {
     context.upstreamCache.constructDirs();
     return StageReturn.Failure;
