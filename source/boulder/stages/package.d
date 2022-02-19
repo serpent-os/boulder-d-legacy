@@ -13,6 +13,7 @@
 module boulder.stages;
 
 public import boulder.buildjob : BuildJob;
+public import boulder.upstreamcache;
 public import boulder.stages.clean_root;
 public import boulder.stages.create_root;
 public import boulder.stages.configure_root;
@@ -53,6 +54,11 @@ public interface StageContext
      * Returns: Immutable string containing the path
      */
     pure @property immutable(string) containerBinary() @safe @nogc nothrow const;
+
+    /**
+     * Returns: The upstream (fetch) cache
+     */
+    pure @property UpstreamCache upstreamCache() @safe @nogc nothrow;
 }
 
 /**

@@ -63,6 +63,7 @@ public final class Controller : StageContext
 
         writeln("moss: ", _mossBinary);
         writeln("moss-container: ", _containerBinary);
+        _upstreamCache = new UpstreamCache();
     }
 
     /**
@@ -76,7 +77,7 @@ public final class Controller : StageContext
     /**
      * Return moss path
      */
-    pure override immutable(string) mossBinary() @safe @nogc nothrow const
+    pure override @property immutable(string) mossBinary() @safe @nogc nothrow const
     {
         return _mossBinary;
     }
@@ -84,9 +85,14 @@ public final class Controller : StageContext
     /**
      * Return container path
      */
-    pure override immutable(string) containerBinary() @safe @nogc nothrow const
+    pure override @property immutable(string) containerBinary() @safe @nogc nothrow const
     {
         return _containerBinary;
+    }
+
+    pure override @property UpstreamCache upstreamCache() @safe @nogc nothrow
+    {
+        return _upstreamCache;
     }
 
     /**
@@ -156,4 +162,5 @@ private:
 
     Spec* recipe = null;
     BuildJob _job;
+    UpstreamCache _upstreamCache = null;
 }
