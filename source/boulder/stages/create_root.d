@@ -21,7 +21,8 @@ import std.file : mkdirRecurse;
  */
 public static immutable(Stage) stageCreateRoot = Stage("create-root", (StageContext context) {
     auto paths = [
-        context.job.hostPaths.artefacts, context.job.hostPaths.buildRoot
+        context.job.hostPaths.artefacts, context.job.hostPaths.buildRoot,
+        context.job.hostPaths.compilerCache,
     ];
     paths.each!((p) => p.mkdirRecurse());
     return StageReturn.Success;
