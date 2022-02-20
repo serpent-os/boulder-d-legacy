@@ -70,6 +70,7 @@ public struct BuildCommand
         {
             buildContext.jobs = totalCPUs - 1;
         }
+        buildContext.rootDir = buildDir;
 
         auto controller = new BuildController();
         foreach (specURI; argv)
