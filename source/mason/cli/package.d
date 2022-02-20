@@ -39,4 +39,7 @@ public struct MasonCLI
 
     /** Select an alternative output location than the current working directory */
     @Option("o", "output", "Directory to store build results") string outputDirectory = ".";
+
+    /** Override the build directory to one containing the prepared sources */
+    @Option("b", "buildDir", "Set the build directory") string buildDir = null;
 }

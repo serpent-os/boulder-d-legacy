@@ -28,6 +28,7 @@ import std.stdio;
 import mason.build.context;
 import mason.build.controller;
 import mason.cli : MasonCLI;
+import std.parallelism : totalCPUs;
 
 /**
  * The BuildCommand is responsible for handling requests to build stone.yml
@@ -58,8 +59,19 @@ public struct BuildCommand
     {
         import std.exception : enforce;
 
-        auto controller = new BuildController();
+        auto outputDir = pt.findAncestor!(MasonCLI).outputDirectory;
+        auto buildDir = pt.findAncestor!(MasonCLI).buildDir;
 
+        buildContext.outputDirectory = outputDir;
+        buildContext.jobs = jobs;
+
+        /* Auto discover job count */
+        if (buildContext.jobs < 1)
+        {
+            buildContext.jobs = totalCPUs - 1;
+        }
+
+        auto controller = new BuildController();
         foreach (specURI; argv)
         {
             controller.build(specURI);
