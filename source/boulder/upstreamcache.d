@@ -11,10 +11,12 @@
 
 module boulder.upstreamcache;
 
+import moss.core.util : hardLinkOrCopy;
 import std.exception : enforce;
 import std.conv : to;
-import std.path : buildPath;
-import std.file : mkdirRecurse;
+import std.path : buildPath, dirName;
+import std.file : exists, mkdirRecurse, rename;
+import std.string : format;
 public import moss.format.source.upstream_definition;
 
 /**
@@ -45,6 +47,40 @@ public final class UpstreamCache
         {
             p.mkdirRecurse();
         }
+    }
+
+    /**
+     * Returns: True if the final destination exists
+     */
+    bool contains(in UpstreamDefinition def) @safe
+    {
+        return finalPath(def).exists;
+    }
+
+    /** 
+     *  Promote from staging to real
+     */
+    void promote(in UpstreamDefinition def) @safe
+    {
+        auto st = stagingPath(def);
+        auto fp = finalPath(def);
+        enforce(def.type == UpstreamType.Plain, "UpstreamCache: git not yet supported");
+        enforce(st.exists, "UpstreamCache.promote(): %s does not exist".format(st));
+
+        /* Move from staging path to final path */
+        auto dirn = fp.dirName;
+        dirn.mkdirRecurse();
+        st.rename(fp);
+    }
+
+    /**
+     * Promote the shared upstream into a target tree using hardlink or copy.
+     */
+    void share(in UpstreamDefinition def, in string destPath) @safe
+    {
+        auto fp = finalPath(def);
+        enforce(def.type == UpstreamType.Plain, "UpstreamCache: git not yet supported");
+        hardLinkOrCopy(fp, destPath);
     }
 
     /**
