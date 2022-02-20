@@ -6,7 +6,7 @@
  * Populate root with useful packages
  *
  * Authors: © 2020-2022 Serpent OS Developers
- * License: ZLib
+ * License: ZLibx
  */
 
 module boulder.stages.populate_root;
@@ -21,7 +21,9 @@ import std.sumtype : match;
  */
 public static immutable(Stage) stagePopulateRoot = Stage("populate-root", (StageContext context) {
     /* TODO: Find a way to not hardcode these? */
-    auto requiredInstalled = ["boulder", "fakeroot",];
+    auto requiredInstalled = [
+        "boulder", "fakeroot", "sed", "dash", "coreutils", "util-linux", "bash"
+    ];
     /* TODO: Extend to other architectures.. */
     requiredInstalled ~= context.job.recipe.rootBuild.buildDependencies;
 
