@@ -78,7 +78,14 @@ public:
      */
     this()
     {
-        buildContext.rootDir = getBuildRoot();
+        if (buildContext.rootDir is null)
+        {
+            buildContext.rootDir = getBuildRoot();
+        }
+        else
+        {
+            boulderRoot = true;
+        }
 
         /* Collection + analysis */
         collector = new BuildCollector();
@@ -127,13 +134,16 @@ public:
 
         writeln("Preparing root tree");
 
-        if (buildContext.rootDir.exists)
+        if (buildContext.rootDir.exists && !boulderRoot)
         {
             writeln("Removing old build tree");
             buildContext.rootDir.rmdirRecurse();
         }
 
-        mkdirRecurse(buildContext.rootDir);
+        if (!buildContext.rootDir.exists)
+        {
+            mkdirRecurse(buildContext.rootDir);
+        }
     }
 
     /**
@@ -597,4 +607,5 @@ private:
     BuildEmitter emitter;
     PackageDefinition[string] packages;
     int inclusionPriority = 0;
+    bool boulderRoot = false;
 }
