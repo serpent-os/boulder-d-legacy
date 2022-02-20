@@ -6,7 +6,7 @@
  * Populate root with useful packages
  *
  * Authors: © 2020-2022 Serpent OS Developers
- * License: ZLibx
+ * License: ZLib
  */
 
 module boulder.stages.populate_root;
