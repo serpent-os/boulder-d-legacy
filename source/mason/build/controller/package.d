@@ -22,9 +22,6 @@
 
 module mason.build.controller;
 
-import moss.core.download.store;
-import moss.core.util : computeSHA256;
-import moss.fetcher;
 import mason.build.builder;
 import mason.build.context;
 
@@ -45,26 +42,6 @@ import std.parallelism : TaskPool, totalCPUs;
  */
 public final class BuildController
 {
-
-    /**
-     * Construct a new BuildController
-     */
-    this()
-    {
-        /* bound to max 4 fetches, or 2 for everyone else. */
-        fetchController = new FetchController(totalCPUs >= 4 ? 3 : 1);
-        fetchController.onComplete.connect(&onComplete);
-
-        downloadStore = new DownloadStore(StoreType.User);
-    }
-
-    void onComplete(in Fetchable f, long code)
-    {
-        import std.stdio : writefln;
-
-        writefln!"Downloaded: %s"(f.sourceURI);
-    }
-
     /**
      * Request that we begin building the given path
      */
@@ -90,7 +67,6 @@ public final class BuildController
 
         builder = new Builder();
 
-        runTimed(&stageFetch, "Fetch");
         runTimed(&stagePrepare, "Prepare");
         runTimed(&stageBuild, "Build");
         runTimed(&stageAnalyse, "Analyse");
@@ -105,15 +81,6 @@ public final class BuildController
     {
         builder.prepareRoot();
         builder.preparePkgFiles();
-        promoteSources();
-    }
-
-    /**
-     * Fetch upstreams for the package
-     */
-    void stageFetch()
-    {
-        fetchUpstreams();
     }
 
     /**
@@ -165,113 +132,6 @@ private:
         writefln("[%s] Finished: %s", label, sw.peek);
     }
 
-    /**
-     * Fetch all upstreams
-     */
-    void fetchUpstreams()
-    {
-        auto upstreams = buildContext.spec.upstreams.values;
-        if (upstreams.length < 1)
-        {
-            return;
-        }
-
-        Fetchable[] failedDownloads;
-
-        /**
-         * Validate the checksum!
-         */
-        void validateChecksum(immutable(Fetchable) fe, long statusCode)
-        {
-            if (statusCode != 200)
-            {
-                synchronized (this)
-                {
-                    failedDownloads ~= fe;
-                }
-                return;
-            }
-
-            auto inpHash = computeSHA256(fe.destinationPath, true);
-            auto expectedHash = upstreams.filter!((u) => u.uri == fe.sourceURI).front;
-            if (inpHash != expectedHash.plain.hash)
-            {
-                synchronized (this)
-                {
-                    failedDownloads ~= fe;
-                }
-            }
-        }
-
-        upstreams.filter!((u) => u.type == UpstreamType.Plain
-                && !downloadStore.contains(u.plain.hash))
-            .each!((u) {
-                const auto finalPath = downloadStore.fullPath(u.plain.hash);
-                auto pathDir = finalPath.dirName;
-                pathDir.mkdirRecurse();
-                auto fb = Fetchable(u.uri, finalPath, 0,
-                    FetchType.RegularFile, &validateChecksum);
-                fetchController.enqueue(fb);
-            });
-
-        while (!fetchController.empty)
-        {
-            fetchController.fetch();
-        }
-
-        enforce(failedDownloads.length == 0, "One or more downloads have failed");
-    }
-
-    /**
-     * Promote sources to where they need to be
-     */
-    void promoteSources()
-    {
-        foreach (upstream; buildContext.spec.upstreams.values)
-        {
-            if (upstream.type != UpstreamType.Plain)
-            {
-                continue;
-            }
-
-            auto partName = upstream.plain.rename !is null
-                ? upstream.plain.rename : upstream.uri.baseName;
-            string fullname = buildContext.sourceDir.buildPath(partName);
-            auto dn = fullname.dirName;
-            dn.mkdirRecurse();
-            downloadStore.share(upstream.plain.hash, fullname);
-        }
-    }
-
-    /**
-     * Block and fetch the given upstream definition
-     */
-    bool fetchUpstream(in UpstreamDefinition upstream)
-    {
-        import std.net.curl : download;
-
-        if (upstream.type != UpstreamType.Plain)
-        {
-            return false;
-        }
-
-        if (downloadStore.contains(upstream.plain.hash))
-        {
-            return true;
-        }
-
-        const auto finalPath = downloadStore.fullPath(upstream.plain.hash);
-        auto pathDir = finalPath.dirName;
-        pathDir.mkdirRecurse();
-        import std.stdio : writefln;
-
-        writefln("Downloading '%s' to '%s'", upstream.uri, finalPath);
-        download(upstream.uri, finalPath);
-        return true;
-    }
-
-    DownloadStore downloadStore = null;
-    FetchController fetchController = null;
     Builder builder = null;
     bool running = true;
 }
