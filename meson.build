@@ -53,6 +53,7 @@ boulder_sources = [
     'source/boulder/stages/configure_root.d',
     'source/boulder/stages/fetch_upstreams.d',
     'source/boulder/stages/populate_root.d',
+    'source/boulder/stages/share_upstreams.d',
     'source/boulder/stages/package.d',
     'source/chef/package.d',
     'source/mason/cli/build_command.d',

@@ -213,7 +213,8 @@ private:
      */
     auto fetchableToUpstream(in Fetchable f)
     {
-        return job.recipe.upstreams.values.filter!((u) => u.plain.hash == f.destinationPath.baseName).take(1).front;
+        return job.recipe.upstreams.values.filter!(
+                (u) => u.plain.hash == f.destinationPath.baseName).take(1).front;
     }
 
     string _mossBinary;

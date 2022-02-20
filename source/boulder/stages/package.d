@@ -19,6 +19,7 @@ public import boulder.stages.create_root;
 public import boulder.stages.configure_root;
 public import boulder.stages.fetch_upstreams;
 public import boulder.stages.populate_root;
+public import boulder.stages.share_upstreams;
 
 public import moss.core.fetchcontext;
 
@@ -27,7 +28,7 @@ public import moss.core.fetchcontext;
  */
 static auto boulderStages = [
     &stageCleanRoot, &stageCreateRoot, &stageFetchUpstreams,
-    &stageConfigureRoot, &stagePopulateRoot,
+    &stageConfigureRoot, &stagePopulateRoot, &stageShareUpstreams,
 ];
 
 /** 
