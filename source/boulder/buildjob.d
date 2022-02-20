@@ -10,7 +10,7 @@
  */
 
 import moss.format.source.spec;
-import std.path : buildPath, dirName, absolutePath, buildNormalizedPath;
+import std.path : buildPath, baseName, dirName, absolutePath, buildNormalizedPath;
 import std.string : format;
 
 immutable static private auto SharedRootBase = "/var/cache/boulder";
@@ -54,6 +54,7 @@ public final class BuildJob
     this(Spec* specFile, in string path)
     {
         _recipe = specFile;
+        _name = path.baseName;
 
         auto subpath = format!"%s-%s-%s"(_recipe.source.name,
                 _recipe.source.versionIdentifier, _recipe.source.release);
@@ -77,6 +78,16 @@ public final class BuildJob
     pure @property const(Spec*) recipe() @safe @nogc nothrow const
     {
         return _recipe;
+    }
+
+    /**
+     * Our filename
+     *
+     * Returns: Immutable string as filename
+     */
+    pure @property immutable(string) name() @safe @nogc nothrow const
+    {
+        return cast(immutable(string)) _name;
     }
 
     /**
@@ -106,4 +117,5 @@ private:
 
     Spec* _recipe;
     BuildPaths _hostPaths;
+    string _name = null;
 }
