@@ -48,6 +48,7 @@ boulder_sources = [
     'source/boulder/buildjob.d',
     'source/boulder/controller.d',
     'source/boulder/upstreamcache.d',
+    'source/boulder/stages/build_package.d',
     'source/boulder/stages/clean_root.d',
     'source/boulder/stages/create_root.d',
     'source/boulder/stages/configure_root.d',

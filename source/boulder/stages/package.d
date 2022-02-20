@@ -14,6 +14,7 @@ module boulder.stages;
 
 public import boulder.buildjob : BuildJob;
 public import boulder.upstreamcache;
+public import boulder.stages.build_package;
 public import boulder.stages.clean_root;
 public import boulder.stages.create_root;
 public import boulder.stages.configure_root;
@@ -27,8 +28,8 @@ public import moss.core.fetchcontext;
  * Default boulder stages
  */
 static auto boulderStages = [
-    &stageCleanRoot, &stageCreateRoot, &stageFetchUpstreams,
-    &stageConfigureRoot, &stagePopulateRoot, &stageShareUpstreams,
+    &stageCleanRoot, &stageCreateRoot, &stageFetchUpstreams, &stageConfigureRoot,
+    &stagePopulateRoot, &stageShareUpstreams, &stageBuildPackage,
 ];
 
 /** 
