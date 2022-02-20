@@ -34,6 +34,7 @@ import std.path : buildNormalizedPath, baseName, dirName;
 import std.stdio : File, stderr, writeln, writefln;
 import std.string : format;
 import boulder.stages;
+import std.parallelism : totalCPUs;
 
 /**
  * This is the main entry point for all build commands which will be dispatched
@@ -68,7 +69,7 @@ public final class Controller : StageContext
         writeln("moss: ", _mossBinary);
         writeln("moss-container: ", _containerBinary);
         _upstreamCache = new UpstreamCache();
-        _fetcher = new FetchController();
+        _fetcher = new FetchController(totalCPUs >= 4 ? 3 : 1);
         _fetcher.onComplete.connect(&onFetchComplete);
         _fetcher.onFail.connect(&onFetchFail);
     }
