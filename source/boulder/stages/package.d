@@ -20,6 +20,8 @@ public import boulder.stages.configure_root;
 public import boulder.stages.fetch_upstreams;
 public import boulder.stages.populate_root;
 
+public import moss.core.fetchcontext;
+
 /**
  * Default boulder stages
  */
@@ -59,6 +61,11 @@ public interface StageContext
      * Returns: The upstream (fetch) cache
      */
     pure @property UpstreamCache upstreamCache() @safe @nogc nothrow;
+
+    /**
+     * Returns: The underlying fetch implementation
+     */
+    pure @property FetchContext fetcher() @safe @nogc nothrow;
 }
 
 /**

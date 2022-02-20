@@ -23,6 +23,7 @@
 module boulder.controller;
 
 import boulder.buildjob;
+import moss.fetcher;
 import moss.format.source;
 import std.algorithm : filter;
 import std.exception : enforce;
@@ -64,6 +65,7 @@ public final class Controller : StageContext
         writeln("moss: ", _mossBinary);
         writeln("moss-container: ", _containerBinary);
         _upstreamCache = new UpstreamCache();
+        _fetcher = new FetchController();
     }
 
     /**
@@ -93,6 +95,14 @@ public final class Controller : StageContext
     pure override @property UpstreamCache upstreamCache() @safe @nogc nothrow
     {
         return _upstreamCache;
+    }
+
+    /**
+     * Returns: The FetchContext
+     */
+    pure override @property FetchController fetcher() @safe @nogc nothrow
+    {
+        return _fetcher;
     }
 
     /**
@@ -163,4 +173,5 @@ private:
     Spec* recipe = null;
     BuildJob _job;
     UpstreamCache _upstreamCache = null;
+    FetchController _fetcher = null;
 }
