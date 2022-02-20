@@ -23,13 +23,16 @@
 module boulder.controller;
 
 import boulder.buildjob;
+import moss.core.util : computeSHA256;
 import moss.fetcher;
 import moss.format.source;
 import std.algorithm : filter;
 import std.exception : enforce;
+import std.range : take;
 import std.file : exists, rmdirRecurse;
-import std.path : buildNormalizedPath, dirName;
+import std.path : buildNormalizedPath, baseName, dirName;
 import std.stdio : File, stderr, writeln, writefln;
+import std.string : format;
 import boulder.stages;
 
 /**
@@ -66,6 +69,8 @@ public final class Controller : StageContext
         writeln("moss-container: ", _containerBinary);
         _upstreamCache = new UpstreamCache();
         _fetcher = new FetchController();
+        _fetcher.onComplete.connect(&onFetchComplete);
+        _fetcher.onFail.connect(&onFetchFail);
     }
 
     /**
@@ -148,6 +153,12 @@ public final class Controller : StageContext
                 result = StageReturn.Failure;
             }
 
+            /* Take the early fail */
+            if (failFlag == true)
+            {
+                result = StageReturn.Failure;
+            }
+
             final switch (result)
             {
             case StageReturn.Failure:
@@ -167,6 +178,44 @@ public final class Controller : StageContext
 
 private:
 
+    void onFetchComplete(in Fetchable f, long statusCode)
+    {
+        /* Validate the statusCode */
+        auto ud = fetchableToUpstream(f);
+        if (statusCode != 200)
+        {
+            onFetchFail(f, "Download finished with status code: %d".format(statusCode));
+            return;
+        }
+        /* Verify hash */
+        auto foundHash = computeSHA256(f.destinationPath, true);
+        if (foundHash != ud.plain.hash)
+        {
+            onFetchFail(f, "Expected hash: %s, found '%s'".format(ud.plain.hash, foundHash));
+            return;
+        }
+        /* Promote the source now */
+        upstreamCache.promote(ud);
+    }
+
+    /**
+     * Handle failed downloads
+     */
+    void onFetchFail(in Fetchable f, in string failMsg)
+    {
+        fetcher.clear();
+        failFlag = true;
+        stderr.writefln("Failed to download: %s (reason: %s)", f.sourceURI, failMsg);
+    }
+
+    /**
+     * Return a matching UpstreamDefinition for the input Fetchable
+     */
+    auto fetchableToUpstream(in Fetchable f)
+    {
+        return job.recipe.upstreams.values.filter!((u) => u.plain.hash == f.destinationPath.baseName).take(1).front;
+    }
+
     string _mossBinary;
     string _containerBinary;
 
@@ -174,4 +223,5 @@ private:
     BuildJob _job;
     UpstreamCache _upstreamCache = null;
     FetchController _fetcher = null;
+    bool failFlag = false;
 }
