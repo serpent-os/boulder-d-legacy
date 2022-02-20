@@ -15,6 +15,8 @@ public import boulder.stages : Stage, StageReturn, StageContext;
 
 import std.algorithm : each;
 import std.file : mkdirRecurse;
+import core.sys.posix.unistd : chown;
+import std.string : toStringz;
 
 /**
  * Handle creation of root tree
@@ -24,6 +26,6 @@ public static immutable(Stage) stageCreateRoot = Stage("create-root", (StageCont
         context.job.hostPaths.artefacts, context.job.hostPaths.buildRoot,
         context.job.hostPaths.compilerCache,
     ];
-    paths.each!((p) => p.mkdirRecurse());
+    paths.each!((p) => { p.mkdirRecurse(); chown(p.toStringz, 65534, 65534); }());
     return StageReturn.Success;
 });
