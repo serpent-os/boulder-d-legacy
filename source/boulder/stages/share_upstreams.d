@@ -11,7 +11,8 @@ module boulder.stages.share_upstreams;
 
 public import boulder.stages : Stage, StageReturn, StageContext;
 import moss.format.source.upstream_definition;
-import std.path : buildPath, baseName;
+import std.path : buildPath, baseName, dirName;
+import std.file : mkdirRecurse;
 import std.algorithm : filter;
 
 /**
@@ -28,7 +29,9 @@ static private StageReturn shareUpstreams(scope StageContext context)
     foreach (p; plains)
     {
         auto name = p.plain.rename !is null ? p.plain.rename : p.uri.baseName;
-        auto tgt = context.job.hostPaths.buildRoot.buildPath(name);
+        auto tgt = context.job.hostPaths.buildRoot.buildPath("sourcedir", name);
+        auto dd = tgt.dirName;
+        dd.mkdirRecurse();
         context.upstreamCache.share(p, tgt);
     }
     return StageReturn.Success;
