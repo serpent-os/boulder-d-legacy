@@ -49,7 +49,11 @@ static private StageReturn buildPackage(scope StageContext context)
         /* Fakeroot, end of options */
         "--fakeroot", "--",
         /* Real command to run */
-        "mason", "build", "-o", context.job.guestPaths.artefacts,
+        "mason", "build",
+        /* Set output directory */
+        "-o", context.job.guestPaths.artefacts,
+        /* Set build directory */
+        "-b", context.job.guestPaths.buildRoot,
         context.job.guestPaths.recipe.buildPath(context.job.name)
     ];
     auto result = executeCommand(context.containerBinary, args, environ, "/");
