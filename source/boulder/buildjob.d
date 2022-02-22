@@ -9,6 +9,8 @@
  * License: ZLib
  */
 
+module boulder.buildjob;
+
 import moss.format.source.spec;
 import std.path : buildPath, baseName, dirName, absolutePath, buildNormalizedPath;
 import std.string : format;
