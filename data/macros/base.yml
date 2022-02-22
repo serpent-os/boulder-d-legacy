@@ -34,6 +34,7 @@ definitions:
     - cxx            : "%(compiler_cxx)"
     - cpp            : "%(compiler_cpp)"
     - ar             : "%(compiler_ar)"
+    - ld             : "%(compiler_ld)"
     - objcopy        : "%(compiler_objcopy)"
     - nm             : "%(compiler_nm)"
     - ranlib         : "%(compiler_ranlib)"
@@ -55,6 +56,7 @@ actions              :
         CXX="%(cxx)"; export CXX
         CPP="%(cpp)"; export CPP
         AR="%(ar)"; export AR
+        LD="%(ld)"; export LD
         OBJCOPY="%(objcopy)"; export OBJCOPY
         NM="%(nm)"; export NM
         RANLIB="%(ranlib)"; export RANLIB

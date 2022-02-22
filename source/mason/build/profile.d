@@ -305,6 +305,7 @@ public:
             sbuilder.addDefinition("compiler_cxx", "clang++");
             sbuilder.addDefinition("compiler_cpp", "clang-cpp");
             sbuilder.addDefinition("compiler_ar", "llvm-ar");
+            sbuilder.addDefinition("compiler_ld", "ld.lld");
             sbuilder.addDefinition("compiler_objcopy", "llvm-objcopy");
             sbuilder.addDefinition("compiler_nm", "llvm-nm");
             sbuilder.addDefinition("compiler_ranlib", "llvm-ranlib");
@@ -317,6 +318,7 @@ public:
             sbuilder.addDefinition("compiler_cxx", "g++");
             sbuilder.addDefinition("compiler_cpp", "gcc -E");
             sbuilder.addDefinition("compiler_ar", "gcc-ar");
+            sbuilder.addDefinition("compiler_ld", "ld.bfd");
             sbuilder.addDefinition("compiler_objcopy", "objcopy");
             sbuilder.addDefinition("compiler_nm", "gcc-nm");
             sbuilder.addDefinition("compiler_ranlib", "gcc-ranlib");

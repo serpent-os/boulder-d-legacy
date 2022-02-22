@@ -15,7 +15,6 @@ builddeps   :
     - llvm-devel
     - libcxx-devel
     - linux-headers
-    - binutils
     - file-devel
 setup       : |
     %configure
