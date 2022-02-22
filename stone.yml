@@ -10,16 +10,12 @@ upstreams   :
     - https://www.nano-editor.org/dist/v5/nano-5.5.tar.xz: 390b81bf9b41ff736db997aede4d1f60b4453fbd75a519a4ddb645f6fd687e4a
 builddeps   :
     - ncurses-devel
-    - libarchive
     - make
     - llvm
     - llvm-devel
     - libcxx-devel
-    - glibc-devel
     - linux-headers
-    - grep
     - binutils
-    - gawk
     - file-devel
 setup       : |
     %configure
