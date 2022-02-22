@@ -22,7 +22,7 @@ import std.sumtype : match;
 public static immutable(Stage) stagePopulateRoot = Stage("populate-root", (StageContext context) {
     /* TODO: Find a way to not hardcode these? */
     auto requiredInstalled = [
-        "bash", "boulder", "coreutils", "dash", "gawk", "glibc-devel", "grep", "fakeroot", "libarchive", "sed", "util-linux"
+        "bash", "boulder", "coreutils", "dash", "gawk", "glibc-devel", "grep", "fakeroot", "libarchive", "linux-headers", "sed", "util-linux"
     ];
     /* TODO: Extend to other architectures.. */
     requiredInstalled ~= context.job.recipe.rootBuild.buildDependencies;
