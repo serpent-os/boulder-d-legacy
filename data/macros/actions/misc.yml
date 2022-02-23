@@ -1,5 +1,9 @@
 actions:
 
+    # Install files to %(bindir)
+    - install_bin: |
+        install -Dm00755 -t %(installroot)/%(bindir)
+
     # Macro to create an empty directory
     - install_dir: |
         install -dm00755
