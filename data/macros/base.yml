@@ -3,7 +3,7 @@
 definitions:
 
     # Basic variables required for packages to build correctly
-    - libsuffix      : "" 
+    - libsuffix      : ""
     - prefix         : "/usr"
     - bindir         : "%(prefix)/bin"
     - sbindir        : "%(prefix)/sbin"
@@ -304,12 +304,8 @@ flags               :
 
     # Optimize for size (OFF)
     - optimize-size:
-        llvm:
-            c     : "-Oz"
-            cxx   : "-Oz"
-        gnu:
-            c     : "-Os"
-            cxx   : "-Os"
+        c     : "-Os"
+        cxx   : "-Os"
 
     # Optimize for speed (OFF)
     - optimize-speed:
