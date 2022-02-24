@@ -12,8 +12,9 @@
 module boulder.buildjob;
 
 import moss.format.source.spec;
-import std.path : buildPath, baseName, dirName, absolutePath, buildNormalizedPath;
+import std.path : baseName, dirName, absolutePath, buildNormalizedPath;
 import std.string : format;
+import std.array : join;
 
 immutable static private auto SharedRootBase = "/var/cache/boulder";
 
@@ -61,15 +62,15 @@ public final class BuildJob
         auto subpath = format!"%s-%s-%s"(_recipe.source.name,
                 _recipe.source.versionIdentifier, _recipe.source.release);
         /* Output */
-        _hostPaths.artefacts = SharedRootBase.buildPath("artefacts", subpath);
+        _hostPaths.artefacts = join([SharedRootBase, "artefacts", subpath], "/");
         /* Where to build */
-        _hostPaths.buildRoot = SharedRootBase.buildPath("build", subpath);
+        _hostPaths.buildRoot = join([SharedRootBase, "build", subpath], "/");
         /* Where to cache */
-        _hostPaths.compilerCache = SharedRootBase.buildPath("ccache");
+        _hostPaths.compilerCache = join([SharedRootBase, "ccache"], "/");
         /* Where is the recipe..? */
         _hostPaths.recipe = path.dirName.absolutePath.buildNormalizedPath;
         /* And where is the rootfs? */
-        _hostPaths.rootfs = SharedRootBase.buildPath("root", subpath);
+        _hostPaths.rootfs = join([SharedRootBase, "root", subpath], "/");
     }
 
     /**

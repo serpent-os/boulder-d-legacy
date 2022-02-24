@@ -97,7 +97,7 @@ private:
     void emitPackage(const(string) outputDirectory, scope Package* pkg, Analyser analyser) @trusted
     {
         import std.stdio : File, writefln;
-        import std.path : buildPath;
+        import std.array : join;
         import std.range : empty;
 
         /* Empty package */
@@ -113,7 +113,7 @@ private:
         }
 
         /* Package path */
-        auto finalPath = outputDirectory.buildPath(pkg.filename);
+        auto finalPath = join([outputDirectory, pkg.filename], "/");
 
         auto fp = File(finalPath, "wb");
         auto writer = new Writer(fp);

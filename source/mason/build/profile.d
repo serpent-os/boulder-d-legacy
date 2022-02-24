@@ -28,7 +28,7 @@ import mason.build.collector;
 import mason.build.context;
 import mason.build.stage;
 import mason.build.manifest;
-import std.path : buildPath;
+import std.array : join;
 import moss.deps.analysis;
 
 /**
@@ -49,8 +49,8 @@ public:
     this(const(string) architecture)
     {
         this._architecture = architecture;
-        this._buildRoot = buildContext.rootDir.buildPath("build", architecture);
-        this._installRoot = buildContext.rootDir.buildPath("install");
+        this._buildRoot = join([buildContext.rootDir, "build", architecture], "/");
+        this._installRoot = join([buildContext.rootDir, "install"], "/");
 
         /* Construct manifests for comparison & emission */
         _sourceManifest = new BuildManifestBinary(architecture);
@@ -468,8 +468,9 @@ private:
     string getWorkDir() @system
     {
         import std.file : dirEntries, SpanMode;
-        import std.path : buildPath, baseName;
+        import std.path : baseName;
         import std.string : startsWith;
+        import std.array : join;
 
         /* TODO: Support workdir variable in spec and verify it exists */
         auto items = dirEntries(buildRoot, SpanMode.shallow, false);
@@ -478,7 +479,7 @@ private:
             auto name = item.name.baseName;
             if (!item.name.startsWith("."))
             {
-                return buildRoot.buildPath(name);
+                return join([buildRoot, name], "/");
             }
         }
 

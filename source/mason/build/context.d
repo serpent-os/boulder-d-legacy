@@ -96,9 +96,9 @@ public final class BuildContext
      */
     pure @property string pkgDir() const @safe nothrow
     {
-        import std.path : buildPath;
+        import std.array : join;
 
-        return _rootDir.buildPath("pkgdir");
+        return join([_rootDir, "pkgdir"], "/");
     }
 
     /**
@@ -106,9 +106,9 @@ public final class BuildContext
      */
     pure @property string sourceDir() const @safe nothrow
     {
-        import std.path : buildPath;
+        import std.array : join;
 
-        return _rootDir.buildPath("sourcedir");
+        return join([_rootDir, "sourcedir"], "/");
     }
 
     /**
@@ -202,16 +202,17 @@ private:
     void loadMacros()
     {
         import std.file : exists, dirEntries, thisExePath, SpanMode;
-        import std.path : buildPath, dirName, baseName;
+        import std.path : dirName, baseName;
         import moss.core.platform : platform;
         import std.string : format;
         import std.exception : enforce;
+        import std.array : join;
 
         MacroFile* file = null;
 
         string resourceDir = "/usr/share/moss/macros";
         string actionDir = null;
-        string localDir = dirName(thisExePath).buildPath("..", "data", "macros");
+        string localDir = join([dirName(thisExePath), "../data/macros"], "/");
 
         /* Prefer local macros */
         if (localDir.exists())
@@ -220,12 +221,12 @@ private:
         }
 
         auto plat = platform();
-        actionDir = resourceDir.buildPath("actions");
+        actionDir = join([resourceDir, "actions"], "/");
 
         /* Architecture specific YMLs that MUST exist */
-        string baseYml = resourceDir.buildPath("base.yml");
-        string nativeYml = resourceDir.buildPath("%s.yml".format(plat.name));
-        string emulYml = resourceDir.buildPath("emul32", "%s.yml".format(plat.name));
+        string baseYml = join([resourceDir, "base.yml"], "/");
+        string nativeYml = join([resourceDir, "%s.yml".format(plat.name)], "/");
+        string emulYml = join([resourceDir, "emul32/%s.yml".format(plat.name)], "/");
 
         enforce(baseYml.exists, baseYml ~ " file cannot be found");
         enforce(nativeYml.exists, nativeYml ~ " cannot be found");

@@ -28,7 +28,7 @@ import std.stdio : File;
 import std.conv : to;
 import std.json;
 import mason.build.context;
-import std.path : buildPath;
+import std.array : join;
 
 /**
  * JSON, write-only implementation of a BuildManifest
@@ -63,7 +63,7 @@ final class BuildManifestJSON : BuildManifest
     {
         import std.algorithm : substitute;
 
-        auto targetPath = buildContext.outputDirectory.buildPath(fileName);
+        auto targetPath = join([buildContext.outputDirectory, fileName], "/");
         auto fp = File(targetPath, "w");
         scope (exit)
         {

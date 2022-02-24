@@ -13,10 +13,11 @@ module boulder.stages.configure_root;
 
 public import boulder.stages : Stage, StageReturn, StageContext;
 
-import std.path : buildPath, dirName;
+import std.path : dirName;
 import std.file : mkdirRecurse, write;
 import mason.build.util : executeCommand, ExecutionError;
 import std.sumtype : match;
+import std.array : join;
 
 /**
  * Go ahead and configure the tree
@@ -24,8 +25,8 @@ import std.sumtype : match;
  * TODO: Don't lock this to protosnek! Use a configuration
  */
 public static immutable(Stage) stageConfigureRoot = Stage("configure-root", (StageContext context) {
-    auto repoFile = context.job.hostPaths.rootfs.buildPath("etc", "moss",
-        "repos.conf.d", "99_repo.conf");
+    auto repoFile = join([context.job.hostPaths.rootfs,
+            "etc/moss/repos.conf.d/99_repo.conf"], "/");
     auto repoDir = repoFile.dirName;
     repoDir.mkdirRecurse();
     write(repoFile, `

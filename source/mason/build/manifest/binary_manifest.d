@@ -24,7 +24,7 @@ module mason.build.manifest.binary_manifest;
 
 public import mason.build.manifest;
 import mason.build.context;
-import std.path : buildPath;
+import std.array : join;
 
 import moss.format.binary.archive_header;
 import moss.format.binary.payload;
@@ -58,7 +58,7 @@ final class BuildManifestBinary : BuildManifest
     {
         import std.algorithm : each;
 
-        auto targetPath = buildContext.outputDirectory.buildPath(fileName);
+        auto targetPath = join([buildContext.outputDirectory, fileName], "/");
         auto fp = File(targetPath, "w");
         auto writer = new Writer(fp);
         writer.compressionType = PayloadCompression.None;

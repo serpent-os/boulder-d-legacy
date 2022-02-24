@@ -14,9 +14,10 @@ module boulder.upstreamcache;
 import moss.core.util : hardLinkOrCopy;
 import std.exception : enforce;
 import std.conv : to;
-import std.path : buildPath, dirName;
+import std.path : dirName;
 import std.file : exists, mkdirRecurse, rename;
 import std.string : format;
+import std.array : join;
 public import moss.format.source.upstream_definition;
 
 /**
@@ -91,7 +92,7 @@ public final class UpstreamCache
         enforce(def.type == UpstreamType.Plain, "UpstreamCache: git not yet supported");
         enforce(def.plain.hash.length >= 5,
                 "UpstreamCache: Hash too short: " ~ to!string(def.plain));
-        return stagingDirectory.buildPath(def.plain.hash);
+        return join([stagingDirectory, def.plain.hash], "/");
     }
 
     /**
@@ -103,8 +104,8 @@ public final class UpstreamCache
         enforce(def.plain.hash.length >= 5,
                 "UpstreamCache: Hash too short: " ~ to!string(def.plain));
 
-        return plainDirectory.buildPath(def.plain.hash[0 .. 5],
-                def.plain.hash[5 .. $], def.plain.hash);
+        return join([plainDirectory, def.plain.hash[0 .. 5],
+                def.plain.hash[5 .. $], def.plain.hash], "/");
     }
 
 private:
@@ -117,15 +118,15 @@ private:
     /**
      * Staging downloads that might be wonky.
      */
-    static immutable(string) stagingDirectory = rootDirectory.buildPath("staging");
+    static immutable(string) stagingDirectory = join([rootDirectory, "staging"], "/");
 
     /**
      * Git clones
      */
-    static immutable(string) gitDirectory = rootDirectory.buildPath("git");
+    static immutable(string) gitDirectory = join([rootDirectory, "git"], "/");
 
     /**
      * Plain downloads
      */
-    static immutable(string) plainDirectory = rootDirectory.buildPath("fetched");
+    static immutable(string) plainDirectory = join([rootDirectory, "fetched"], "/");
 }

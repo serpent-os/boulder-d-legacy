@@ -10,7 +10,7 @@
 module boulder.stages.build_package;
 
 import mason.build.util : executeCommand;
-import std.path : buildPath;
+import std.array : join;
 import std.sumtype : match;
 import std.string : format;
 
@@ -54,7 +54,7 @@ static private StageReturn buildPackage(scope StageContext context)
         "-o", context.job.guestPaths.artefacts,
         /* Set build directory */
         "-b", context.job.guestPaths.buildRoot,
-        context.job.guestPaths.recipe.buildPath(context.job.name)
+        join([context.job.guestPaths.recipe, context.job.name], "/")
     ];
     auto result = executeCommand(context.containerBinary, args, environ, "/");
     auto ret = result.match!((int err) => err != 0 ? StageReturn.Failure

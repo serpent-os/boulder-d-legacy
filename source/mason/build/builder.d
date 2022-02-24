@@ -151,21 +151,21 @@ public:
      */
     void preparePkgFiles() @system
     {
-        import std.array : array;
+        import std.array : array, join;
         import std.file : copy, dirEntries, exists, isDir, mkdirRecurse, SpanMode;
-        import std.path : asRelativePath, buildPath;
+        import std.path : asRelativePath;
 
         /* Create directory for the package files*/
         buildContext.pkgDir.mkdirRecurse();
 
         /* Copy the files directory into the build */
-        auto location = buildContext.specDir.buildPath("pkg");
+        auto location = join([buildContext.specDir, "pkg"], "/");
         if (location.exists && location.isDir)
         {
             foreach (file; dirEntries(location, SpanMode.breadth, false))
             {
                 auto relName = asRelativePath(file.name, location).array;
-                auto destName = buildPath(buildContext.pkgDir, relName);
+                auto destName = join([buildContext.pkgDir, relName], "/");
                 if (file.isDir())
                 {
                     destName.mkdirRecurse();
@@ -351,8 +351,9 @@ private:
         import std.stdio : stdin, stdout, stderr, writeln;
         import std.exception : enforce;
         import std.string : format;
-        import std.path : buildPath, dirName;
+        import std.path : dirName;
         import std.file : mkdirRecurse;
+        import std.array : join;
 
         if (fileInfo.buildID is null)
         {
@@ -364,9 +365,9 @@ private:
 
         auto debugdir = fileInfo.bitSize == 64
             ? "usr/lib/debug/.build-id" : "usr/lib32/debug/.build-id";
-        auto debugInfoPathRelative = debugdir.buildPath(fileInfo.buildID[0 .. 2],
-                fileInfo.buildID[2 .. $] ~ ".debug");
-        auto debugInfoPath = instance.profiles[0].installRoot.buildPath(debugInfoPathRelative);
+        auto debugInfoPathRelative = join([debugdir, fileInfo.buildID[0 .. 2],
+                fileInfo.buildID[2 .. $] ~ ".debug"], "/");
+        auto debugInfoPath = join([instance.profiles[0].installRoot, debugInfoPathRelative], "/");
         auto debugInfoDir = debugInfoPath.dirName;
         debugInfoDir.mkdirRecurse();
 
@@ -588,16 +589,16 @@ private:
      */
     string getBuildRoot() @safe
     {
-        import std.path : buildPath, expandTilde;
+        import std.path : expandTilde;
         import std.file : exists;
         import std.exception : enforce;
         import std.string : format;
+        import std.array : join;
 
         auto hdir = expandTilde("~");
         enforce(hdir.exists, "Home directory not found!");
 
-        return hdir.buildPath(".moss", "buildRoot",
-                "%s-%s".format(buildContext.spec.source.name, buildContext.spec.source.release));
+        return join([hdir, ".moss/buildRoot/%s-%s".format(buildContext.spec.source.name, buildContext.spec.source.release)], "/");
     }
 
     string[] architectures;
