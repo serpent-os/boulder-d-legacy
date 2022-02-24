@@ -17,7 +17,6 @@ public import moss.container.process;
 import moss.container.context;
 import std.exception : enforce;
 import std.file : exists, remove, symlink;
-import std.path : buildPath;
 import std.process;
 import std.stdio : stderr, stdin, stdout;
 import std.string : empty, format, toStringz;

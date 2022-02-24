@@ -17,7 +17,7 @@ module moss.container.fakeroot;
 
 import moss.container.context;
 import std.file : exists;
-import std.path : buildPath;
+import std.array : join;
 
 /**
  * Known locations for the fakeroot executable.
@@ -41,7 +41,7 @@ package FakerootBinary discoverFakeroot()
     /* Iterate sane locations of fakeroot */
     foreach (searchLocation; locations)
     {
-        auto fullPath = context.rootfs.buildPath((cast(string) searchLocation)[1 .. $]);
+        auto fullPath = join([context.rootfs, (cast(string) searchLocation)[1 .. $]], "/");
         if (fullPath.exists)
         {
             return searchLocation;

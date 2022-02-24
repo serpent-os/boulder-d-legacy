@@ -175,7 +175,7 @@ public struct MountPoint
     @property void target(in string target) @safe
     {
         _target = target;
-        /* Join the localised target to the rootfs, removing / for buildPath to work */
+        /* Join the localised target to the rootfs, removing / for join to work */
         realTarget = context.joinPath(target);
     }
 

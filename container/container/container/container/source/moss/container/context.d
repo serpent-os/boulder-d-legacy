@@ -14,7 +14,7 @@ module moss.container.context;
 public import moss.container.fakeroot : FakerootBinary;
 import moss.container.fakeroot : discoverFakeroot;
 import std.concurrency : initOnce;
-import std.path : buildPath;
+import std.array : join;
 import std.stdio : stderr;
 import std.string : startsWith;
 
@@ -112,7 +112,7 @@ public final class Context
      */
     auto joinPath(in string target) @safe
     {
-        return rootfs.buildPath(target.startsWith("/") ? target[1 .. $] : target);
+        return join([rootfs, target.startsWith("/") ? target[1 .. $] : target], "/");
     }
 
     /**

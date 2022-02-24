@@ -23,7 +23,6 @@ import moss.core.cli;
 import std.conv : octal;
 import std.exception : enforce;
 import std.file : exists, isDir;
-import std.path : buildPath;
 import std.stdio : stderr, stdout;
 import std.string : empty;
 

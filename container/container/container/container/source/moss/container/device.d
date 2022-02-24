@@ -16,9 +16,10 @@ public import std.conv : octal;
 import core.sys.posix.sys.stat;
 import moss.container.context;
 import std.file : exists, mkdir, symlink;
-import std.path : baseName, buildPath;
+import std.path : baseName;
 import std.stdint : uint32_t;
 import std.string : format, toStringz;
+import std.array : join;
 
 alias DeviceIdentifer = dev_t;
 
@@ -46,7 +47,7 @@ pure DeviceIdentifer mkdev(in uint32_t major, in uint32_t minor) @safe @nogc not
     return (major << 8) | minor;
 }
 
-/** 
+/**
  * A DeviceNode encapsulates the absolute basics needed to construct
  * our required devices
  */
@@ -82,7 +83,7 @@ package struct DeviceNode
         {
             charPath.mkdir();
         }
-        auto charDevPath = charPath.buildPath(format!"%d:%d"(dev.major, dev.minor));
+        auto charDevPath = join([charPath, format!"%d:%d"(dev.major, dev.minor)], "/");
         auto sourceLink = format!"../%s"(fullPath.baseName);
         symlink(sourceLink, charDevPath);
         return chmod(fullPath.toStringz, mode ^ S_IFCHR) == 0;
