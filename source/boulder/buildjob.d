@@ -41,6 +41,11 @@ package struct BuildPaths
     string buildRoot;
 
     /**
+     * Where to save moss downloads
+     */
+    string pkgCache;
+
+    /**
      * Where is the rootfs?
      */
     string rootfs;
@@ -67,6 +72,8 @@ public final class BuildJob
         _hostPaths.buildRoot = join([SharedRootBase, "build", subpath], "/");
         /* Where to cache */
         _hostPaths.compilerCache = join([SharedRootBase, "ccache"], "/");
+        /* Where to save binaries */
+        _hostPaths.pkgCache = join([SharedRootBase, "pkgCache"], "/");
         /* Where is the recipe..? */
         _hostPaths.recipe = path.dirName.absolutePath.buildNormalizedPath;
         /* And where is the rootfs? */
@@ -101,7 +108,7 @@ public final class BuildJob
     @property ref immutable(BuildPaths) guestPaths() @safe @nogc nothrow const
     {
         static BuildPaths p = BuildPaths("/mason/artefacts", "/mason/recipe",
-                "/mason/ccache", "/mason/build", "/");
+                "/mason/ccache", "/mason/build", "/.moss/cache", "/");
 
         return cast(immutable(BuildPaths)) p;
     }

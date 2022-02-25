@@ -24,7 +24,7 @@ import std.string : toStringz;
 public static immutable(Stage) stageCreateRoot = Stage("create-root", (StageContext context) {
     auto paths = [
         context.job.hostPaths.artefacts, context.job.hostPaths.buildRoot,
-        context.job.hostPaths.compilerCache,
+        context.job.hostPaths.compilerCache, context.job.hostPaths.pkgCache,
     ];
     paths.each!((p) => { p.mkdirRecurse(); chown(p.toStringz, 65534, 65534); }());
     return StageReturn.Success;
