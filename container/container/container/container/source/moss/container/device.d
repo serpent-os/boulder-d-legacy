@@ -83,7 +83,9 @@ package struct DeviceNode
         {
             charPath.mkdir();
         }
-        auto charDevPath = join([charPath, format!"%d:%d"(dev.major, dev.minor)], "/");
+        auto charDevPath = join([
+                charPath, format!"%d:%d"(dev.major, dev.minor)
+                ], "/");
         auto sourceLink = format!"../%s"(fullPath.baseName);
         symlink(sourceLink, charDevPath);
         return chmod(fullPath.toStringz, mode ^ S_IFCHR) == 0;

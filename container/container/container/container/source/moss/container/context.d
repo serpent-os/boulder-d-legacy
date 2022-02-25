@@ -112,7 +112,7 @@ public final class Context
      */
     auto joinPath(in string target) @safe
     {
-        return join([rootfs, target.startsWith("/") ? target[1 .. $] : target], "/");
+        return join([rootfs, target.startsWith("/") ? target[1 .. $]: target], "/");
     }
 
     /**
