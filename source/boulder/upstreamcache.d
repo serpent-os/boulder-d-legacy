@@ -104,8 +104,10 @@ public final class UpstreamCache
         enforce(def.plain.hash.length >= 5,
                 "UpstreamCache: Hash too short: " ~ to!string(def.plain));
 
-        return join([plainDirectory, def.plain.hash[0 .. 5],
-                def.plain.hash[5 .. $], def.plain.hash], "/");
+        return join([
+                plainDirectory, def.plain.hash[0 .. 5], def.plain.hash[5 .. $],
+                def.plain.hash
+                ], "/");
     }
 
 private:

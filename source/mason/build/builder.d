@@ -365,9 +365,13 @@ private:
 
         auto debugdir = fileInfo.bitSize == 64
             ? "usr/lib/debug/.build-id" : "usr/lib32/debug/.build-id";
-        auto debugInfoPathRelative = join([debugdir, fileInfo.buildID[0 .. 2],
-                fileInfo.buildID[2 .. $] ~ ".debug"], "/");
-        auto debugInfoPath = join([instance.profiles[0].installRoot, debugInfoPathRelative], "/");
+        auto debugInfoPathRelative = join([
+                debugdir, fileInfo.buildID[0 .. 2],
+                fileInfo.buildID[2 .. $] ~ ".debug"
+                ], "/");
+        auto debugInfoPath = join([
+                instance.profiles[0].installRoot, debugInfoPathRelative
+                ], "/");
         auto debugInfoDir = debugInfoPath.dirName;
         debugInfoDir.mkdirRecurse();
 
@@ -598,7 +602,11 @@ private:
         auto hdir = expandTilde("~");
         enforce(hdir.exists, "Home directory not found!");
 
-        return join([hdir, ".moss/buildRoot/%s-%s".format(buildContext.spec.source.name, buildContext.spec.source.release)], "/");
+        return join([
+                hdir,
+                ".moss/buildRoot/%s-%s".format(buildContext.spec.source.name,
+                    buildContext.spec.source.release)
+                ], "/");
     }
 
     string[] architectures;
