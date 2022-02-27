@@ -11,7 +11,6 @@ project(
 container_sources = [
 	'source/moss/container/fakeroot.d',
 	'source/moss/container/context.d',
-	'source/moss/container/mounts.d',
 	'source/moss/container/package.d',
 	'source/moss/container/process.d',
 	'source/moss/container/device.d',

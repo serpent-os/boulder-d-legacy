@@ -12,11 +12,11 @@
 module moss.container;
 
 public import moss.container.device;
-public import moss.container.mounts;
+public import moss.core.mounts;
 public import moss.container.process;
 import moss.container.context;
 import std.exception : enforce;
-import std.file : exists, remove, symlink;
+import std.file : exists, remove, symlink, mkdirRecurse;
 import std.process;
 import std.stdio : stderr, stdin, stdout;
 import std.string : empty, format, toStringz;
@@ -33,20 +33,22 @@ public final class Container
     {
         /* Default mount points */
         mountPoints = [
-            MountPoint("proc", "proc",
-                    MountOptions.NoSuid | MountOptions.NoDev | MountOptions.NoExec | MountOptions.RelativeAccessTime,
-                    "/proc"),
-            MountPoint("sysfs", "sysfs",
-                    MountOptions.NoSuid | MountOptions.NoDev | MountOptions.NoExec | MountOptions.RelativeAccessTime,
-                    "/sys"),
-            MountPoint("tmpfs", "tmpfs", MountOptions.NoSuid | MountOptions.NoDev, "/tmp"),
+            Mount("proc", context.joinPath("/proc"), "proc",
+                    MountFlags.NoSuid | MountFlags.NoDev | MountFlags.NoExec
+                    | MountFlags.RelativeAccessTime),
+            Mount("sysfs", context.joinPath("/sys"), "sysfs",
+                    MountFlags.NoSuid | MountFlags.NoDev | MountFlags.NoExec
+                    | MountFlags.RelativeAccessTime),
+            Mount("tmpfs", context.joinPath("/tmp"), "tmpfs",
+                    MountFlags.NoSuid | MountFlags.NoDev),
 
             /* /dev points */
-            MountPoint("tmpfs", "tmpfs", MountOptions.NoSuid | MountOptions.NoExec, "/dev"),
-            MountPoint("tmpfs", "tmpfs", MountOptions.NoSuid | MountOptions.NoDev, "/dev/shm"),
-            MountPoint("devpts", "devpts",
-                    MountOptions.NoSuid | MountOptions.NoExec | MountOptions.RelativeAccessTime,
-                    "/dev/pts"),
+            Mount("tmpfs", context.joinPath("/dev"), "tmpfs",
+                    MountFlags.NoSuid | MountFlags.NoExec),
+            Mount("tmpfs", context.joinPath("/dev/shm"), "tmpfs",
+                    MountFlags.NoSuid | MountFlags.NoDev),
+            Mount("devpts", context.joinPath("/dev/pts"), "devpts",
+                    MountFlags.NoSuid | MountFlags.NoExec | MountFlags.RelativeAccessTime),
         ];
     }
 
@@ -61,7 +63,7 @@ public final class Container
     /**
      * Add a mountpoint to the system
      */
-    void add(MountPoint p) @safe
+    void add(Mount p) @safe
     {
         mountPoints ~= p;
     }
@@ -81,9 +83,12 @@ public final class Container
         /* Setup mounts */
         foreach (ref m; mountPoints)
         {
-            if (!m.up())
+            m.target.mkdirRecurse();
+            auto err = m.mount();
+            if (!err.isNull)
             {
-                stderr.writeln("Failed to activate mountpoint: ", m.target);
+                stderr.writeln("Failed to activate mountpoint: ", m.target,
+                        ", ", err.get.toString);
                 /* Remove the mountpoint now */
                 mountPoints = mountPoints.remove!((m2) => m.target == m2.target);
                 return 1;
@@ -114,9 +119,11 @@ private:
     {
         foreach_reverse (ref m; mountPoints)
         {
-            if (!m.down())
+            m.unmountFlags = UnmountFlags.Force | UnmountFlags.Detach;
+            auto err = m.unmount();
+            if (!err.isNull())
             {
-                stderr.writeln("Failed to bring down mountpoint: ", m);
+                stderr.writeln("Failed to bring down mountpoint: ", m, ", ", err.get.toString);
             }
         }
     }
@@ -169,5 +176,5 @@ private:
     }
 
     Process[] processes;
-    MountPoint[] mountPoints;
+    Mount[] mountPoints;
 }

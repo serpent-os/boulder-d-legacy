@@ -18,7 +18,7 @@ import core.sys.posix.sys.wait;
 import core.sys.posix.unistd : fork, geteuid;
 import moss.container;
 import moss.container.context;
-import moss.container.mounts;
+import moss.core.mounts;
 import moss.core.cli;
 import std.conv : octal;
 import std.exception : enforce;
@@ -149,12 +149,12 @@ public struct ContainerCLI
         /* Work the RO bindmounts in */
         foreach (source, target; bindMountsRO)
         {
-            c.add(MountPoint(source, null, MountOptions.Bind | MountOptions.ReadOnly, target));
+            c.add(Mount.bindRO(source, context.joinPath(target)));
         }
         /* Likewise for RW mounts */
         foreach (source, target; bindMountsRW)
         {
-            c.add(MountPoint(source, null, MountOptions.Bind, target));
+            c.add(Mount.bindRW(source, context.joinPath(target)));
         }
         return c.run();
     }
