@@ -13,7 +13,7 @@ module boulder.buildjob;
 
 import moss.format.source.spec;
 import std.path : baseName, dirName, absolutePath, buildNormalizedPath;
-import std.string : format;
+import std.string : format, startsWith;
 import std.array : join;
 
 immutable static private auto SharedRootBase = "/var/cache/boulder";
@@ -121,6 +121,16 @@ public final class BuildJob
     pure @property ref immutable(BuildPaths) hostPaths() @safe @nogc nothrow const
     {
         return cast(immutable(BuildPaths)) _hostPaths;
+    }
+
+    /**
+     * Safely join the path onto the rootfs tree
+     */
+    auto joinPath(in string target) @safe nothrow const
+    {
+        return join([
+                _hostPaths.rootfs, target.startsWith("/") ? target[1 .. $]: target
+                ], "/");
     }
 
 private:

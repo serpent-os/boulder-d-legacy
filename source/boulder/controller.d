@@ -23,6 +23,7 @@
 module boulder.controller;
 
 import boulder.buildjob;
+import moss.core.mounts;
 import moss.core.util : computeSHA256;
 import moss.fetcher;
 import moss.format.source;
@@ -121,8 +122,6 @@ public final class Controller : StageContext
         recipe.parse();
 
         _job = new BuildJob(recipe, filename);
-        writeln(_job.guestPaths);
-        writeln(_job.hostPaths);
         scope (exit)
         {
             fi.close();
@@ -175,6 +174,25 @@ public final class Controller : StageContext
                 break;
             }
         }
+
+        /* Unmount anything mounted */
+        foreach_reverse (ref m; mountPoints)
+        {
+            m.unmountFlags = UnmountFlags.Force | UnmountFlags.Detach;
+            auto err = m.unmount();
+            if (!err.isNull())
+            {
+                writefln("[boulder] Error unmounting %s: %s", m.target, err.get.toString);
+            }
+        }
+    }
+
+    /**
+     * Add mounts to track list to unmount them
+     */
+    void addMount(in Mount mount) @safe nothrow
+    {
+        mountPoints ~= mount;
     }
 
 private:
@@ -226,4 +244,6 @@ private:
     UpstreamCache _upstreamCache = null;
     FetchController _fetcher = null;
     bool failFlag = false;
+
+    Mount[] mountPoints;
 }

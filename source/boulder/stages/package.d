@@ -12,6 +12,7 @@
 
 module boulder.stages;
 
+public import moss.core.mounts;
 public import boulder.buildjob : BuildJob;
 public import boulder.upstreamcache;
 public import boulder.stages.build_package;
@@ -68,6 +69,11 @@ public interface StageContext
      * Returns: The underlying fetch implementation
      */
     pure @property FetchContext fetcher() @safe @nogc nothrow;
+
+    /**
+     * Add a mounted mointpoint in order to manually unmount later
+     */
+    void addMount(in Mount mount) @safe nothrow;
 }
 
 /**
