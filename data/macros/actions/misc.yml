@@ -18,7 +18,7 @@ actions:
 
     # Patch sources from file (use: '%patch ${file}'; Add -p# at end if needed
     - patch: |
-        patch -E -f -p1 -i
+        patch -f -p1 -i
 
     # Create a tmpfiles.d file for the package with given content
     - tmpfiles: |
