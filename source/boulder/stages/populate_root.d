@@ -23,8 +23,8 @@ public static immutable(Stage) stagePopulateRoot = Stage("populate-root", (Stage
     /* TODO: Find a way to not hardcode these? */
     auto requiredInstalled = [
         "bash", "boulder", "coreutils", "dash", "diffutils", "gawk", "glibc-devel",
-        "grep", "fakeroot", "findutils", "libarchive", "linux-headers", "sed",
-        "util-linux"
+        "grep", "fakeroot", "findutils", "libarchive", "linux-headers",
+        "pkgconf", "sed", "util-linux"
     ];
     /* TODO: Extend to other architectures.. */
     requiredInstalled ~= context.job.recipe.rootBuild.buildDependencies;
