@@ -21,9 +21,9 @@ definitions:
     # Default cmake options as passed to cmake
     - options_cmake: |
         -G Ninja . -B "%(builddir)" \
-        -DCMAKE_C_FLAGS="%(cflags)" \
-        -DCMAKE_CXX_FLAGS="%(cxxflags)" \
-        -DCMAKE_LD_FLAGS="%(ldflags)" \
+        -DCMAKE_C_FLAGS="${CFLAGS}" \
+        -DCMAKE_CXX_FLAGS="${CXXFLAGS}" \
+        -DCMAKE_LD_FLAGS="${LDFLAGS}" \
         -DCMAKE_BUILD_TYPE="Release" \
         -DCMAKE_INSTALL_LIBDIR="lib" \
         -DCMAKE_INSTALL_PREFIX="%(prefix)" \
