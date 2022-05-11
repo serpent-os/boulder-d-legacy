@@ -10,6 +10,21 @@ actions:
         rm %(pgo_dir)/combined.profdata
         llvm-profdata merge --failure-mode=all -output=%(pgo_dir)/combined.profdata %(pgo_dir)/ir.profdata %(pgo_dir)/CS/default*.profraw
 
+    # Instrument file with llvm-bolt
+    - bolt_instr: |
+        binstr(){
+            mv ${1} ${1}.orig
+            llvm-bolt ${1}.orig -instrument -o ${1}
+        }
+        binstr
+
+    # Apply bolt profile
+    - bolt_opt: |
+        boptim(){
+            llvm-bolt ${1}.orig -o ${1}.bolt -data=/tmp/prof.fdata -reorder-blocks=cache+ -reorder-functions=hfsort+ -split-functions=3 -split-all-cold -split-eh -dyno-stats -icf=1
+            cp ${1}.bolt ${1}
+        }
+        boptim
 tuning              :
     # A set of groups we can toggle from the "tune" key
 
