@@ -29,7 +29,7 @@ actions:
     # Apply bolt profile
     - bolt_opt: |
         boptim(){
-            llvm-bolt ${1}.orig -o ${1}.bolt -data=%(pgo_dir)/$(basename ${1}).fdata -reorder-blocks=cache+ -reorder-functions=hfsort+ -split-functions=3 -split-all-cold -split-eh -dyno-stats -icf=1
+            llvm-bolt ${1}.orig -o ${1}.bolt -data=%(pgo_dir)/$(basename ${1}).fdata -reorder-blocks=cache+ -reorder-functions=hfsort+ -split-functions=3 -split-all-cold -split-eh -dyno-stats -icf=1 -plt=all -use-gnu-stack
             cp ${1}.bolt ${1}
         }
         boptim
