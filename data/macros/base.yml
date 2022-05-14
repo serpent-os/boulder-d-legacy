@@ -486,6 +486,12 @@ packages          :
         paths:
             - /usr/lib/debug
 
+    # Template for a -libs sub-package which can be used by adding paths via the stone.yml file
+    - "%(name)-libs":
+        summary: "Library files for %(name)"
+        description: |
+            Library files for %(name), typically pulled in as a dependency of another package.
+
     # 32-bit compat libraries
     - "%(name)-32bit":
         summary: "Provides 32-bit runtime libraries for %(name)"
