@@ -26,8 +26,8 @@ import std.array : join;
  */
 public static immutable(Stage) stageConfigureRoot = Stage("configure-root", (StageContext context) {
     auto repoFile = join([
-            context.job.hostPaths.rootfs, "etc/moss/repos.conf.d/99_repo.conf"
-        ], "/");
+        context.job.hostPaths.rootfs, "etc/moss/repos.conf.d/99_repo.conf"
+    ], "/");
     auto repoDir = repoFile.dirName;
     repoDir.mkdirRecurse();
     write(repoFile, `

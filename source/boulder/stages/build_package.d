@@ -43,7 +43,8 @@ static private StageReturn buildPackage(scope StageContext context)
                 context.job.guestPaths.compilerCache),
         /* recipe tree */
         "--bind-ro",
-        format!"%s=%s"(context.job.hostPaths.recipe, context.job.guestPaths.recipe),
+        format!"%s=%s"(context.job.hostPaths.recipe,
+                context.job.guestPaths.recipe),
         /* Enable colours */
         "-s", "TERM=xterm-256color",
         /* Fakeroot, end of options */
