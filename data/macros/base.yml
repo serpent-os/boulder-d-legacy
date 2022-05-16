@@ -163,6 +163,10 @@ tuning              :
                 enabled: icf-all
         default: safe
 
+    # Enable Ignore data address equality
+    - idae:
+        enabled: idae
+
     # Enable Polly
     - polly:
         enabled: polly
@@ -256,7 +260,7 @@ flags               :
     - bindnow:
         ld        : "-Wl,-z,relro,-z,now"
 
-    # Toggle symbolic (OFF)
+    # Toggle symbolic (ON symbolic-functions)
     - symbolic-all:
         ld        : "-Wl,-Bsymbolic"
 
@@ -272,7 +276,7 @@ flags               :
         c         : "-D_FORTIFY_SOURCE=2"
         cxx       : "-D_FORTIFY_SOURCE=2"
 
-    # Hardening (ON harden2)
+    # Hardening (ON harden-lvl1)
     - harden-lvl1:
         c         : "-fstack-protector --param ssp-buffer-size=32"
         cxx       : "-fstack-protector --param ssp-buffer-size=32"
@@ -281,11 +285,9 @@ flags               :
         llvm:
             c         : "-fstack-protector-strong -fstack-clash-protection -fPIE --param ssp-buffer-size=4"
             cxx       : "-fstack-protector-strong -fstack-clash-protection -fPIE --param ssp-buffer-size=4"
-            ld        : "-Wl,--pie"
         gnu:
             c         : "-fstack-protector-strong -fstack-clash-protection -fPIE --param ssp-buffer-size=4"
             cxx       : "-fstack-protector-strong -fstack-clash-protection -fPIE --param ssp-buffer-size=4"
-            ld        : "-Wl,-pie"
 
     # Use section splitting, improves GC without lto only (OFF)
     - sections:
@@ -297,7 +299,7 @@ flags               :
         c         : "-Ofast"
         cxx       : "-Ofast"
 
-    # Generic optimisation case
+    # Generic optimisation case (ON)
     - optimize-generic:
         c         : "-O2"
         cxx       : "-O2"
@@ -345,10 +347,15 @@ flags               :
         llvm:
             ld    : "-Wl,--icf=all"
 
-    # Enable LLVM ICF optimisations (OFF)
+    # Enable LLVM ICF optimisations (ON)
     - icf-safe:
         llvm:
             ld    : "-Wl,--icf=safe"
+
+    # Ignore data address equality (OFF)
+    - idae:
+        llvm:
+            ld    : "-Wl,--ignore-data-address-equality"
 
     # Enable LLVM polly optimisations (OFF)
     - polly:
@@ -411,7 +418,7 @@ flags               :
             c         : "-fpch-instantiate-templates"
             cxx       : "-fpch-instantiate-templates"
 
-    # Toggle asneeded (OFF)
+    # Toggle asneeded (ON)
     - asneeded:
         ld        : "-Wl,--as-needed"
 
@@ -439,7 +446,7 @@ flags               :
         llvm:
             cxx       : "-fexperimental-relative-c++-abi-vtables"
 
-    # Toggle relr (OFF)
+    # Toggle relr (ON)
     - relr:
         gnu:
             ld        : "-Wl,-z,pack-relative-relocs"
