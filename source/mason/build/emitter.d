@@ -139,7 +139,8 @@ private:
     void generateMetadata(scope Analyser analyser, scope Writer writer, scope Package* pkg) @trusted
     {
         import moss.format.binary.payload.meta : MetaPayload, RecordTag, RecordType;
-        import std.algorithm : each, uniq;
+        import std.algorithm : each, uniq, filter, map, sort;
+        import std.array : array;
 
         auto met = new MetaPayload();
         met.addRecord(RecordType.String, RecordTag.Name, pkg.pd.name);
@@ -161,7 +162,12 @@ private:
 
         auto bucket = analyser.bucket(pkg.pd.name);
         auto providers = bucket.providers();
-        auto dependencies = bucket.dependencies();
+        auto specifiedDeps = pkg.pd.runtimeDependencies.map!((const n) => Dependency(n,
+                DependencyType.PackageName));
+        auto discoveredDeps = bucket.dependencies();
+        auto dependenciesFull = specifiedDeps.array() ~ discoveredDeps.array();
+        dependenciesFull.sort();
+        auto dependencies = dependenciesFull.uniq();
 
         /* TODO: Record in metadata */
         import std.stdio : writefln, writeln;
