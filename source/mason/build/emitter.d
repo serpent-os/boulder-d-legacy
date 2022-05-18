@@ -177,7 +177,7 @@ private:
         if (!providers.empty)
         {
             writefln(" -> Providers [%s]", pkg.pd.name);
-            providers.each!((p) => writefln(" -> %s", p));
+            providers.each!((p) => writefln("    - %s", p));
             foreach (prov; providers)
             {
                 met.addRecord(RecordType.Provider, RecordTag.Provides, prov);
