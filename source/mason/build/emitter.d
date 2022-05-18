@@ -187,7 +187,7 @@ private:
         if (!dependencies.empty)
         {
             writefln(" -> Dependencies [%s]", pkg.pd.name);
-            dependencies.each!((d) => writefln(" -> %s", d));
+            dependencies.each!((d) => writefln("    - %s", d));
             foreach (dep; dependencies)
             {
                 met.addRecord(RecordType.Dependency, RecordTag.Depends, dep);
