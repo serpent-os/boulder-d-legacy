@@ -483,6 +483,8 @@ packages          :
             - /usr/lib/pkgconfig
             - /usr/share/aclocal
             - /usr/share/pkgconfig
+        rundeps:
+            - "%(name)"
 
     # Main dbginfo package
     - "%(name)-dbginfo":
@@ -520,6 +522,8 @@ packages          :
             - /usr/lib32/cmake
             - /usr/lib32/lib*.so
             - /usr/lib32/pkgconfig
+        rundeps:
+            - "%(name)-32bit"
 
     # 32-bit debug symbols
     - "%(name)-32bit-dbginfo":
