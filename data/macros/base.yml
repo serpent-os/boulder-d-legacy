@@ -511,7 +511,7 @@ packages          :
             - /usr/lib32
             - /usr/lib32/lib*.so.*
         rundeps:
-            - "%(name)
+            - "%(name)"
 
     # 32-bit development files
     - "%(name)-32bit-devel":
