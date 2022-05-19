@@ -26,6 +26,27 @@ public static immutable(Stage) stagePopulateRoot = Stage("populate-root", (Stage
         "grep", "fakeroot", "findutils", "libarchive", "linux-headers",
         "pkgconf", "sed", "util-linux"
     ];
+
+    /* Needed packages for GNU builds */
+    auto requiredGNU = [
+        "binutils", "gcc-devel"
+    ];
+
+    /* Needed packages for LLVM builds */
+    auto requiredLLVM = [
+        "clang"
+    ];
+
+    /* Append additional packages to support the toolchain in use */
+    if (context.job.recipe.options.toolchain == "llvm")
+    {
+        requiredInstalled ~= requiredLLVM;
+    }
+    else
+    {
+        requiredInstalled ~= requiredGNU;
+    }
+
     /* TODO: Extend to other architectures.. */
     requiredInstalled ~= context.job.recipe.rootBuild.buildDependencies;
     requiredInstalled ~= context.job.recipe.rootBuild.checkDependencies;
