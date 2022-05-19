@@ -28,6 +28,7 @@ public static immutable(Stage) stagePopulateRoot = Stage("populate-root", (Stage
     ];
     /* TODO: Extend to other architectures.. */
     requiredInstalled ~= context.job.recipe.rootBuild.buildDependencies;
+    requiredInstalled ~= context.job.recipe.rootBuild.checkDependencies;
 
     string[string] env;
     env["PATH"] = "/usr/bin";
