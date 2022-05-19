@@ -510,6 +510,8 @@ packages          :
         paths:
             - /usr/lib32
             - /usr/lib32/lib*.so.*
+        rundeps:
+            - "%(name)
 
     # 32-bit development files
     - "%(name)-32bit-devel":
@@ -524,6 +526,7 @@ packages          :
             - /usr/lib32/pkgconfig
         rundeps:
             - "%(name)-32bit"
+            - "%(name)-devel"
 
     # 32-bit debug symbols
     - "%(name)-32bit-dbginfo":
