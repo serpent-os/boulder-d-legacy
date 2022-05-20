@@ -46,7 +46,7 @@ import core.sys.posix.sys.stat;
 private static immutable auto regularDirectoryMode = S_IFDIR | S_IROTH | S_IXOTH
     | S_IRGRP | S_IXGRP | S_IRWXU;
 
-/* 
+/*
  * Do not allow non /usr paths!
  */
 private static AnalysisReturn dropBadPaths(scope Analyser analyser, ref FileInfo info)
@@ -247,11 +247,16 @@ private:
             /* Highest policy */
             AnalysisChain("badFiles", [&dropBadPaths], 100),
 
+            /* Handle binary providers */
+            AnalysisChain("binary", [
+                    &acceptBinaryFiles, &handleBinaryFiles
+                    ], 100),
+
             /* Handle ELF files */
             AnalysisChain("elves", [
                     &acceptElfFiles, &scanElfFiles, &copyElfDebug,
                     &stripElfFiles, &includeElfFiles,
-                    ], 100),
+                    ], 90),
 
             /* Handle pkgconfig files */
             AnalysisChain("pkgconfig", [
@@ -281,12 +286,7 @@ private:
         auto filename = fileInfo.path;
         auto directory = filename.dirName;
 
-        if (!directory.canFind("/pkgconfig"))
-        {
-            return AnalysisReturn.NextHandler;
-        }
-
-        if (!filename.endsWith(".pc"))
+        if (!directory.canFind("/pkgconfig") || !filename.endsWith(".pc"))
         {
             return AnalysisReturn.NextHandler;
         }
@@ -338,6 +338,32 @@ private:
 
         auto providerName = fileInfo.path.baseName()[0 .. $ - extension];
         auto prov = Provider(providerName, ProviderType.CmakeName);
+        analyser.bucket(fileInfo).addProvider(prov);
+        return AnalysisReturn.NextHandler;
+    }
+
+    /**
+     * Detect files in /usr/bin
+     */
+    static AnalysisReturn acceptBinaryFiles(scope Analyser analyser, ref FileInfo fileInfo)
+    {
+        auto filename = fileInfo.path;
+
+        if (!filename.startsWith("/usr/bin/"))
+        {
+            return AnalysisReturn.NextHandler;
+        }
+
+        return AnalysisReturn.NextFunction;
+    }
+
+    /**
+     * Add provider for files in /usr/bin that people can run from PATH
+     */
+    static AnalysisReturn handleBinaryFiles(scope Analyser analyser, ref FileInfo fileInfo)
+    {
+        auto providerName = fileInfo.path()[9 .. $];
+        auto prov = Provider(providerName, ProviderType.BinaryName);
         analyser.bucket(fileInfo).addProvider(prov);
         return AnalysisReturn.NextHandler;
     }
