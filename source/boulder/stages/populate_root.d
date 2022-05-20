@@ -28,14 +28,10 @@ public static immutable(Stage) stagePopulateRoot = Stage("populate-root", (Stage
     ];
 
     /* Needed packages for GNU builds */
-    auto requiredGNU = [
-        "binutils", "gcc-devel"
-    ];
+    auto requiredGNU = ["binutils", "gcc-devel"];
 
     /* Needed packages for LLVM builds */
-    auto requiredLLVM = [
-        "clang"
-    ];
+    auto requiredLLVM = ["clang"];
 
     /* Append additional packages to support the toolchain in use */
     if (context.job.recipe.options.toolchain == "llvm")
