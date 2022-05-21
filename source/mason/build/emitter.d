@@ -162,8 +162,7 @@ private:
 
         auto bucket = analyser.bucket(pkg.pd.name);
         auto providers = bucket.providers();
-        auto specifiedDeps = pkg.pd.runtimeDependencies.map!((const n) => Dependency(n,
-                DependencyType.PackageName));
+        auto specifiedDeps = pkg.pd.runtimeDependencies.map!((const n) => fromString!Dependency(n));
         auto discoveredDeps = bucket.dependencies();
         auto dependenciesFull = specifiedDeps.array() ~ discoveredDeps.array();
         dependenciesFull.sort();
