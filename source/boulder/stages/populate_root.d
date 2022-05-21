@@ -26,12 +26,23 @@ public static immutable(Stage) stagePopulateRoot = Stage("populate-root", (Stage
         "grep", "fakeroot", "findutils", "libarchive", "linux-headers",
         "pkgconf", "sed", "util-linux"
     ];
+    auto requiredEMUL32 = ["glibc-32bit-devel"];
 
     /* Needed packages for GNU builds */
     auto requiredGNU = ["binutils", "gcc-devel"];
+    auto requiredGNU32 = ["gcc-32bit-devel"];
 
     /* Needed packages for LLVM builds */
     auto requiredLLVM = ["clang"];
+    auto requiredLLVM32 = ["clang-32bit", "libcxx-32bit-devel"];
+
+    /* Append 32bit packages if enabled in the stone.yml */
+    if (context.job.recipe.options.emul32)
+    {
+        requiredInstalled ~= requiredEMUL32;
+        requiredGNU ~= requiredGNU32;
+        requiredLLVM ~= requiredLLVM32;
+    }
 
     /* Append additional packages to support the toolchain in use */
     if (context.job.recipe.options.toolchain == "llvm")
