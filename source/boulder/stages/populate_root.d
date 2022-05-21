@@ -37,7 +37,7 @@ public static immutable(Stage) stagePopulateRoot = Stage("populate-root", (Stage
     auto requiredLLVM32 = ["clang-32bit", "libcxx-32bit-devel"];
 
     /* Append 32bit packages if enabled in the stone.yml */
-    if (context.job.recipe.options.emul32)
+    if (context.job.recipe.emul32)
     {
         requiredInstalled ~= requiredEMUL32;
         requiredGNU ~= requiredGNU32;
