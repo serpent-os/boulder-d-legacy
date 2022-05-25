@@ -193,6 +193,10 @@ tuning              :
     - nosemantic:
         enabled: nosemantic
 
+    # Enable nodaed
+    - nodaed:
+        enabled: nodaed
+
     # Enable asneeded
     - asneeded:
         enabled: asneeded
@@ -406,6 +410,12 @@ flags               :
     - nosemantic:
         c         : "-fno-semantic-interposition"
         cxx       : "-fno-semantic-interposition"
+
+    # Toggle -fno-direct-access-external-data (OFF)
+    - nodaed:
+        llvm:
+            c         : "-fno-direct-access-external-data"
+            cxx       : "-fno-direct-access-external-data"
 
     # Prefer 128-bit vector width (ON)
     - avxwidth-128:
