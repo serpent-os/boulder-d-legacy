@@ -246,7 +246,7 @@ flags               :
     - base:
         c         : "-pipe -Wformat -Wformat-security -Wno-error -fPIC"
         cxx       : "-pipe -Wformat -Wformat-security -Wno-error -fPIC"
-        ld        : "-Wl,-O2,-z,max-page-size=0x1000,--gc-sections"
+        ld        : "-Wl,-O2,--gc-sections"
 
     - omit-frame-pointer:
         c         : "-fomit-frame-pointer"
