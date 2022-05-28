@@ -1,22 +1,26 @@
 actions:
 
     # Run meson with the default options in a subdirectory
-    - meson: |
-        test -e ./meson.build || ( echo "%%meson: The ./meson.build script could not be found" ; exit 1 )
-        CFLAGS="${CFLAGS}" CXXFLAGS="${CXXFLAGS}" LDFLAGS="${LDFLAGS}" meson %(options_meson)
+    - meson:
+        command: |
+            test -e ./meson.build || ( echo "%%meson: The ./meson.build script could not be found" ; exit 1 )
+            CFLAGS="${CFLAGS}" CXXFLAGS="${CXXFLAGS}" LDFLAGS="${LDFLAGS}" meson %(options_meson)
 
     # Run meson with unity build enabled
-    - meson_unity: |
-        test -e ./meson.build || ( echo "%%meson: The ./meson.build script could not be found" ; exit 1 )
-        CFLAGS="${CFLAGS}" CXXFLAGS="${CXXFLAGS}" LDFLAGS="${LDFLAGS}" meson --unity on %(options_meson)
+    - meson_unity:
+        command: |
+            test -e ./meson.build || ( echo "%%meson: The ./meson.build script could not be found" ; exit 1 )
+            CFLAGS="${CFLAGS}" CXXFLAGS="${CXXFLAGS}" LDFLAGS="${LDFLAGS}" meson --unity on %(options_meson)
 
     # Build the meson project
-    - meson_build: |
-        ninja -v -j "%(jobs)" -C "%(builddir)"
+    - meson_build:
+        command: |
+            ninja -v -j "%(jobs)" -C "%(builddir)"
 
     # Install results of the build to the destination directory
-    - meson_install: |
-        DESTDIR="%(installroot)" ninja install -v -j "%(jobs)" -C "%(builddir)"
+    - meson_install:
+        command: |
+            DESTDIR="%(installroot)" ninja install -v -j "%(jobs)" -C "%(builddir)"
 
 definitions:
 

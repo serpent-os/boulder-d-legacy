@@ -2,37 +2,42 @@ actions:
     # Actions required for PGO builds
 
     # Merge LLVM profile data, copies to combined.profdata in case there's no stage2
-    - llvm_merge_s1: |
-        llvm-profdata merge --failure-mode=all -output=%(pgo_dir)/ir.profdata %(pgo_dir)/IR/default*.profraw
-        cp %(pgo_dir)/ir.profdata %(pgo_dir)/combined.profdata
+    - llvm_merge_s1:
+        command: |
+            llvm-profdata merge --failure-mode=all -output=%(pgo_dir)/ir.profdata %(pgo_dir)/IR/default*.profraw
+            cp %(pgo_dir)/ir.profdata %(pgo_dir)/combined.profdata
     # Merge LLVM profile data after stage2 PGO workload
-    - llvm_merge_s2: |
-        rm %(pgo_dir)/combined.profdata
-        llvm-profdata merge --failure-mode=all -output=%(pgo_dir)/combined.profdata %(pgo_dir)/ir.profdata %(pgo_dir)/CS/default*.profraw
+    - llvm_merge_s2:
+        command: |
+            rm %(pgo_dir)/combined.profdata
+            llvm-profdata merge --failure-mode=all -output=%(pgo_dir)/combined.profdata %(pgo_dir)/ir.profdata %(pgo_dir)/CS/default*.profraw
 
     # Instrument file with llvm-bolt
-    - bolt_instr: |
-        binstr(){
-            mv ${1} ${1}.orig
-            mkdir -p %(pgo_dir)/BOLT
-            llvm-bolt ${1}.orig -instrument --instrumentation-file=%(pgo_dir)/BOLT/$(basename ${1}) --instrumentation-file-append-pid ${2} ${3} ${4} -o ${1}
-        }
-        binstr
+    - bolt_instr:
+        command: |
+            binstr(){
+                mv ${1} ${1}.orig
+                mkdir -p %(pgo_dir)/BOLT
+                llvm-bolt ${1}.orig -instrument --instrumentation-file=%(pgo_dir)/BOLT/$(basename ${1}) --instrumentation-file-append-pid ${2} ${3} ${4} -o ${1}
+            }
+            binstr
 
     # Instrument file with llvm-bolt
-    - bolt_merge: |
-        bmerge(){
-            merge-fdata %(pgo_dir)/BOLT/$(basename ${1}).*.fdata > %(pgo_dir)/$(basename ${1}).fdata
-        }
-        bmerge
+    - bolt_merge:
+        command: |
+            bmerge(){
+                merge-fdata %(pgo_dir)/BOLT/$(basename ${1}).*.fdata > %(pgo_dir)/$(basename ${1}).fdata
+            }
+            bmerge
 
     # Apply bolt profile
-    - bolt_opt: |
-        boptim(){
-            llvm-bolt ${1}.orig -o ${1}.bolt -data=%(pgo_dir)/$(basename ${1}).fdata -reorder-blocks=cache+ -reorder-functions=hfsort+ -split-functions=3 -split-all-cold -split-eh -dyno-stats -icf=1 -use-gnu-stack ${2} ${3} ${4}
-            cp ${1}.bolt ${1}
-        }
-        boptim
+    - bolt_opt:
+        command: |
+            boptim(){
+                llvm-bolt ${1}.orig -o ${1}.bolt -data=%(pgo_dir)/$(basename ${1}).fdata -reorder-blocks=cache+ -reorder-functions=hfsort+ -split-functions=3 -split-all-cold -split-eh -dyno-stats -icf=1 -use-gnu-stack ${2} ${3} ${4}
+                cp ${1}.bolt ${1}
+            }
+            boptim
 tuning              :
     # A set of groups we can toggle from the "tune" key
 

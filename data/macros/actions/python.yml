@@ -1,10 +1,12 @@
 actions:
 
     # Perform python setup and build with the default options
-    - python: |
-        test -e ./setup.py || ( echo "%%python: The ./setup.py script could not be found" ; exit 1 )
-        python3 setup.py build
+    - python:
+        command: |
+            test -e ./setup.py || ( echo "%%python: The ./setup.py script could not be found" ; exit 1 )
+            python3 setup.py build
 
     # Install python package to the destination directory
-    - python_install: |
-        python3 setup.py install --root="%(installroot)"
+    - python_install:
+        command: |
+            python3 setup.py install --root="%(installroot)"

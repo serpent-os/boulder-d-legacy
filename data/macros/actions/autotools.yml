@@ -1,28 +1,33 @@
 actions:
 
     # Perform ./configure with the default options
-    - configure: |
-        test -x ./configure || ( echo "%%configure: The ./configure script could not be found" ; exit 1 )
-        ./configure %(options_configure)
+    - configure:
+        command: |
+            test -x ./configure || ( echo "%%configure: The ./configure script could not be found" ; exit 1 )
+            ./configure %(options_configure)
 
     # Perform a make
-    - make: |
-        make V=1 VERBOSE=1 -j "%(jobs)"
+    - make:
+        command: |
+            make V=1 VERBOSE=1 -j "%(jobs)"
 
     # Install results of build to the destination directory
-    - make_install: |
-        %make install DESTDIR="%(installroot)"
+    - make_install:
+        command: |
+            %make install DESTDIR="%(installroot)"
 
     # Re autotools-configure a project without an autogen.sh script
-    - reconfigure: |
-        autoreconf -vfi || ( echo "%%reconfigure: Failed to run autoreconf"; exit 1 )
-        %configure
+    - reconfigure:
+        command: |
+            autoreconf -vfi || ( echo "%%reconfigure: Failed to run autoreconf"; exit 1 )
+            %configure
 
     # Run autogen.sh script, attempting to only configure once
-    - autogen: |
-        NOCONFIGURE="noconfigure"; export NOCONFIGURE
-        sh ./autogen.sh %(options_configure)
-        ./configure %(options_configure)
+    - autogen:
+        command: |
+            NOCONFIGURE="noconfigure"; export NOCONFIGURE
+            sh ./autogen.sh %(options_configure)
+            ./configure %(options_configure)
 
 definitions:
 
