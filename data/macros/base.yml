@@ -44,28 +44,29 @@ definitions:
 actions              :
 
     # scriptBase is merged to the top of all newly generated build scripts.
-    - scriptBase     : |
-        #!/bin/sh
-        set -e
-        set -x
-        TERM="dumb"; export TERM
-        CFLAGS="%(cflags)"; export CFLAGS
-        CXXFLAGS="%(cxxflags)"; export CXXFLAGS
-        LDFLAGS="%(ldflags)"; export LDFLAGS
-        CC="%(cc)"; export CC
-        CXX="%(cxx)"; export CXX
-        CPP="%(cpp)"; export CPP
-        AR="%(ar)"; export AR
-        LD="%(ld)"; export LD
-        OBJCOPY="%(objcopy)"; export OBJCOPY
-        NM="%(nm)"; export NM
-        RANLIB="%(ranlib)"; export RANLIB
-        STRIP="%(strip)"; export STRIP
-        PATH="%(path)"; export PATH
-        LANG="en_US.UTF-8"; export LANG
-        LC_ALL="en_US.UTF-8"; export LC_ALL
-        test -d "%(workdir)" || (echo "The work directory %(workdir) does not exist"; exit 1)
-        cd "%(workdir)" && echo "The work directory %%(workdir) is ${PWD}"
+    - scriptBase     :
+        command: |
+            #!/bin/sh
+            set -e
+            set -x
+            TERM="dumb"; export TERM
+            CFLAGS="%(cflags)"; export CFLAGS
+            CXXFLAGS="%(cxxflags)"; export CXXFLAGS
+            LDFLAGS="%(ldflags)"; export LDFLAGS
+            CC="%(cc)"; export CC
+            CXX="%(cxx)"; export CXX
+            CPP="%(cpp)"; export CPP
+            AR="%(ar)"; export AR
+            LD="%(ld)"; export LD
+            OBJCOPY="%(objcopy)"; export OBJCOPY
+            NM="%(nm)"; export NM
+            RANLIB="%(ranlib)"; export RANLIB
+            STRIP="%(strip)"; export STRIP
+            PATH="%(path)"; export PATH
+            LANG="en_US.UTF-8"; export LANG
+            LC_ALL="en_US.UTF-8"; export LC_ALL
+            test -d "%(workdir)" || (echo "The work directory %(workdir) does not exist"; exit 1)
+            cd "%(workdir)" && echo "The work directory %%(workdir) is ${PWD}"
 
 tuning              :
     # A set of groups we can toggle from the "tune" key
