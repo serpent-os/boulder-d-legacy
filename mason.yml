@@ -1,0 +1,24 @@
+name        : nano
+version     : 5.5
+release     : 2
+summary     : GNU Text Editor
+license     : GPL-3.0-or-later
+homepage    : https://www.nano-editor.org/
+description : |
+    The GNU Text Editor
+builddeps   :
+    - ncurses-devel
+    - diffutils
+    - make
+    - file-devel
+setup       : |
+    tar xf /var/cache/boulder/upstreams/fetched/390b8/1bf9b41ff736db997aede4d1f60b4453fbd75a519a4ddb645f6fd687e4a/390b81bf9b41ff736db997aede4d1f60b4453fbd75a519a4ddb645f6fd687e4a -C . --strip-components=0
+build       : |
+    %configure
+    %make
+install     : |
+    %make_install
+tuning      :
+    - icf: false
+    - relr: false
+toolchain   : llvm
