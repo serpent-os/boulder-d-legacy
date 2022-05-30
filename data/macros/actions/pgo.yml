@@ -38,6 +38,25 @@ actions:
                 cp ${1}.bolt ${1}
             }
             boptim
+
+    # Collect perf data suitable for the bolt macros
+    - bolt_perf:
+        command: |
+            bperf(){
+                mkdir -p %(pgo_dir)/BOLT
+                perf record -F 6000 -e cycles:u -j any,u -o %(pgo_dir)/BOLT/perf.data -- ${@}
+            }
+            bperf
+
+    # Convert perf data into bolt equivalent
+    - bolt_perf2bolt:
+        command: |
+            bperf2bolt(){
+                cp ${1} ${1}.orig
+                perf2bolt -ignore-build-id -p %(pgo_dir)/BOLT/perf.data -o %(pgo_dir)/$(basename ${1}).fdata ${1}
+            }
+            bperf2bolt
+
 tuning              :
     # A set of groups we can toggle from the "tune" key
 
