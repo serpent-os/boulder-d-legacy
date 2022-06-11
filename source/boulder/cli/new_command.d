@@ -35,7 +35,7 @@ import std.stdio;
  */
 @CommandName("new")
 @CommandHelp("Create skeletal recipe")
-@CommandUsage("[tarball]")
+@CommandUsage("[-a $URL] [-g $GITURL]")
 public struct NewCommand
 {
     /** Extend BaseCommand with NewCommand specific functionality */
@@ -49,12 +49,15 @@ public struct NewCommand
     {
         auto chef = new Chef();
 
-        argv.each!((a) => chef.addSource(a));
+        archives.each!((a) => chef.addSource(a, UpstreamType.Plain));
         vcsSources.each!((a) => chef.addSource(a, UpstreamType.Git));
         chef.run();
         return ExitStatus.Failure;
     }
 
-    @Option("g", "git", "Git sources to utilise")
+    @Option("a", "archive", "URL to an archive to use")
+    string[] archives;
+
+    @Option("g", "git", "Git source to utilise")
     string[] vcsSources;
 }
