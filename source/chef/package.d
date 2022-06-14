@@ -21,6 +21,16 @@ import moss.core.logging;
 
 public import moss.format.source.upstream_definition;
 
+/** 
+ * Map our downloads into something *usable* so we can remember
+ * things about it.
+ */
+private struct RemoteAsset
+{
+    string sourceURI;
+    string localPath;
+}
+
 /**
  * We really don't care about the vast majority of files.
  */
@@ -63,7 +73,7 @@ public final class Chef
 
         if (code == 200)
         {
-            processPaths ~= f.destinationPath;
+            processPaths ~= RemoteAsset(f.sourceURI, f.destinationPath);
             infof("Downloaded: %s", f.destinationPath);
             return;
         }
@@ -82,7 +92,10 @@ public final class Chef
             import std.file : remove;
             import std.algorithm : each;
 
-            processPaths.each!((p) { tracef("Removing: %s", p); p.remove(); });
+            processPaths.each!((p) {
+                tracef("Removing: %s", p.localPath);
+                p.localPath.remove();
+            });
         }
 
         while (!controller.empty)
@@ -131,5 +144,5 @@ private:
     static const(string) recipeFile = "stone.yml";
     FetchController controller;
     Analyser analyser;
-    string[] processPaths;
+    RemoteAsset[] processPaths;
 }
