@@ -1,7 +1,7 @@
 libchef_sources = [
     'package.d',
     'build/package.d',
-    'metadata.d',
+    'metadata/package.d',
 ]
 
 libchef_deps = [
