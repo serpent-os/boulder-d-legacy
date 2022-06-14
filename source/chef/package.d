@@ -157,7 +157,6 @@ private:
             {
                 return;
             }
-            trace(directory);
             directories ~= directory;
         }
     }
