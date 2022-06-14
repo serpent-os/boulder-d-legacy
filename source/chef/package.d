@@ -12,6 +12,8 @@
 
 module chef;
 
+import std.sumtype;
+import moss.core.ioutil;
 import moss.fetcher;
 import moss.deps.analysis;
 import std.exception : enforce;
@@ -89,13 +91,14 @@ public final class Chef
 
         scope (exit)
         {
-            import std.file : remove;
+            import std.file : remove, rmdirRecurse;
             import std.algorithm : each;
 
             processPaths.each!((p) {
                 tracef("Removing: %s", p.localPath);
                 p.localPath.remove();
             });
+            directories.each!((d) { tracef("Removing: %s", d); d.rmdirRecurse(); });
         }
 
         while (!controller.empty)
@@ -108,6 +111,8 @@ public final class Chef
             error("Nothing for us to process, exiting");
             return;
         }
+
+        exploreAssets();
     }
 
     /**
@@ -138,6 +143,25 @@ public final class Chef
 
 private:
 
+    void exploreAssets()
+    {
+        foreach (const p; processPaths)
+        {
+            infof("Extracting: %s", p.localPath);
+            auto location = IOUtil.createTemporaryDirectory("/tmp/boulderChefExtraction.XXXXXX");
+            auto directory = location.match!((string s) => s, (err) {
+                errorf("Error creating tmpdir: %s", err.toString);
+                return null;
+            });
+            if (directory is null)
+            {
+                return;
+            }
+            trace(directory);
+            directories ~= directory;
+        }
+    }
+
     string _recipeName;
     string _recipeVersion;
     static const uint64_t recipeRelease = 0;
@@ -145,4 +169,5 @@ private:
     FetchController controller;
     Analyser analyser;
     RemoteAsset[] processPaths;
+    string[] directories;
 }
