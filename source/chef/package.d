@@ -59,7 +59,7 @@ public final class Chef
      */
     void onComplete(in Fetchable f, long code)
     {
-        tracef("Download of %s completed with return code %s", f.sourceURI, code);
+        tracef("Download of %s finished [code: %s]", f.sourceURI.baseName, code);
 
         if (code == 200)
         {
@@ -76,6 +76,14 @@ public final class Chef
     void run()
     {
         info("Beginning download");
+
+        scope (exit)
+        {
+            import std.file : remove;
+            import std.algorithm : each;
+
+            processPaths.each!((p) { tracef("Removing: %s", p); p.remove(); });
+        }
 
         while (!controller.empty)
         {
