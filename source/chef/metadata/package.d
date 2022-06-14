@@ -14,7 +14,6 @@ module chef.metadata;
 import moss.format.source;
 import std.regex;
 import std.typecons : Nullable;
-import std.experimental.typecons : wrap;
 
 import chef.metadata.basic;
 import chef.metadata.github;
@@ -23,17 +22,6 @@ import chef.metadata.github;
  * known helpers - Most specific first, basic last
  */
 static immutable metadataHelpers = ["Github", "Basic",];
-
-/**
- * Interface for SourceMatcher types to provide the correct SourceDefinition
- */
-public interface SourceMatcher
-{
-    /**
-     * Return null if no match is found
-     */
-    Nullable!(SourceDefinition, SourceDefinition.init) match(in string uri);
-}
 
 /**
  * Metadata provides the methods and members required to manipulate
