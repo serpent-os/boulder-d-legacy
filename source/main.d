@@ -26,6 +26,7 @@ import std.stdio;
 import boulder.cli;
 import mason.cli;
 import std.path : baseName;
+import moss.core.logging;
 
 /**
  * Handle main entry for the boulder subtool
@@ -53,6 +54,8 @@ int masonMain(string[] args)
 
 int main(string[] args)
 {
+    configureLogging();
+
     auto programName = args[0].baseName;
     switch (programName)
     {
