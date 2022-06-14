@@ -126,7 +126,12 @@ public final class Chef
         info("Analysing source trees");
         analyser.process();
 
+        /* Debug */
         trace(meta);
+        import std.stdio : writeln;
+
+        writeln("recipe: \n");
+        writeln(meta.emit());
     }
 
     /**

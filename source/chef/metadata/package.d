@@ -14,6 +14,7 @@ module chef.metadata;
 import moss.format.source;
 import std.regex;
 import std.typecons : Nullable;
+import std.string : format, wrap, detabber;
 
 import chef.metadata.basic;
 import chef.metadata.github;
@@ -60,5 +61,18 @@ public struct Metadata
             }
             break;
         }
+    }
+
+    /**
+     * Return correctly formatted metadata section
+     */
+    string emit()
+    {
+        string summary = "some as yet undisclosed summary";
+        string description = "Some obnoxiously large paragraph that will in turn detail the function of the software and a bunch of info that nobody ever reads";
+        return format!("name       : %s\n" ~ "version    : \"%s\"\n" ~ "release    : %s\n"
+                ~ "homepage   : %s\n" ~ "summary    : |\n" ~ "    %s\n"
+                ~ "description: |\n" ~ "    %s\n")(source.name, source.versionIdentifier, source.release,
+                source.homepage, summary, description.wrap(60, "", "    ", 1));
     }
 }
