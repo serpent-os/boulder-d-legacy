@@ -57,6 +57,8 @@ boulder_sources = [
     'source/boulder/stages/share_upstreams.d',
     'source/boulder/stages/package.d',
     'source/chef/package.d',
+    'source/chef/build/package.d',
+    'source/chef/metadata.d',
     'source/mason/cli/build_command.d',
     'source/mason/cli/package.d',
     'source/mason/package.d',
