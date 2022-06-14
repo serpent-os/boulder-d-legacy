@@ -17,6 +17,7 @@ import moss.deps.analysis;
 import std.exception : enforce;
 import std.path : baseName;
 import std.range : empty;
+import moss.core.logging;
 
 public import moss.format.source.upstream_definition;
 
@@ -50,9 +51,7 @@ public final class Chef
      */
     void onFail(in Fetchable f, in string msg)
     {
-        import std.stdio : stderr;
-
-        stderr.writeln(msg);
+        errorf("Failed to download %s: %s", f.sourceURI, msg);
     }
 
     /**
@@ -60,13 +59,12 @@ public final class Chef
      */
     void onComplete(in Fetchable f, long code)
     {
-        import std.stdio : writeln;
+        tracef("Download of %s completed with return code %s", f.sourceURI, code);
 
-        writeln("ret: ", code);
         if (code == 200)
         {
             processPaths ~= f.destinationPath;
-            writeln("Fetched: ", f.destinationPath);
+            infof("Downloaded: %s", f.destinationPath);
             return;
         }
         onFail(f, "Server returned non-200 status code");
@@ -77,7 +75,7 @@ public final class Chef
      */
     void run()
     {
-        import std.stdio : writeln;
+        info("Beginning download");
 
         while (!controller.empty)
         {
@@ -86,7 +84,7 @@ public final class Chef
 
         if (processPaths.empty)
         {
-            writeln("Nothing for us to process, exiting");
+            error("Nothing for us to process, exiting");
             return;
         }
     }
