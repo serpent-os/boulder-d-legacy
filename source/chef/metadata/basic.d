@@ -18,7 +18,8 @@ import std.regex;
 /**
  * Standard/basic version detection
  */
-private static auto reBasicVersion = ctRegex!(r"^([a-zA-Z0-9-]+)-([a-zA-Z0-9._-]+)\.(zip|tar|sh|bin\.*)");
+private static auto reBasicVersion = ctRegex!(
+        r"^([a-zA-Z0-9-]+)-([a-zA-Z0-9._-]+)\.(zip|tar|sh|bin\.*)");
 
 public struct BasicMatcher
 {

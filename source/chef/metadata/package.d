@@ -15,6 +15,14 @@ import moss.format.source;
 import std.regex;
 import std.typecons : Nullable;
 
+import chef.metadata.basic;
+import chef.metadata.github;
+
+/**
+ * known helpers - Most specific first, basic last
+ */
+static immutable metadataHelpers = ["Github", "Basic",];
+
 /**
  * Interface for SourceMatcher types to provide the correct SourceDefinition
  */
@@ -43,6 +51,24 @@ public struct Metadata
         if (source != SourceDefinition.init)
         {
             return;
+        }
+
+        /* Part loop, part CTFE, allow walking all helpers and grab results */
+        match_loop: while (true)
+        {
+            static foreach (h; metadataHelpers)
+            {
+                {
+                    mixin("auto helper = " ~ h ~ "Matcher();");
+                    auto result = helper.match(uri);
+                    if (!result.isNull)
+                    {
+                        source = result.get;
+                        break match_loop;
+                    }
+                }
+            }
+            break;
         }
     }
 }

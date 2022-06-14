@@ -167,6 +167,7 @@ private:
             ud.plain = PlainUpstreamDefinition(hash);
             ud.uri = p.sourceURI;
             meta.upstreams ~= ud;
+            meta.updateSource(ud.uri);
 
             /* Attempt extraction. For now, we assume everything is a tarball */
             auto cmd = ["tar", "xf", p.localPath, "-C", directory,];
