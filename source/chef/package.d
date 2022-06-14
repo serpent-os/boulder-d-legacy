@@ -20,6 +20,7 @@ import std.exception : enforce;
 import std.path : baseName;
 import std.range : empty;
 import moss.core.logging;
+import std.process;
 
 public import moss.format.source.upstream_definition;
 
@@ -158,6 +159,19 @@ private:
                 return;
             }
             directories ~= directory;
+
+            /* Attempt extraction. For now, we assume everything is a tarball */
+            auto cmd = ["tar", "xf", p.localPath, "-C", directory,];
+
+            /* Perform the extraction now */
+            auto result = execute(cmd, null, Config.none, size_t.max, directory);
+            if (result.status != 0)
+            {
+                errorf("Extraction of %s failed with code %s", p.localPath, result.status);
+                trace(result.output);
+            }
+
+            infof("Extraction succeeded");
         }
     }
 
