@@ -27,22 +27,6 @@ public interface SourceMatcher
 }
 
 /**
- * Standard/basic version detection
- */
-auto reBasicVersion = ctRegex!(r"^([a-zA-Z0-9-]+)-([a-zA-Z0-9._-]+)\.(zip|tar|sh|bin\.*)");
-
-/**
- * Github automatically generated downloads
- */
-auto reGithubAutomatic = ctRegex!(
-        r"\w+\:\/\/github\.com\/([A-Za-z0-9-_]+)\/([A-Za-z0-9-_]+)\/archive\/refs\/tags\/([A-Za-z0-9.-_]+)\.(tar|zip)");
-
-/**
- * Manually uploaded files on GitHub
- */
-auto reGithubManual = ctRegex!(
-        r"\w+\:\/\/github\.com\/([A-Za-z0-9-_]+)\/([A-Za-z0-9-_]+)\/releases\/download\/([A-Za-z0-9-_.]+)\/.*");
-/**
  * Metadata provides the methods and members required to manipulate
  * and detect Metadata for a package.
  */

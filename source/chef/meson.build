@@ -1,6 +1,8 @@
 libchef_sources = [
     'package.d',
     'build/package.d',
+    'metadata/basic.d',
+    'metadata/github.d',
     'metadata/package.d',
 ]
 
