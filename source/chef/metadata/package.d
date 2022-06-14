@@ -13,6 +13,18 @@ module chef.metadata;
 
 import moss.format.source;
 import std.regex;
+import std.typecons : Nullable;
+
+/**
+ * Interface for SourceMatcher types to provide the correct SourceDefinition
+ */
+public interface SourceMatcher
+{
+    /**
+     * Return null if no match is found
+     */
+    Nullable!(SourceDefinition, SourceDefinition.init) match(in string uri);
+}
 
 /**
  * Standard/basic version detection
