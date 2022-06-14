@@ -21,6 +21,14 @@ import std.range : empty;
 public import moss.format.source.upstream_definition;
 
 /**
+ * We really don't care about the vast majority of files.
+ */
+static private AnalysisReturn silentDrop(scope Analyser an, ref FileInfo info)
+{
+    return AnalysisReturn.IgnoreFile;
+}
+
+/**
  * Main class for analysis of incoming sources to generate an output recipe
  */
 public final class Chef
@@ -32,10 +40,14 @@ public final class Chef
     {
         controller = new FetchController();
         analyser = new Analyser();
+        analyser.addChain(AnalysisChain("drop", [&silentDrop], 0));
         controller.onFail.connect(&onFail);
         controller.onComplete.connect(&onComplete);
     }
 
+    /**
+     * Dull handler for failure
+     */
     void onFail(in Fetchable f, in string msg)
     {
         import std.stdio : stderr;
@@ -43,6 +55,9 @@ public final class Chef
         stderr.writeln(msg);
     }
 
+    /**
+     * Handle completion of downloads, validate them
+     */
     void onComplete(in Fetchable f, long code)
     {
         import std.stdio : writeln;
@@ -74,9 +89,8 @@ public final class Chef
             writeln("Nothing for us to process, exiting");
             return;
         }
-
-        writeln("Processing: ", processPaths);
     }
+
     /**
      * Add some kind of input URI into chef for ... analysing
      */
