@@ -14,6 +14,7 @@ module chef;
 
 import std.sumtype;
 import moss.core.ioutil;
+import moss.core.util : computeSHA256;
 import moss.fetcher;
 import moss.deps.analysis;
 import std.exception : enforce;
@@ -21,6 +22,7 @@ import std.path : baseName;
 import std.range : empty;
 import moss.core.logging;
 import std.process;
+import chef.metadata;
 
 public import moss.format.source.upstream_definition;
 
@@ -123,6 +125,8 @@ public final class Chef
         exploreAssets();
         info("Analysing source trees");
         analyser.process();
+
+        trace(meta);
     }
 
     /**
@@ -156,6 +160,14 @@ private:
             }
             directories ~= directory;
 
+            /* Capture an upstream definition */
+            infof("Computing hash for %s", p.localPath);
+            auto hash = computeSHA256(p.localPath, true);
+            auto ud = UpstreamDefinition(UpstreamType.Plain);
+            ud.plain = PlainUpstreamDefinition(hash);
+            ud.uri = p.sourceURI;
+            meta.upstreams ~= ud;
+
             /* Attempt extraction. For now, we assume everything is a tarball */
             auto cmd = ["tar", "xf", p.localPath, "-C", directory,];
 
@@ -182,4 +194,5 @@ private:
     RemoteAsset[] processPaths;
     string[] directories;
     bool fetchedDownloads = true;
+    Metadata meta;
 }
