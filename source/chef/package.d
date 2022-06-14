@@ -114,6 +114,8 @@ public final class Chef
         }
 
         exploreAssets();
+        info("Analysing source trees");
+        analyser.process();
     }
 
     /**
@@ -146,6 +148,9 @@ private:
 
     void exploreAssets()
     {
+        import std.file : dirEntries, SpanMode;
+        import std.path : relativePath;
+
         foreach (const p; processPaths)
         {
             infof("Extracting: %s", p.localPath);
@@ -171,7 +176,13 @@ private:
                 trace(result.output);
             }
 
-            infof("Extraction succeeded");
+            infof("Scanning sources under %s", directory);
+            foreach (string path; dirEntries(directory, SpanMode.depth, false))
+            {
+                auto fi = FileInfo(path.relativePath(directory), path);
+                fi.target = p.sourceURI.baseName;
+                analyser.addFile(fi);
+            }
         }
     }
 
