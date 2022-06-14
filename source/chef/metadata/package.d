@@ -68,11 +68,15 @@ public struct Metadata
      */
     string emit()
     {
+        import std.string : join;
+        import std.algorithm : map;
+
         string summary = "some as yet undisclosed summary";
         string description = "Some obnoxiously large paragraph that will in turn detail the function of the software and a bunch of info that nobody ever reads";
-        return format!("name       : %s\n" ~ "version    : \"%s\"\n" ~ "release    : %s\n"
-                ~ "homepage   : %s\n" ~ "summary    : |\n" ~ "    %s\n"
+        string up = upstreams.map!((u) => format!"    - %s : %s\n"(u.uri, u.plain.hash)).join();
+        return format!("name       : %s\n" ~ "version    : \"%s\"\n" ~ "release    : %s\n" ~ "homepage   : %s\n"
+                ~ "upstreams  : \n%s" ~ "summary    : |\n" ~ "    %s\n"
                 ~ "description: |\n" ~ "    %s\n")(source.name, source.versionIdentifier, source.release,
-                source.homepage, summary, description.wrap(60, "", "    ", 1));
+                source.homepage, up, summary, description.wrap(60, "", "    ", 1));
     }
 }
