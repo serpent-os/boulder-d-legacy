@@ -15,6 +15,7 @@ import moss.format.source;
 import std.regex;
 import std.typecons : Nullable;
 import std.string : format, wrap, detabber;
+import std.experimental.logger : tracef;
 
 import chef.metadata.basic;
 import chef.metadata.github;
@@ -54,6 +55,7 @@ public struct Metadata
                     auto result = helper.match(uri);
                     if (!result.isNull)
                     {
+                        tracef("Using MetataHelper: %s", h);
                         source = result.get;
                         break match_loop;
                     }
