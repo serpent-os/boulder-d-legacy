@@ -14,6 +14,7 @@ module chef.metadata;
 import moss.format.source;
 import std.regex;
 import std.typecons : Nullable;
+import std.experimental.typecons : wrap;
 
 import chef.metadata.basic;
 import chef.metadata.github;
@@ -59,7 +60,8 @@ public struct Metadata
             static foreach (h; metadataHelpers)
             {
                 {
-                    mixin("auto helper = " ~ h ~ "Matcher();");
+                    mixin("alias LocalHelperType = " ~ h  ~ "Matcher;");
+                    LocalHelperType helper = LocalHelperType();
                     auto result = helper.match(uri);
                     if (!result.isNull)
                     {
