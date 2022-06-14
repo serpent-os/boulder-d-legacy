@@ -65,6 +65,7 @@ public final class Chef
     void onFail(in Fetchable f, in string msg)
     {
         errorf("Failed to download %s: %s", f.sourceURI, msg);
+        fetchedDownloads = false;
     }
 
     /**
@@ -105,6 +106,12 @@ public final class Chef
         while (!controller.empty)
         {
             controller.fetch();
+        }
+
+        if (!fetchedDownloads)
+        {
+            error("Exiting due to abnormal downloads");
+            return;
         }
 
         if (processPaths.empty)
@@ -174,4 +181,5 @@ private:
     Analyser analyser;
     RemoteAsset[] processPaths;
     string[] directories;
+    bool fetchedDownloads = true;
 }
