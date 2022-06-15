@@ -76,6 +76,32 @@ static private AnalysisReturn acceptAutotools(scope Analyser an, ref FileInfo in
 }
 
 /**
+ * Discover meson projects
+ */
+static private AnalysisReturn acceptMeson(scope Analyser an, ref FileInfo inpath)
+{
+    Chef c = an.userdata!Chef;
+    auto bn = inpath.path.baseName;
+    import std.string : count;
+
+    /**
+     * Depth too great
+     */
+    if (inpath.path.count("/") > 1)
+    {
+        return AnalysisReturn.NextHandler;
+    }
+
+    if (bn == "meson.build" || bn == "meson_options.txt")
+    {
+        c.incrementBuildConfidence(BuildType.Meson, 100);
+        return AnalysisReturn.IncludeFile;
+    }
+
+    return AnalysisReturn.NextHandler;
+}
+
+/**
  * Main class for analysis of incoming sources to generate an output recipe
  */
 public final class Chef
@@ -90,6 +116,7 @@ public final class Chef
         analyser.userdata = this;
         analyser.addChain(AnalysisChain("drop", [&silentDrop], 0));
         analyser.addChain(AnalysisChain("autotools", [&acceptAutotools], 10));
+        analyser.addChain(AnalysisChain("meson", [&acceptMeson], 20));
         controller.onFail.connect(&onFail);
         controller.onComplete.connect(&onComplete);
     }

@@ -23,6 +23,11 @@ public enum BuildType : string
     Autotools = "autotools",
 
     /**
+     * Uses meson + ninja
+     */
+    Meson = "meson",
+
+    /**
      * Unsupported tooling
      */
     Unknown = "unknown",
