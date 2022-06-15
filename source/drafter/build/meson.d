@@ -13,6 +13,7 @@ import moss.deps.analysis;
 import drafter : Drafter;
 import drafter.build : BuildType;
 import std.path : baseName;
+import std.algorithm : canFind;
 import std.mmfile;
 
 /**
@@ -75,6 +76,11 @@ static private AnalysisReturn scanMeson(scope Analyser an, ref FileInfo inpath)
     foreach (m; rawData.matchAll(reMesonProgram))
     {
         auto programTarget = m[1];
+        /* Relative programs are a no go */
+        if (programTarget.canFind('/'))
+        {
+            continue;
+        }
         auto de = Dependency(programTarget.dup, DependencyType.BinaryName);
         an.bucket(inpath).addDependency(de);
     }
