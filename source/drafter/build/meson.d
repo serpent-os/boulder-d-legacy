@@ -60,7 +60,7 @@ static private AnalysisReturn acceptMeson(scope Analyser an, ref FileInfo inpath
  */
 static private AnalysisReturn scanMeson(scope Analyser an, ref FileInfo inpath)
 {
-    auto mmap = new MmFile(inpath.fullPath);
+    scope auto mmap = new MmFile(inpath.fullPath);
     auto data = cast(ubyte[]) mmap[0 .. $];
     auto rawData = cast(string) data;
 
