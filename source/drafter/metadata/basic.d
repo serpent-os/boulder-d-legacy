@@ -31,7 +31,7 @@ private static enum BasicIndex : int
 /**
  * Fallback policy for matching things.
  */
-public struct BasicMatcher
+public struct BasicMetadata
 {
     /**
      *  Match against the URI basename

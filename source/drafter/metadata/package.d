@@ -66,7 +66,7 @@ public struct Metadata
             static foreach (h; metadataHelpers)
             {
                 {
-                    mixin("alias LocalHelperType = " ~ h ~ "Matcher;");
+                    mixin("alias LocalHelperType = " ~ h ~ "Metadata;");
                     LocalHelperType helper = LocalHelperType();
                     auto result = helper.match(uri);
                     if (!result.isNull)

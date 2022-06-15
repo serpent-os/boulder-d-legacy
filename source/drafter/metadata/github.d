@@ -41,7 +41,7 @@ auto reGithubManual = ctRegex!(
 /**
  * More advanced matching of GitHub specific URIs
  */
-public struct GithubMatcher
+public struct GithubMetadata
 {
     /**
      * Match full unmodified string with 2 regex patterns
