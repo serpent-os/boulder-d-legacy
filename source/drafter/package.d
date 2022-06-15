@@ -46,36 +46,6 @@ static private AnalysisReturn silentDrop(scope Analyser an, ref FileInfo info)
 }
 
 /**
- * Is this autotools?
- */
-static private AnalysisReturn acceptAutotools(scope Analyser an, ref FileInfo inpath)
-{
-    Drafter dr = an.userdata!Drafter;
-    auto bn = inpath.path.baseName;
-    import std.string : count;
-
-    /**
-     * Depth too great
-     */
-    if (inpath.path.count("/") > 1)
-    {
-        return AnalysisReturn.NextHandler;
-    }
-
-    switch (bn)
-    {
-    case "configure.ac":
-    case "configure":
-    case "Makefile.am":
-    case "Makefile":
-        dr.incrementBuildConfidence(BuildType.Autotools, 10);
-        return AnalysisReturn.IncludeFile;
-    default:
-        return AnalysisReturn.NextHandler;
-    }
-}
-
-/**
  * Main class for analysis of incoming sources to generate an output recipe
  */
 public final class Drafter
@@ -89,7 +59,7 @@ public final class Drafter
         analyser = new Analyser();
         analyser.userdata = this;
         analyser.addChain(AnalysisChain("drop", [&silentDrop], 0));
-        analyser.addChain(AnalysisChain("autotools", [&acceptAutotools], 10));
+        analyser.addChain(autotoolsChain);
         analyser.addChain(mesonChain);
         controller.onFail.connect(&onFail);
         controller.onComplete.connect(&onComplete);
