@@ -73,16 +73,7 @@ public struct Metadata
         import std.string : join, stripRight;
         import std.algorithm : map;
 
-        static immutable recipe = r"
-name        : %s
-version     : %s
-release     : %s
-homepage    : %s
-upstreams   :
-%s
-summary     : %s
-description : |
-    %s";
+        static immutable recipe = import("recipeTemplate.yml").stripRight;
 
         string summary = "some as yet undisclosed summary";
         string description = "Some obnoxiously large paragraph that will in turn detail the function of the software and a bunch of info that nobody ever reads";

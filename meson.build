@@ -40,5 +40,9 @@ link_libmoss_fetcher = moss_fetcher.get_variable('link_libmoss_fetcher')
 moss_format = subproject('moss-format')
 link_libmoss_format = moss_format.get_variable('link_libmoss_format')
 
+boulder_data_dir = [
+    include_directories('data'),
+]
+
 # Actual linky buildy stuff
 subdir('source')

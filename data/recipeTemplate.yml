@@ -1,0 +1,9 @@
+name        : %s
+version     : %s
+release     : %s
+homepage    : %s
+upstreams   :
+%s
+summary     : %s
+description : |
+    %s

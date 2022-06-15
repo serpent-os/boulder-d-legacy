@@ -20,6 +20,9 @@ libchef = static_library(
     libchef_sources,
     include_directories: global_includes,
     dependencies: libchef_deps,
+    d_import_dirs: [
+        boulder_data_dir,
+    ]
 )
 
 link_libchef = declare_dependency(
