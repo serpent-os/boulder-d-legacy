@@ -263,7 +263,7 @@ private:
         keyset.sort!((a, b) => confidence[a] > confidence[b]);
         auto highest = keyset[0];
 
-        tracef("Using build system: %s", highest);
+        tracef("Using build system: %s", cast(string) highest);
     }
 
     FetchController controller;
