@@ -70,15 +70,24 @@ public struct Metadata
      */
     string emit()
     {
-        import std.string : join;
+        import std.string : join, stripRight;
         import std.algorithm : map;
+
+        static immutable recipe = r"
+name        : %s
+version     : %s
+release     : %s
+homepage    : %s
+upstreams   :
+%s
+summary     : %s
+description : |
+    %s";
 
         string summary = "some as yet undisclosed summary";
         string description = "Some obnoxiously large paragraph that will in turn detail the function of the software and a bunch of info that nobody ever reads";
-        string up = upstreams.map!((u) => format!"    - %s : %s\n"(u.uri, u.plain.hash)).join();
-        return format!("name       : %s\n" ~ "version    : \"%s\"\n" ~ "release    : %s\n" ~ "homepage   : %s\n"
-                ~ "upstreams  : \n%s" ~ "summary    : |\n" ~ "    %s\n"
-                ~ "description: |\n" ~ "    %s\n")(source.name, source.versionIdentifier, source.release,
-                source.homepage, up, summary, description.wrap(60, "", "    ", 1));
+        string up = upstreams.map!((u) => format!"    - %s : %s"(u.uri, u.plain.hash)).join("\n");
+        return format!recipe(source.name, source.versionIdentifier, source.release,
+                source.homepage, up, summary, description.wrap(60, "", "    ", 1).stripRight);
     }
 }
