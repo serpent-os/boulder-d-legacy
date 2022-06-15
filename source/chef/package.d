@@ -22,6 +22,7 @@ import std.path : baseName;
 import std.range : empty;
 import moss.core.logging;
 import std.process;
+import chef.build;
 import chef.metadata;
 
 public import moss.format.source.upstream_definition;
@@ -45,6 +46,36 @@ static private AnalysisReturn silentDrop(scope Analyser an, ref FileInfo info)
 }
 
 /**
+ * Is this autotools?
+ */
+static private AnalysisReturn acceptAutotools(scope Analyser an, ref FileInfo inpath)
+{
+    Chef c = an.userdata!Chef;
+    auto bn = inpath.path.baseName;
+    import std.string : count;
+
+    /**
+     * Depth too great
+     */
+    if (inpath.path.count("/") > 1)
+    {
+        return AnalysisReturn.NextHandler;
+    }
+
+    switch (bn)
+    {
+    case "configure.ac":
+    case "configure":
+    case "Makefile.am":
+    case "Makefile":
+        c.incrementBuildConfidence(BuildType.Autotools, 10);
+        return AnalysisReturn.IncludeFile;
+    default:
+        return AnalysisReturn.NextHandler;
+    }
+}
+
+/**
  * Main class for analysis of incoming sources to generate an output recipe
  */
 public final class Chef
@@ -56,7 +87,9 @@ public final class Chef
     {
         controller = new FetchController();
         analyser = new Analyser();
+        analyser.userdata = this;
         analyser.addChain(AnalysisChain("drop", [&silentDrop], 0));
+        analyser.addChain(AnalysisChain("autotools", [&acceptAutotools], 10));
         controller.onFail.connect(&onFail);
         controller.onComplete.connect(&onComplete);
     }
@@ -132,6 +165,22 @@ public final class Chef
 
         writeln("recipe: \n");
         writeln(meta.emit());
+
+        emitBuild();
+    }
+
+    /**
+     * Increment build confidence in a given system
+     */
+    void incrementBuildConfidence(BuildType t, ulong incAmount)
+    {
+        ulong* ptrAmount = t in confidence;
+        if (ptrAmount !is null)
+        {
+            *ptrAmount += incAmount;
+            return;
+        }
+        confidence[t] = incAmount;
     }
 
     /**
@@ -195,10 +244,33 @@ private:
         }
     }
 
+    /**
+     * Emit the discovered build pattern
+     */
+    void emitBuild()
+    {
+        /* Pick the highest pattern */
+        import std.algorithm : sort;
+
+        auto keyset = confidence.keys;
+        if (keyset.empty)
+        {
+            error("Unhandled build system");
+            return;
+        }
+
+        /* Sort by confidence level */
+        keyset.sort!((a, b) => confidence[a] > confidence[b]);
+        auto highest = keyset[0];
+
+        tracef("Using build system: %s", highest);
+    }
+
     FetchController controller;
     Analyser analyser;
     RemoteAsset[] processPaths;
     string[] directories;
     bool fetchedDownloads = true;
     Metadata meta;
+    private ulong[BuildType] confidence;
 }
