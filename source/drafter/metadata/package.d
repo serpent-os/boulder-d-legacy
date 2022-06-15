@@ -91,8 +91,6 @@ public struct Metadata
 
         static immutable recipe = import("recipeTemplate.yml").stripRight;
 
-        string summary = "some as yet undisclosed summary";
-        string description = "";
         string up = upstreams.map!((u) => format!"    - %s : %s"(u.uri, u.plain.hash)).join("\n");
         return format!recipe(source.name, source.versionIdentifier, source.release,
                 source.homepage, up, summary, description.wrap(60, "", "    ", 1).stripRight);
@@ -101,6 +99,5 @@ public struct Metadata
 private:
 
     string _summary = "As yet undisclosed summary";
-    string _description = "Some obnoxiously large paragraph that will in turn "
-        ~ "detail the function of the software and a bunch of info that nobody ever reads";
+    string _description = "Some obnoxiously large paragraph that will in turn detail the function of the software and a bunch of info that nobody ever reads";
 }
