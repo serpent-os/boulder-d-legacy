@@ -31,7 +31,7 @@ static immutable metadataHelpers = ["Github", "Basic",];
  */
 public struct Metadata
 {
-    SourceDefinition source = SourceDefinition("FIXME", "FIXME", 1, "FIXME", []);
+    SourceDefinition source;
     UpstreamDefinition[] upstreams;
 
     /**
