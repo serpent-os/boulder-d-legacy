@@ -30,7 +30,7 @@ static immutable reMesonProgram = ctRegex!r"find_program\s?\(\s?'\s?([A-Za-z0-9+
  */
 static private AnalysisReturn acceptMeson(scope Analyser an, ref FileInfo inpath)
 {
-    Drafter c = an.userdata!Drafter;
+    Drafter dr = an.userdata!Drafter;
     auto bn = inpath.path.baseName;
     import std.string : count;
 
@@ -44,10 +44,10 @@ static private AnalysisReturn acceptMeson(scope Analyser an, ref FileInfo inpath
         {
             return AnalysisReturn.NextHandler;
         }
-        c.incrementBuildConfidence(BuildType.Meson, 100);
+        dr.incrementBuildConfidence(BuildType.Meson, 100);
         return AnalysisReturn.NextFunction;
     case "meson_options.txt":
-        c.incrementBuildConfidence(BuildType.Meson, 100);
+        dr.incrementBuildConfidence(BuildType.Meson, 100);
         return AnalysisReturn.IncludeFile;
     default:
         return AnalysisReturn.NextHandler;

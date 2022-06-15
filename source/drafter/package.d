@@ -50,7 +50,7 @@ static private AnalysisReturn silentDrop(scope Analyser an, ref FileInfo info)
  */
 static private AnalysisReturn acceptAutotools(scope Analyser an, ref FileInfo inpath)
 {
-    Drafter c = an.userdata!Drafter;
+    Drafter dr = an.userdata!Drafter;
     auto bn = inpath.path.baseName;
     import std.string : count;
 
@@ -68,7 +68,7 @@ static private AnalysisReturn acceptAutotools(scope Analyser an, ref FileInfo in
     case "configure":
     case "Makefile.am":
     case "Makefile":
-        c.incrementBuildConfidence(BuildType.Autotools, 10);
+        dr.incrementBuildConfidence(BuildType.Autotools, 10);
         return AnalysisReturn.IncludeFile;
     default:
         return AnalysisReturn.NextHandler;
