@@ -9,7 +9,7 @@
  * License: ZLib
  */
 
-module chef.metadata.github;
+module drafter.metadata.github;
 
 import std.typecons : Nullable;
 import moss.format.source.source_definition;

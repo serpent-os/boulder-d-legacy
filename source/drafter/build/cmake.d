@@ -1,13 +1,13 @@
 /* SPDX-License-Identifier: Zlib */
 
 /**
- * Chef - CMake integration
+ * Drafter - CMake integration
  *
  * Authors: © 2020-2022 Serpent OS Developers
  * License: ZLib
  */
 
-module chef.build.cmake;
+module drafter.build.cmake;
 
 public struct CmakeBuild
 {

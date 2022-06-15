@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Zlib */
 
 /**
- * Chef - Recipe Manipulation
+ * Drafter - Recipe Manipulation
  *
  * Generation and manipulation of source recipe files that can then be consumed
  * by boulder.
@@ -10,7 +10,7 @@
  * License: ZLib
  */
 
-module chef;
+module drafter;
 
 import std.sumtype;
 import moss.core.ioutil;
@@ -22,8 +22,8 @@ import std.path : baseName;
 import std.range : empty;
 import moss.core.logging;
 import std.process;
-import chef.build;
-import chef.metadata;
+import drafter.build;
+import drafter.metadata;
 
 public import moss.format.source.upstream_definition;
 
@@ -50,7 +50,7 @@ static private AnalysisReturn silentDrop(scope Analyser an, ref FileInfo info)
  */
 static private AnalysisReturn acceptAutotools(scope Analyser an, ref FileInfo inpath)
 {
-    Chef c = an.userdata!Chef;
+    Drafter c = an.userdata!Drafter;
     auto bn = inpath.path.baseName;
     import std.string : count;
 
@@ -80,7 +80,7 @@ static private AnalysisReturn acceptAutotools(scope Analyser an, ref FileInfo in
  */
 static private AnalysisReturn acceptMeson(scope Analyser an, ref FileInfo inpath)
 {
-    Chef c = an.userdata!Chef;
+    Drafter c = an.userdata!Drafter;
     auto bn = inpath.path.baseName;
     import std.string : count;
 
@@ -104,10 +104,10 @@ static private AnalysisReturn acceptMeson(scope Analyser an, ref FileInfo inpath
 /**
  * Main class for analysis of incoming sources to generate an output recipe
  */
-public final class Chef
+public final class Drafter
 {
     /**
-     * Construct a new Chef
+     * Construct a new Drafter
      */
     this()
     {
@@ -147,7 +147,7 @@ public final class Chef
     }
 
     /**
-     * Run Chef lifecycle to completion
+     * Run Drafter lifecycle to completion
      */
     void run()
     {
@@ -211,12 +211,12 @@ public final class Chef
     }
 
     /**
-     * Add some kind of input URI into chef for ... analysing
+     * Add some kind of input URI into drafter for ... analysing
      */
     void addSource(string uri, UpstreamType type = UpstreamType.Plain)
     {
-        enforce(type == UpstreamType.Plain, "Chef only supports plain sources");
-        auto f = Fetchable(uri, "/tmp/boulderChefURI-XXXXXX", 0, FetchType.TemporaryFile, null);
+        enforce(type == UpstreamType.Plain, "Drafter only supports plain sources");
+        auto f = Fetchable(uri, "/tmp/boulderDrafterURI-XXXXXX", 0, FetchType.TemporaryFile, null);
         controller.enqueue(f);
     }
 
@@ -230,7 +230,7 @@ private:
         foreach (const p; processPaths)
         {
             infof("Extracting: %s", p.localPath);
-            auto location = IOUtil.createTemporaryDirectory("/tmp/boulderChefExtraction.XXXXXX");
+            auto location = IOUtil.createTemporaryDirectory("/tmp/boulderDrafterExtraction.XXXXXX");
             auto directory = location.match!((string s) => s, (err) {
                 errorf("Error creating tmpdir: %s", err.toString);
                 return null;

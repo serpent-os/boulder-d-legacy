@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Zlib */
 
 /**
- * Chef - Build Management
+ * Drafter - Build Management
  *
  * Generation and manipulation of source recipe files that can then be consumed
  * by boulder.
@@ -10,11 +10,11 @@
  * License: ZLib
  */
 
-module chef.build;
+module drafter.build;
 
-public import chef.build.autotools;
-public import chef.build.cmake;
-public import chef.build.meson;
+public import drafter.build.autotools;
+public import drafter.build.cmake;
+public import drafter.build.meson;
 
 import std.traits : EnumMembers;
 import std.string : capitalize;

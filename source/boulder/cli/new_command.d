@@ -24,7 +24,7 @@ module boulder.cli.new_command;
 
 public import moss.core.cli;
 import boulder.cli : BoulderCLI;
-import chef;
+import drafter;
 import moss.core;
 import std.algorithm : each;
 import std.stdio;
@@ -47,11 +47,11 @@ public struct NewCommand
      */
     @CommandEntry() int run(ref string[] argv)
     {
-        auto chef = new Chef();
+        auto drafter = new Drafter();
 
-        archives.each!((a) => chef.addSource(a, UpstreamType.Plain));
-        vcsSources.each!((a) => chef.addSource(a, UpstreamType.Git));
-        chef.run();
+        archives.each!((a) => drafter.addSource(a, UpstreamType.Plain));
+        vcsSources.each!((a) => drafter.addSource(a, UpstreamType.Git));
+        drafter.run();
         return ExitStatus.Failure;
     }
 

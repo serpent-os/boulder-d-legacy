@@ -1,4 +1,4 @@
-libchef_sources = [
+libdrafter_sources = [
     'package.d',
     'build/autotools.d',
     'build/cmake.d',
@@ -9,25 +9,25 @@ libchef_sources = [
     'metadata/package.d',
 ]
 
-libchef_deps = [
+libdrafter_deps = [
     link_libmoss_core,
     link_libmoss_fetcher,
     link_libmoss_deps,
     link_libmoss_format,
 ]
 
-libchef = static_library(
-    'chef',
-    libchef_sources,
+libdrafter = static_library(
+    'drafter',
+    libdrafter_sources,
     include_directories: global_includes,
-    dependencies: libchef_deps,
+    dependencies: libdrafter_deps,
     d_import_dirs: [
         boulder_data_dir,
     ]
 )
 
-link_libchef = declare_dependency(
-    link_whole: libchef,
+link_libdrafter = declare_dependency(
+    link_whole: libdrafter,
     include_directories: global_includes,
-    dependencies: libchef_deps,
+    dependencies: libdrafter_deps,
 )

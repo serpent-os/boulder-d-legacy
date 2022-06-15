@@ -1,13 +1,13 @@
 /* SPDX-License-Identifier: Zlib */
 
 /**
- * Chef - Autotools integration
+ * Drafter - Autotools integration
  *
  * Authors: © 2020-2022 Serpent OS Developers
  * License: ZLib
  */
 
-module chef.build.meson;
+module drafter.build.meson;
 
 public struct MesonBuild
 {

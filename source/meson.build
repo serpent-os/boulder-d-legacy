@@ -1,5 +1,5 @@
 components = [
-    'chef',
+    'drafter',
     'mason',
     'boulder',
 ]

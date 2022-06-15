@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Zlib */
 
 /**
- * Chef - Metadata manipulation
+ * Drafter - Metadata manipulation
  *
  * Metadata management from sources
  *
@@ -9,7 +9,7 @@
  * License: ZLib
  */
 
-module chef.metadata;
+module drafter.metadata;
 
 import moss.format.source;
 import std.regex;
@@ -17,8 +17,8 @@ import std.typecons : Nullable;
 import std.string : format, wrap, detabber;
 import std.experimental.logger : tracef;
 
-import chef.metadata.basic;
-import chef.metadata.github;
+import drafter.metadata.basic;
+import drafter.metadata.github;
 
 /**
  * known helpers - Most specific first, basic last

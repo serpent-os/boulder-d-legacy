@@ -29,7 +29,7 @@ boulder_deps = [
     link_libmoss_deps,
     link_libmoss_format,
     link_libmoss_fetcher,
-    link_libchef,
+    link_libdrafter,
     link_libmason,
 ]
 
