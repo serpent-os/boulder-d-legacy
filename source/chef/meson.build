@@ -1,6 +1,7 @@
 libchef_sources = [
     'package.d',
     'build/autotools.d',
+    'build/cmake.d',
     'build/meson.d',
     'build/package.d',
     'metadata/basic.d',

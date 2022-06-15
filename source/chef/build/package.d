@@ -13,7 +13,9 @@
 module chef.build;
 
 public import chef.build.autotools;
+public import chef.build.cmake;
 public import chef.build.meson;
+
 import std.traits : EnumMembers;
 import std.string : capitalize;
 import std.experimental.typecons : wrap;
@@ -51,6 +53,11 @@ public enum BuildType : string
      * Uses configure/make/install routine
      */
     Autotools = "autotools",
+
+    /**
+     * CMake integration
+     */
+    CMake = "cmake",
 
     /**
      * Uses meson + ninja
