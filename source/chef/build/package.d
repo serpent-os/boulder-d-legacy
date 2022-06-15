@@ -12,6 +12,36 @@
 
 module chef.build;
 
+public import chef.build.autotools;
+public import chef.build.meson;
+import std.traits : EnumMembers;
+import std.string : capitalize;
+import std.experimental.typecons : wrap;
+
+public Build buildTypeToHelper(BuildType type)
+{
+    auto nom = cast(string) type;
+
+    final switch (nom)
+    {
+        static foreach (member; EnumMembers!BuildType)
+        {
+    case member:
+            /* Disallow unknown, return null */
+            static if (member == "unknown")
+            {
+                return null;
+            }
+            else
+            {
+                /* Return class based instantiation */
+                mixin("auto helper = " ~ member.capitalize ~ "Build();");
+                return helper.wrap!Build;
+            }
+        }
+    }
+}
+
 /**
  * Supported build system types.
  */

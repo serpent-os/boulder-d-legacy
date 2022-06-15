@@ -278,6 +278,7 @@ private:
     {
         /* Pick the highest pattern */
         import std.algorithm : sort;
+        import std.stdio : writefln;
 
         auto keyset = confidence.keys;
         if (keyset.empty)
@@ -290,7 +291,21 @@ private:
         keyset.sort!((a, b) => confidence[a] > confidence[b]);
         auto highest = keyset[0];
 
-        tracef("Using build system: %s", cast(string) highest);
+        auto build = buildTypeToHelper(highest);
+        void emitSection(string displayName, string delegate() helper)
+        {
+            auto res = helper();
+            if (res is null)
+            {
+                return;
+            }
+            writefln("%s|\n    %s", displayName, res);
+        }
+
+        emitSection("setup       :", &build.setup);
+        emitSection("build       :", &build.build);
+        emitSection("install     :", &build.install);
+        emitSection("check       :", &build.check);
     }
 
     FetchController controller;
