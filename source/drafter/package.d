@@ -202,6 +202,14 @@ public final class Drafter
         controller.enqueue(f);
     }
 
+    /**
+     * Allow Metadata to be accessed and updated
+     */
+    pure @property ref inout(Metadata) metadata() inout @safe @nogc nothrow
+    {
+        return meta;
+    }
+
 private:
 
     void exploreAssets()

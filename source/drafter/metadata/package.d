@@ -35,6 +35,22 @@ public struct Metadata
     UpstreamDefinition[] upstreams;
 
     /**
+     * Return the summary
+     */
+    pragma(inline, true) pure @property string summary() @safe @nogc nothrow const
+    {
+        return _summary;
+    }
+
+    /**
+     * Return the description
+     */
+    pragma(inline, true) pure @property string description() @safe @nogc nothrow const
+    {
+        return _description;
+    }
+
+    /**
      * If our source is empty, try to update it from the given URI
      */
     void updateSource(in string uri)
@@ -76,9 +92,15 @@ public struct Metadata
         static immutable recipe = import("recipeTemplate.yml").stripRight;
 
         string summary = "some as yet undisclosed summary";
-        string description = "Some obnoxiously large paragraph that will in turn detail the function of the software and a bunch of info that nobody ever reads";
+        string description = "";
         string up = upstreams.map!((u) => format!"    - %s : %s"(u.uri, u.plain.hash)).join("\n");
         return format!recipe(source.name, source.versionIdentifier, source.release,
                 source.homepage, up, summary, description.wrap(60, "", "    ", 1).stripRight);
     }
+
+private:
+
+    string _summary = "As yet undisclosed summary";
+    string _description = "Some obnoxiously large paragraph that will in turn "
+        ~ "detail the function of the software and a bunch of info that nobody ever reads";
 }
