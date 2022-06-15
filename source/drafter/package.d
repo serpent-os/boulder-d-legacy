@@ -209,7 +209,7 @@ private:
     {
         import std.container.rbtree : redBlackTree;
         import std.algorithm : joiner, map, each;
-        import std.stdio : writefln;
+        import std.stdio : writefln, writeln;
         import std.array : array;
 
         /* Merge all dependencies from all buckets, convert to string, sort insert */
@@ -226,7 +226,7 @@ private:
         }
 
         /* Emit the build dependencies now */
-        writefln("builddeps   :");
+        writeln("builddeps   :");
         set[].each!((d) => writefln!"    - %s"(d));
     }
 
