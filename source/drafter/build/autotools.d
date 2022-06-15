@@ -44,6 +44,8 @@ static public AnalysisReturn acceptAutotools(scope Analyser an, ref FileInfo inp
     switch (bn)
     {
     case "configure.ac":
+        dr.incrementBuildConfidence(BuildType.Autotools, 10);
+        return AnalysisReturn.NextFunction;
     case "configure":
     case "Makefile.am":
     case "Makefile":
@@ -55,11 +57,30 @@ static public AnalysisReturn acceptAutotools(scope Analyser an, ref FileInfo inp
 }
 
 /**
+ * Scan a meson.build file
+ */
+static private AnalysisReturn scanAutotools(scope Analyser an, ref FileInfo inpath)
+{
+    scope auto mmap = new MmFile(inpath.fullPath);
+    auto data = cast(ubyte[]) mmap[0 .. $];
+    auto rawData = cast(string) data;
+
+    /* Check all configure.ac PKG_CHECK_MODULES() calls */
+    foreach (m; rawData.matchAll(reConfigurePkgconfig))
+    {
+        auto dependencyTarget = m[2];
+        auto de = Dependency(dependencyTarget.dup, DependencyType.PkgconfigName);
+        an.bucket(inpath).addDependency(de);
+    }
+
+    return AnalysisReturn.IncludeFile;
+}
+
+/**
  * Handler for autotools files
  */
-public static AnalysisChain autotoolsChain = AnalysisChain("autotools", [
-        &acceptAutotools
-        ], 10);
+public static AnalysisChain autotoolsChain = AnalysisChain("autotools",
+        [&acceptAutotools, &scanAutotools], 10);
 
 public struct AutotoolsBuild
 {
