@@ -166,14 +166,7 @@ public final class Drafter
 
         writeln("recipe: \n");
         writeln(meta.emit());
-
-        foreach (bucket; analyser.buckets)
-        {
-            foreach (dep; bucket.dependencies)
-            {
-                tracef("Discovered dependency on: %s", dep);
-            }
-        }
+        emitBuildDependencies();
 
         emitBuild();
     }
@@ -211,6 +204,31 @@ public final class Drafter
     }
 
 private:
+
+    void emitBuildDependencies()
+    {
+        import std.container.rbtree : redBlackTree;
+        import std.algorithm : joiner, map, each;
+        import std.stdio : writefln;
+        import std.array : array;
+
+        /* Merge all dependencies from all buckets, convert to string, sort insert */
+        auto set = redBlackTree!("a < b", false, string)(analyser.buckets
+                .map!((b) => b.dependencies)
+                .joiner
+                .map!((d) => d.toString)
+                .array);
+
+        /* No build deps. */
+        if (set.empty)
+        {
+            return;
+        }
+
+        /* Emit the build dependencies now */
+        writefln("builddeps   :");
+        set[].each!((d) => writefln!"    - %s"(d));
+    }
 
     void exploreAssets()
     {
