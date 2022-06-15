@@ -76,32 +76,6 @@ static private AnalysisReturn acceptAutotools(scope Analyser an, ref FileInfo in
 }
 
 /**
- * Discover meson projects
- */
-static private AnalysisReturn acceptMeson(scope Analyser an, ref FileInfo inpath)
-{
-    Drafter c = an.userdata!Drafter;
-    auto bn = inpath.path.baseName;
-    import std.string : count;
-
-    /**
-     * Depth too great
-     */
-    if (inpath.path.count("/") > 1)
-    {
-        return AnalysisReturn.NextHandler;
-    }
-
-    if (bn == "meson.build" || bn == "meson_options.txt")
-    {
-        c.incrementBuildConfidence(BuildType.Meson, 100);
-        return AnalysisReturn.IncludeFile;
-    }
-
-    return AnalysisReturn.NextHandler;
-}
-
-/**
  * Main class for analysis of incoming sources to generate an output recipe
  */
 public final class Drafter
@@ -116,7 +90,7 @@ public final class Drafter
         analyser.userdata = this;
         analyser.addChain(AnalysisChain("drop", [&silentDrop], 0));
         analyser.addChain(AnalysisChain("autotools", [&acceptAutotools], 10));
-        analyser.addChain(AnalysisChain("meson", [&acceptMeson], 20));
+        analyser.addChain(mesonChain);
         controller.onFail.connect(&onFail);
         controller.onComplete.connect(&onComplete);
     }
@@ -192,6 +166,14 @@ public final class Drafter
 
         writeln("recipe: \n");
         writeln(meta.emit());
+
+        foreach (bucket; analyser.buckets)
+        {
+            foreach (dep; bucket.dependencies)
+            {
+                tracef("Discovered dependency on: %s", dep);
+            }
+        }
 
         emitBuild();
     }
