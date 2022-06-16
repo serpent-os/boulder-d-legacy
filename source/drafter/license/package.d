@@ -30,5 +30,5 @@ public struct License
     /**
      * True if the license is deprecated by SPDX
      */
-    bool isDeprecated;
+    immutable(bool) isDeprecated;
 }
