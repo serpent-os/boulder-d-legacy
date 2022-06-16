@@ -14,7 +14,7 @@ module drafter.metadata;
 import moss.format.source;
 import std.regex;
 import std.typecons : Nullable;
-import std.string : format, wrap, detabber;
+import std.string : format, wrap, detabber, startsWith;
 import std.experimental.logger : tracef;
 
 import drafter.metadata.basic;
@@ -73,6 +73,10 @@ public struct Metadata
                     {
                         tracef("Using MetataHelper: %s", h);
                         source = result.get;
+                        if (source.versionIdentifier.startsWith("v"))
+                        {
+                            source.versionIdentifier = source.versionIdentifier[1 .. $];
+                        }
                         break match_loop;
                     }
                 }
