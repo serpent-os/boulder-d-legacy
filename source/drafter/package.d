@@ -23,6 +23,7 @@ import std.range : empty;
 import moss.core.logging;
 import std.process;
 import drafter.build;
+import drafter.license;
 import drafter.metadata;
 
 public import moss.format.source.upstream_definition;
@@ -63,6 +64,7 @@ public final class Drafter
         analyser.addChain(mesonChain);
         controller.onFail.connect(&onFail);
         controller.onComplete.connect(&onComplete);
+        _licenseEngine = new Engine();
     }
 
     /**
@@ -181,6 +183,14 @@ public final class Drafter
         return _options;
     }
 
+    /**
+     * Expose the license engine
+     */
+    pure @property Engine licenseEngine() @safe @nogc nothrow
+    {
+        return _licenseEngine;
+    }
+
 private:
 
     void emitBuildDependencies()
@@ -297,6 +307,7 @@ private:
 
     FetchController controller;
     Analyser analyser;
+    Engine _licenseEngine;
     RemoteAsset[] processPaths;
     string[] directories;
     bool fetchedDownloads = true;

@@ -11,6 +11,8 @@
 
 module drafter.license;
 
+public import drafter.license.engine;
+
 /**
  * A License as found in the SPDX data set
  */
