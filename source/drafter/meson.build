@@ -4,6 +4,7 @@ libdrafter_sources = [
     'build/cmake.d',
     'build/meson.d',
     'build/package.d',
+    'license/engine.d',
     'license/package.d',
     'metadata/basic.d',
     'metadata/github.d',
