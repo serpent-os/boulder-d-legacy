@@ -62,6 +62,7 @@ public final class Drafter
         analyser.addChain(AnalysisChain("drop", [&silentDrop], 0));
         analyser.addChain(autotoolsChain);
         analyser.addChain(mesonChain);
+        analyser.addChain(licenseChain);
         controller.onFail.connect(&onFail);
         controller.onComplete.connect(&onComplete);
         _licenseEngine = new Engine();
