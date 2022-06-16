@@ -97,3 +97,49 @@ public interface Build
      */
     string check();
 }
+
+/**
+ * Our buildflags allow us to know what is *available* without
+ * emitting invalid instructions.
+ */
+public enum BuildFlags
+{
+    /**
+     * No flags
+     */
+    None = 1 << 0,
+
+    /**
+     * Build has a setup() stage available
+     */
+    Configurable = 1 << 1,
+
+    /**
+     * Build has a build() stage available
+     */
+    Buildable = 1 << 2,
+
+    /**
+     * Build has an install() stage available
+     */
+    Installable = 1 << 3,
+
+    /** 
+     * Build has a check() stage available
+     */
+    Testable = 1 << 4,
+}
+
+/**
+ * Build options may be non-standard or require specific
+ * tweaks, thus we centralise their oddities and make
+ * them available to the Build interface.
+ */
+public struct BuildOptions
+{
+    /** Explicitly requested working directory */
+    string workingDir = null;
+
+    /** No default flags */
+    BuildFlags flags = BuildFlags.None;
+}
