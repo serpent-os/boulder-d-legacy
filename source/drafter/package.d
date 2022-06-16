@@ -173,6 +173,14 @@ public final class Drafter
         return meta;
     }
 
+    /**
+     * Expose build options
+     */
+    pure @property ref inout(BuildOptions) options() inout @safe @nogc nothrow
+    {
+        return _options;
+    }
+
 private:
 
     void emitBuildDependencies()
@@ -294,4 +302,5 @@ private:
     bool fetchedDownloads = true;
     Metadata meta;
     private ulong[BuildType] confidence;
+    BuildOptions _options;
 }
