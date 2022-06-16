@@ -226,6 +226,7 @@ private:
             ud.plain = PlainUpstreamDefinition(hash);
             ud.uri = p.sourceURI;
             meta.upstreams ~= ud;
+            meta.source.release = 1;
             meta.updateSource(ud.uri);
 
             /* Attempt extraction. For now, we assume everything is a tarball */
