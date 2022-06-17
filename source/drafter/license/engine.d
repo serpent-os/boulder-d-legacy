@@ -54,6 +54,12 @@ static private string sanitizeLicense(in string path)
         .take(MaxScanLength).to!string;
 }
 
+/**
+ * Much like our initial license loader
+ *
+ * We convert the input data into some usable text for comparison
+ * and dispatch to our check function
+ */
 static private AnalysisReturn scanLicenseFile(scope Analyser an, ref FileInfo fi)
 {
     if (fi.type != FileType.Regular)
@@ -65,19 +71,31 @@ static private AnalysisReturn scanLicenseFile(scope Analyser an, ref FileInfo fi
     auto bn = fi.path.baseName.toLower;
     if (bn.startsWith("copying") || bn.startsWith("license") || bn.startsWith("licence"))
     {
+        tracef("Analysing license: %s", fi.path);
         string text = sanitizeLicense(fi.fullPath);
-        tracef("Detected license for %s: %s", fi.path, dr.licenseEngine.checkLicense(text));
+        auto detectedLicense = dr.licenseEngine.checkLicense(text);
+        tracef("License of %s: %s (Confidence: %.2f)", fi.path,
+                detectedLicense.id, detectedLicense.confidence);
     }
     return AnalysisReturn.NextHandler;
 }
 
+/**
+ * Incorporate licenseChain into analyzer to gain automatic license scanning
+ */
 public static AnalysisChain licenseChain = AnalysisChain("licenseFiles", [
         &scanLicenseFile
         ], 10);
 
+/**
+ * Used internally as a return type for license matching
+ */
 private struct LicenseResult
 {
+    /* SPDX Identifier */
     string id;
+
+    /* How confident are we in this? */
     double confidence;
 }
 
@@ -110,7 +128,6 @@ public final class Engine
         auto entries = dirEntries(directory, "*.txt", SpanMode.shallow, false).array;
         auto data = taskPool.amap!loadLicense(entries);
         data.each!((d) => licenses ~= d);
-        trace("done");
     }
 
     /**
@@ -137,7 +154,6 @@ public final class Engine
                 record = ratio;
                 id = comp.identifier;
             }
-            //tracef("Comparison to %s: %g", comp.identifier, ratio);
         }
         return LicenseResult(id, record);
     }
