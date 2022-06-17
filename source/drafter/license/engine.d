@@ -15,7 +15,7 @@ import std.exception : enforce;
 import std.file : dirEntries, SpanMode, exists, DirEntry;
 import std.path : baseName;
 import std.algorithm : map, filter, each;
-import std.uni : isWhite;
+import std.uni : isAlphaNum, byCodePoint;
 import std.array : array;
 import std.string : startsWith, toLower;
 import std.experimental.logger;
@@ -26,17 +26,36 @@ import std.mmfile;
 import std.container.rbtree;
 import moss.deps.analysis;
 import std.conv : to;
+import std.range : take;
 
 /**
  * Don't scan past this length in any file.
  */
-private auto MaxScanLength = 600;
+private auto MaxScanLength = 500;
+
+/**
+ * This helper sanitizes license texts for proper comparison.
+ *
+ * We iterate the unicode input and drop anything that isn't an
+ * alphanumeric codepoint, convert to lower case and allow a
+ * maximum comparison length of 500 characters.
+ *
+ * This allows the bulk of the license to be compared and yield
+ * a high level of confidence.
+ */
+static private string sanitizeLicense(in string path)
+{
+    scope auto mmapped = new MmFile(path);
+    auto rawData = cast(ubyte[]) mmapped[0 .. $];
+    auto wideString = cast(string) rawData;
+    return wideString.byCodePoint
+        .filter!((c) => c.isAlphaNum)
+        .map!((c) => c.toLower)
+        .take(MaxScanLength).to!string;
+}
 
 static private AnalysisReturn scanLicenseFile(scope Analyser an, ref FileInfo fi)
 {
-    import std.file : read;
-    import std.string : replace;
-
     if (fi.type != FileType.Regular)
     {
         return AnalysisReturn.NextHandler;
@@ -46,12 +65,7 @@ static private AnalysisReturn scanLicenseFile(scope Analyser an, ref FileInfo fi
     auto bn = fi.path.baseName.toLower;
     if (bn.startsWith("copying") || bn.startsWith("license") || bn.startsWith("licence"))
     {
-        string text = cast(string) fi.fullPath.read();
-        if (text.length > MaxScanLength)
-        {
-            text = text[0 .. MaxScanLength];
-        }
-        text = text.toLower.replace(" ", "").replace("\n", "").replace("\r", "").replace("\t", "");
+        string text = sanitizeLicense(fi.fullPath);
         tracef("Detected license for %s: %s", fi.path, dr.licenseEngine.checkLicense(text));
     }
     return AnalysisReturn.NextHandler;
@@ -72,17 +86,7 @@ private struct LicenseResult
  */
 static private License* loadLicense(DirEntry entry)
 {
-    import std.file : read;
-    import std.string : replace;
-
-    string text = cast(string) entry.name.read();
-    if (text.length > MaxScanLength)
-    {
-        text = text[0 .. MaxScanLength];
-    }
-    import std.string : replace;
-
-    text = text.toLower.replace(" ", "").replace("\n", "").replace("\r", "").replace("\t", "");
+    string text = sanitizeLicense(entry.name);
     auto bn = entry.name.baseName;
     auto licenseName = bn[0 .. $ - 4];
     return new License(licenseName, text, false);
