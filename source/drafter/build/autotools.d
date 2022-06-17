@@ -36,7 +36,7 @@ static public AnalysisReturn acceptAutotools(scope Analyser an, ref FileInfo inp
     /**
      * Depth too great
      */
-    if (inpath.path.count("/") > 1)
+    if (inpath.path.count("/") > 2)
     {
         return AnalysisReturn.NextHandler;
     }
