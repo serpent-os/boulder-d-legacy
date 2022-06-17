@@ -54,9 +54,9 @@ public final class Controller : StageContext
 
             pragma(msg,
                     "\n\n!!!!!!!!!!\n\nUSING UNSAFE DEBUG BUILD PATHS. DO NOT USE IN PRODUCTION\n\n");
-            _mossBinary = thisExePath.dirName.buildNormalizedPath("../../moss/build/moss");
+            _mossBinary = thisExePath.dirName.buildNormalizedPath("../../../../moss/build/moss");
             _containerBinary = thisExePath.dirName.buildNormalizedPath(
-                    "../../moss-container/build/moss-container");
+                    "../../../../moss-container/build/moss-container");
         }
         else
         {
