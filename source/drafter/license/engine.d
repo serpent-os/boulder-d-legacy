@@ -31,44 +31,7 @@ import std.range : take;
 /**
  * Don't scan past this length in any file.
  */
-private static enum MaxScanLength = 500;
-
-/**
- * Bake the licenses directly into the binary
- */
-static private auto buildLicenses()
-{
-    License[] licensesRet;
-
-    import std.string : splitLines;
-    import std.path : baseName;
-
-    enum licenseFiles = import("licenses.list").splitLines();
-    pragma(msg, "Begin baking licenses..");
-    static foreach (l; licenseFiles)
-    {
-        {
-            enum licenseText = import(l).byCodePoint
-                    .filter!((c) => c.isAlphaNum)
-                    .map!((c) => c.toLower)
-                    .take(MaxScanLength)
-                    .to!string;
-            /* Remove .txt suffix, etc. */
-            enum licenseName = l.baseName[0 .. $ - 4];
-            enum tmpLicense = License(licenseName, licenseText, false);
-            licensesRet ~= tmpLicense;
-        }
-    }
-
-    return licensesRet;
-}
-
-__gshared private License[] builtinLicenses;
-
-shared static this()
-{
-    builtinLicenses = buildLicenses();
-}
+private auto MaxScanLength = 500;
 
 /**
  * This helper sanitizes license texts for proper comparison.
@@ -88,8 +51,7 @@ static private string sanitizeLicense(in string path)
     return wideString.byCodePoint
         .filter!((c) => c.isAlphaNum)
         .map!((c) => c.toLower)
-        .take(MaxScanLength)
-        .to!string;
+        .take(MaxScanLength).to!string;
 }
 
 /**
@@ -138,45 +100,65 @@ private struct LicenseResult
 }
 
 /**
+ * Load SPDX license data from disk
+ */
+static private License* loadLicense(DirEntry entry)
+{
+    string text = sanitizeLicense(entry.name);
+    auto bn = entry.name.baseName;
+    auto licenseName = bn[0 .. $ - 4];
+    return new License(licenseName, text, false);
+}
+
+/**
  * Licensing engine performs preloading and computation of
  * license specifics.
  */
 public final class Engine
 {
 
-    static struct ContextWrap
+    /**
+     * Preload all of our licenses
+     */
+    void loadFromDirectory(in string directory)
     {
-        License l;
-        string input;
+        enforce(directory.exists);
+        trace("Preloading license data");
+
+        auto entries = dirEntries(directory, "*.txt", SpanMode.shallow, false).array;
+        auto data = taskPool.amap!loadLicense(entries);
+        data.each!((d) => licenses ~= d);
     }
 
     /**
      * Find out what license this is.
      */
-    static auto checkLicense(in string transformedInput)
-    {
-        import std.parallelism : parallel;
-        import std.algorithm : maxElement, map;
-
-        auto resultsIn = builtinLicenses.map!((l) => ContextWrap(l, transformedInput));
-        auto results = taskPool.amap!findMatch(resultsIn);
-        return results.maxElement!((e) => e.confidence);
-    }
-
-    static LicenseResult findMatch(in ContextWrap t)
+    const LicenseResult checkLicense(in string transformedInput)
     {
         import std.algorithm : levenshteinDistance;
+        import std.parallelism : parallel;
 
-        auto reference = t.l;
-        auto input = t.input;
-
-        auto distance = reference.textBody.levenshteinDistance(input);
-        auto lensum = cast(double)(reference.textBody.length + input.length);
-        double ratio = 1.0;
-        if (lensum != 0)
+        double record = 0.0;
+        string id = null;
+        foreach (comp; licenses.parallel)
         {
-            ratio = (cast(double)(lensum - distance)) / lensum;
+            auto distance = comp.textBody.levenshteinDistance(transformedInput);
+            auto lensum = cast(double)(comp.textBody.length + transformedInput.length);
+            double ratio = 1.0;
+            if (lensum != 0)
+            {
+                ratio = (cast(double)(lensum - distance)) / lensum;
+            }
+            if (ratio > record)
+            {
+                record = ratio;
+                id = comp.identifier;
+            }
         }
-        return LicenseResult(reference.identifier, ratio);
+        return LicenseResult(id, record);
     }
+
+private:
+
+    License*[] licenses;
 }

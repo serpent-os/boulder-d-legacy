@@ -25,7 +25,6 @@ libdrafter = static_library(
     dependencies: libdrafter_deps,
     d_import_dirs: [
         boulder_data_dir,
-        boulder_license_dir,
     ]
 )
 

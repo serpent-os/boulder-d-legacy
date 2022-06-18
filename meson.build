@@ -44,9 +44,5 @@ boulder_data_dir = [
     include_directories('data'),
 ]
 
-boulder_license_dir = [
-    include_directories('license-list-data/text'),
-]
-
 # Actual linky buildy stuff
 subdir('source')

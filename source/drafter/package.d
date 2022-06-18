@@ -66,6 +66,7 @@ public final class Drafter
         controller.onFail.connect(&onFail);
         controller.onComplete.connect(&onComplete);
         _licenseEngine = new Engine();
+        _licenseEngine.loadFromDirectory("license-list-data/text");
     }
 
     /**
