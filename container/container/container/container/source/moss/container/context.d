@@ -7,7 +7,7 @@
  * sharing of process-wide variables and configuration.
  *
  * Authors: © 2020-2022 Serpent OS Developers
- * License: ZLib
+ * License: Zlib
  */
 module moss.container.context;
 

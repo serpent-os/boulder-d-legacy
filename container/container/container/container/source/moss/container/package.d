@@ -7,7 +7,7 @@
  * a main entry point for container workloads.
  *
  * Authors: © 2020-2022 Serpent OS Developers
- * License: ZLib
+ * License: Zlib
  */
 module moss.container;
 

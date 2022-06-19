@@ -7,7 +7,7 @@
  * with some CLI parsing and container namespace initialisation.
  *
  * Authors: © 2020-2022 Serpent OS Developers
- * License: ZLib
+ * License: Zlib
  */
 module main;
 
@@ -89,7 +89,7 @@ public struct ContainerCLI
         {
             stdout.writefln("moss-container, version %s", "0.1");
             stdout.writeln("\nCopyright © 2020-2022 Serpent OS Developers");
-            stdout.writeln("Available under the terms of the ZLib license");
+            stdout.writeln("Available under the terms of the Zlib license");
             return 0;
         }
 
