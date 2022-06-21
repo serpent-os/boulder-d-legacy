@@ -12,7 +12,7 @@ pkgconf = import('pkgconfig')
 # Pre-configure moss-vendor
 moss_vendor = subproject('moss-vendor',
     default_options: [
-        'with_difflib=true',
+        'with_difflib=false',
         'with_elf=true',
         'with_rocksdb=false',
         'with_xxhash=true',
@@ -40,9 +40,6 @@ link_libmoss_fetcher = moss_fetcher.get_variable('link_libmoss_fetcher')
 # Grab moss-format
 moss_format = subproject('moss-format')
 link_libmoss_format = moss_format.get_variable('link_libmoss_format')
-
-# Grab difflib-d
-link_libdifflib = moss_vendor.get_variable('link_libmoss_vendor_difflib')
 
 boulder_data_dir = [
     include_directories('data'),
