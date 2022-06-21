@@ -143,7 +143,7 @@ public final class Drafter
 
         writeln("recipe: \n");
         writeln(meta.emit());
-        writeln("license:");
+        writeln("license     :");
         _licenses.each!((l) => writefln!"    - %s"(l));
         emitBuildDependencies();
 
