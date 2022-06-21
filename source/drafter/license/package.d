@@ -21,16 +21,16 @@ public struct License
     /**
      * SPDX 3.x identifier for the license
      */
-    immutable(string) identifier;
+    string identifier;
 
     /**
      * Plain text body for the license
      * We drop all whitespace + convert to lower case.
      */
-    immutable(string) textBody;
+    string textBody;
 
     /**
      * True if the license is deprecated by SPDX
      */
-    immutable(bool) isDeprecated;
+    bool isDeprecated;
 }

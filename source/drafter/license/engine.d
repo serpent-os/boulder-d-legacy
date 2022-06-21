@@ -11,27 +11,34 @@
 
 module drafter.license.engine;
 
-import std.exception : enforce;
-import std.file : dirEntries, SpanMode, exists, DirEntry;
-import std.path : baseName;
-import std.algorithm : map, filter, each;
-import std.uni : isAlphaNum, byCodePoint;
-import std.array : array;
-import std.string : startsWith, toLower;
-import std.experimental.logger;
-import std.parallelism : taskPool;
 import drafter : Drafter;
 import drafter.license : License;
-import std.mmfile;
-import std.container.rbtree;
 import moss.deps.analysis;
+import std.algorithm : each, filter, map, mean, multiSort;
+import std.array : array, split;
+import std.container.rbtree;
 import std.conv : to;
-import std.range : take;
+import std.exception : enforce;
+import std.experimental.logger;
+import std.file : dirEntries, DirEntry, exists, SpanMode;
+import std.mmfile;
+import std.parallelism : taskPool;
+import std.path : baseName;
+import std.range : take, chunks, zip, lockstep, Take, empty, front, enumerate;
+import std.string : startsWith, toLower;
+import std.uni : byCodePoint, isAlphaNum;
 
 /**
- * Don't scan past this length in any file.
+ * Minimum confidence level is 88%
  */
-private auto MaxScanLength = 500;
+static private enum ConfidenceLimit = 0.88;
+
+static private enum MaxReadSize = 1800;
+
+/**
+ * Anything under 350 characters is likely bullshit
+ */
+static private enum MinimumScanThreshold = 350;
 
 /**
  * This helper sanitizes license texts for proper comparison.
@@ -51,7 +58,7 @@ static private string sanitizeLicense(in string path)
     return wideString.byCodePoint
         .filter!((c) => c.isAlphaNum)
         .map!((c) => c.toLower)
-        .take(MaxScanLength).to!string;
+        .take(MaxReadSize).to!string;
 }
 
 /**
@@ -71,11 +78,23 @@ static private AnalysisReturn scanLicenseFile(scope Analyser an, ref FileInfo fi
     auto bn = fi.path.baseName.toLower;
     if (bn.startsWith("copying") || bn.startsWith("license") || bn.startsWith("licence"))
     {
-        tracef("Analysing license: %s", fi.path);
         string text = sanitizeLicense(fi.fullPath);
-        auto detectedLicense = dr.licenseEngine.checkLicense(text);
-        tracef("License of %s: %s (Confidence: %.2f)", fi.path,
-                detectedLicense.id, detectedLicense.confidence);
+        if (text.length < MinimumScanThreshold)
+        {
+            return AnalysisReturn.NextHandler;
+        }
+        auto detectedLicenses = dr.licenseEngine.checkLicenses(bn, text)
+            .filter!((l) => l.confidence >= ConfidenceLimit).array;
+        /* HAX: Ensure "or-later" is before "only" (compliance) */
+        detectedLicenses.multiSort!("a.confidence > b.confidence", "a.id > b.id");
+        if (detectedLicenses.empty)
+        {
+            warningf("Unknown license for: %s", fi.path);
+            return AnalysisReturn.NextHandler;
+        }
+        auto top = detectedLicenses.front;
+        tracef("[LICENSE] %s: %s (Confidence: %.2f)", fi.path, top.id, top.confidence);
+        return AnalysisReturn.IncludeFile;
     }
     return AnalysisReturn.NextHandler;
 }
@@ -102,12 +121,12 @@ private struct LicenseResult
 /**
  * Load SPDX license data from disk
  */
-static private License* loadLicense(DirEntry entry)
+private static void loadLicense(DirEntry entry, License* l)
 {
     string text = sanitizeLicense(entry.name);
     auto bn = entry.name.baseName;
     auto licenseName = bn[0 .. $ - 4];
-    return new License(licenseName, text, false);
+    *l = License(licenseName, text, false);
 }
 
 /**
@@ -125,40 +144,91 @@ public final class Engine
         enforce(directory.exists);
         trace("Preloading license data");
 
-        auto entries = dirEntries(directory, "*.txt", SpanMode.shallow, false).array;
-        auto data = taskPool.amap!loadLicense(entries);
-        data.each!((d) => licenses ~= d);
+        /* Deliberately do NOT load deprecated licenses! */
+        auto entries = dirEntries(directory, "*.txt", SpanMode.shallow, false).filter!(
+                (o) => !o.name.baseName.startsWith("deprecated_")).array;
+        licenses.reserve(entries.length);
+        licenses.length = entries.length;
+        ulong idx = 0;
+        foreach (entry; entries)
+        {
+            License* l = &licenses[idx];
+            loadLicense(entry, l);
+            idx++;
+        }
     }
 
     /**
      * Find out what license this is.
      */
-    const LicenseResult checkLicense(in string transformedInput)
+    LicenseResult[] checkLicenses(in string path, in string transformedInput)
     {
-        import std.algorithm : levenshteinDistance;
-        import std.parallelism : parallel;
+        import std.parallelism : taskPool;
 
-        double record = 0.0;
-        string id = null;
-        foreach (comp; licenses.parallel)
+        /* If we hae COPYING.$SPDX, use the id up front. */
+        auto splits = path.split(".").array;
+        if (splits.length > 1)
         {
-            auto distance = comp.textBody.levenshteinDistance(transformedInput);
-            auto lensum = cast(double)(comp.textBody.length + transformedInput.length);
-            double ratio = 1.0;
-            if (lensum != 0)
+            auto nom = splits[1];
+            auto matchingLicenses = licenses.filter!((m) => m.identifier.toLower == nom)
+                .map!((l) => LicenseResult(l.identifier, 1.0));
+            if (!matchingLicenses.empty)
             {
-                ratio = (cast(double)(lensum - distance)) / lensum;
-            }
-            if (ratio > record)
-            {
-                record = ratio;
-                id = comp.identifier;
+                return [matchingLicenses.front];
             }
         }
-        return LicenseResult(id, record);
+
+        /* Map to eliminate dual context limitation in LDC */
+        auto matchers = licenses.enumerate.map!((tup) => MatchContext(&licenses[tup.index],
+                transformedInput));
+
+        /* Match all licenses in parallel, return as LicenseResult */
+        return taskPool.amap!computeLeven(matchers).array;
     }
 
 private:
 
-    License*[] licenses;
+    /**
+     * Compute the levenshtein difference for two input string ranges
+     *
+     * Params:
+     *      r1 = First range
+     *      r2 = Second range
+     * Returns: Clamped double (0.0-1.0) for similarity
+     */
+    static double levenCount(Take!string r1, Take!string r2)
+    {
+        import std.algorithm : levenshteinDistance;
+
+        immutable double distance = r1.levenshteinDistance(r2);
+        immutable double lenSum = r1.maxLength + r2.maxLength;
+        return (lenSum - distance) / lenSum;
+    }
+
+    /**
+     * Main entry into levenshtein diff calculation pre chunk
+     *
+     * Params:
+     *      context = Matching context
+     * Returns: License result
+     */
+    static LicenseResult computeLeven(MatchContext context)
+    {
+        static enum ChunkSize = 600;
+
+        double[] chunkCounts;
+        context.license.textBody.chunks(ChunkSize)
+            .lockstep(context.input.chunks(ChunkSize)).each!((a,
+                    b) => chunkCounts ~= levenCount(a, b));
+        auto avg = mean!double(chunkCounts);
+        return LicenseResult(context.license.identifier, avg);
+    }
+
+    static struct MatchContext
+    {
+        License* license;
+        string input;
+    }
+
+    License[] licenses;
 }
