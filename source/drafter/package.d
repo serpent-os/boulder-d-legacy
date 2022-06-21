@@ -12,19 +12,21 @@
 
 module drafter;
 
-import std.sumtype;
-import moss.core.ioutil;
-import moss.core.util : computeSHA256;
-import moss.fetcher;
-import moss.deps.analysis;
-import std.exception : enforce;
-import std.path : baseName;
-import std.range : empty;
-import moss.core.logging;
-import std.process;
 import drafter.build;
 import drafter.license;
 import drafter.metadata;
+import moss.core.ioutil;
+import moss.core.logging;
+import moss.core.util : computeSHA256;
+import moss.deps.analysis;
+import moss.fetcher;
+import std.algorithm : each;
+import std.container.rbtree : RedBlackTree;
+import std.exception : enforce;
+import std.path : baseName;
+import std.process;
+import std.range : empty;
+import std.sumtype;
 
 public import moss.format.source.upstream_definition;
 
@@ -67,6 +69,7 @@ public final class Drafter
         controller.onComplete.connect(&onComplete);
         _licenseEngine = new Engine();
         _licenseEngine.loadFromDirectory("license-list-data/text");
+        _licenses = new RedBlackTree!(string, "a < b", false);
     }
 
     /**
@@ -136,10 +139,12 @@ public final class Drafter
 
         /* Debug */
         trace(meta);
-        import std.stdio : writeln;
+        import std.stdio : writeln, writefln;
 
         writeln("recipe: \n");
         writeln(meta.emit());
+        writeln("license:");
+        _licenses.each!((l) => writefln!"    - %s"(l));
         emitBuildDependencies();
 
         emitBuild();
@@ -167,6 +172,14 @@ public final class Drafter
         enforce(type == UpstreamType.Plain, "Drafter only supports plain sources");
         auto f = Fetchable(uri, "/tmp/boulderDrafterURI-XXXXXX", 0, FetchType.TemporaryFile, null);
         controller.enqueue(f);
+    }
+
+    void insertLicense(in string license)
+    {
+        synchronized (_licenses)
+        {
+            _licenses.insert([license]);
+        }
     }
 
     /**
@@ -316,4 +329,5 @@ private:
     Metadata meta;
     private ulong[BuildType] confidence;
     BuildOptions _options;
+    RedBlackTree!(string, "a < b", false) _licenses;
 }

@@ -94,6 +94,7 @@ static private AnalysisReturn scanLicenseFile(scope Analyser an, ref FileInfo fi
         }
         auto top = detectedLicenses.front;
         tracef("[LICENSE] %s: %s (Confidence: %.2f)", fi.path, top.id, top.confidence);
+        dr.insertLicense(top.id);
         return AnalysisReturn.IncludeFile;
     }
     return AnalysisReturn.NextHandler;
