@@ -16,6 +16,7 @@ libdrafter_deps = [
     link_libmoss_fetcher,
     link_libmoss_deps,
     link_libmoss_format,
+    link_libdifflib,
 ]
 
 libdrafter = static_library(
