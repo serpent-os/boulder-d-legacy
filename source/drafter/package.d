@@ -27,6 +27,7 @@ import std.path : baseName;
 import std.process;
 import std.range : empty;
 import std.sumtype;
+import std.stdio : File;
 
 public import moss.format.source.upstream_definition;
 
@@ -56,7 +57,7 @@ public final class Drafter
     /**
      * Construct a new Drafter
      */
-    this()
+    this(in string outputPath)
     {
         controller = new FetchController();
         analyser = new Analyser();
@@ -71,6 +72,12 @@ public final class Drafter
         _licenseEngine = new Engine();
         _licenseEngine.loadFromDirectory("license-list-data/text");
         _licenses = new RedBlackTree!(string, "a < b", false);
+        outputFile = File(outputPath, "w");
+    }
+
+    ~this()
+    {
+        outputFile.close();
     }
 
     /**
@@ -138,16 +145,10 @@ public final class Drafter
         info("Analysing source trees");
         analyser.process();
 
-        /* Debug */
-        trace(meta);
-        import std.stdio : writeln, writefln;
-
-        writeln("recipe: \n");
-        writeln(meta.emit());
-        writeln("license     :");
-        _licenses.each!((l) => writefln!"    - %s"(l));
+        outputFile.writeln(meta.emit());
+        outputFile.writeln("license     :");
+        _licenses.each!((l) => outputFile.writefln!"    - %s"(l));
         emitBuildDependencies();
-
         emitBuild();
     }
 
@@ -230,8 +231,8 @@ private:
         }
 
         /* Emit the build dependencies now */
-        writeln("builddeps   :");
-        set[].each!((d) => writefln!"    - %s"(d));
+        outputFile.writeln("builddeps   :");
+        set[].each!((d) => outputFile.writefln!"    - %s"(d));
     }
 
     void exploreAssets()
@@ -312,7 +313,7 @@ private:
             {
                 return;
             }
-            writefln("%s|\n    %s", displayName, res);
+            outputFile.writefln("%s |\n    %s", displayName, res);
         }
 
         emitSection("setup       :", &build.setup);
@@ -331,4 +332,5 @@ private:
     private ulong[BuildType] confidence;
     BuildOptions _options;
     RedBlackTree!(string, "a < b", false) _licenses;
+    File outputFile;
 }
