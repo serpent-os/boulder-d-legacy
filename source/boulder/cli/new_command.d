@@ -28,6 +28,7 @@ import drafter;
 import moss.core;
 import std.algorithm : each;
 import std.stdio;
+import std.file : exists;
 
 /**
  * The BuildCommand is responsible for handling requests to build stone.yml
@@ -47,11 +48,18 @@ public struct NewCommand
      */
     @CommandEntry() int run(ref string[] argv)
     {
-        auto drafter = new Drafter();
+        if ("stone.yml".exists)
+        {
+            stderr.writeln("stone.yml exists - aborting");
+            return ExitStatus.Failure;
+        }
+
+        auto drafter = new Drafter("stone.yml");
 
         archives.each!((a) => drafter.addSource(a, UpstreamType.Plain));
         vcsSources.each!((a) => drafter.addSource(a, UpstreamType.Git));
         drafter.run();
+        drafter.destroy(); /* Ensure we flush & close */
         return ExitStatus.Failure;
     }
 
