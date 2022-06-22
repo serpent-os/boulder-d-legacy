@@ -102,6 +102,6 @@ public struct Metadata
 
 private:
 
-    string _summary = "As yet undisclosed summary";
-    string _description = "Some obnoxiously large paragraph that will in turn detail the function of the software and a bunch of info that nobody ever reads";
+    string _summary = "UPDATE SUMMARY";
+    string _description = "UPDATE DESCRIPTION";
 }
