@@ -167,11 +167,13 @@ public final class Engine
         import std.parallelism : taskPool;
 
         /* If we hae COPYING.$SPDX, use the id up front. */
-        auto splits = path.split(".").array;
+        auto ppath = path.baseName.toLower;
+        auto splits = ppath.split(".").array;
         if (splits.length > 1)
         {
             auto nom = splits[1];
-            auto matchingLicenses = licenses.filter!((m) => m.identifier.toLower == nom)
+            auto matchingLicenses = licenses.filter!((m) => m.identifier.toLower == nom
+                    || m.identifier.toLower == ppath)
                 .map!((l) => LicenseResult(l.identifier, 1.0));
             if (!matchingLicenses.empty)
             {
