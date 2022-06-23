@@ -89,10 +89,12 @@ private:
         auto ret = chroot(context.rootfs.toStringz);
         assert(ret == 0);
 
+        immutable newUID = context.effectiveUID;
+
         /* Drop permissions permanently */
-        ret = setgid(requiredUser);
+        ret = setgid(newUID);
         assert(ret == 0);
-        ret = setuid(requiredUser);
+        ret = setuid(newUID);
         assert(ret == 0);
 
         auto config = Config.newEnv;
@@ -116,6 +118,4 @@ private:
             return 1;
         }
     }
-
-    static const uid_t requiredUser = 65534;
 }

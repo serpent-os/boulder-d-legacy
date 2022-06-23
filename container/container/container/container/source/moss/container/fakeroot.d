@@ -42,8 +42,8 @@ package FakerootBinary discoverFakeroot()
     foreach (searchLocation; locations)
     {
         auto fullPath = join([
-                context.rootfs, (cast(string) searchLocation)[1 .. $]
-                ], "/");
+            context.rootfs, (cast(string) searchLocation)[1 .. $]
+        ], "/");
         if (fullPath.exists)
         {
             return searchLocation;

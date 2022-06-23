@@ -67,6 +67,10 @@ public struct ContainerCLI
     @Option("s", "set", "Set an environmental variable")
     string[string] environment;
 
+    /** UID to use */
+    @Option("u", "uid", "Effective UID to drop to (default: nobody)")
+    uid_t uid = 65_534;
+
     /** Toggle displaying program version */
     @Option("version", null, "Show program version and exit")
     bool showVersion = false;
@@ -115,6 +119,7 @@ public struct ContainerCLI
         context.fakeroot = fakeroot;
         context.workDir = "/";
         context.environment = environment;
+        context.effectiveUID = uid;
         if (!("PATH" in context.environment))
         {
             context.environment["PATH"] = "/usr/bin:/bin";

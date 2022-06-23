@@ -17,6 +17,7 @@ import std.concurrency : initOnce;
 import std.array : join;
 import std.stdio : stderr;
 import std.string : startsWith;
+import core.sys.posix.stdlib : uid_t;
 
 /**
  * Shared singleton instance
@@ -116,6 +117,27 @@ public final class Context
     }
 
     /**
+     * Effective UID
+     *
+     * Params:
+     *      uid = UID for all proceses spawned
+     */
+    pure @property void effectiveUID(in uid_t uid) @safe @nogc nothrow
+    {
+        _effectiveUID = uid;
+    }
+
+    /**
+     * Effective UID
+     *
+     * Returns: the effective uid set for all processes
+     */
+    pure @property uid_t effectiveUID() @safe @nogc nothrow
+    {
+        return _effectiveUID;
+    }
+
+    /**
      * Provide environment access
      */
     string[string] environment;
@@ -152,4 +174,5 @@ private:
     FakerootBinary _fakerootBinary = FakerootBinary.None;
     bool _fakeroot = false;
     string _workDir = ".";
+    uid_t _effectiveUID;
 }
