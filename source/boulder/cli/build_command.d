@@ -73,4 +73,7 @@ public struct BuildControlCommand
 
     /** Specify the number of build jobs to execute in parallel. */
     @Option("j", "jobs", "Set the number of parallel build jobs (0 = automatic)") int jobs = 0;
+
+    /** Bypass container/moss logic and build directly on host (invoke carver) */
+    @Option("u", "unsafe", "Build directly on host without container or dependencies") bool unsafeBuild = false;
 }
