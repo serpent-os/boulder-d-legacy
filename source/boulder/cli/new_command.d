@@ -29,7 +29,6 @@ import moss.core;
 import std.algorithm : each;
 import std.stdio;
 import std.file : exists;
-import std.string : empty;
 
 /**
  * The BuildCommand is responsible for handling requests to build stone.yml
