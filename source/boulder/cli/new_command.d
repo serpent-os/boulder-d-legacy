@@ -57,7 +57,6 @@ public struct NewCommand
         auto drafter = new Drafter(outputPath);
 
         archives.each!((a) => drafter.addSource(a, UpstreamType.Plain));
-        vcsSources.each!((a) => drafter.addSource(a, UpstreamType.Git));
         drafter.run();
         drafter.destroy(); /* Ensure we flush & close */
         return ExitStatus.Failure;
@@ -65,9 +64,6 @@ public struct NewCommand
 
     @Option("a", "archive", "URL to an archive to use")
     string[] archives;
-
-    @Option("g", "git", "Git source to utilise")
-    string[] vcsSources;
 
     /** Where to output the YML file */
     @Option("o", "output", "Location to output generated build recipe")
