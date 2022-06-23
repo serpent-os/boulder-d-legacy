@@ -67,12 +67,12 @@ public enum BuildType : string
     Meson = "meson",
 
     /**
-     * Uses python
+     * Uses python pep517
      */
     PythonPEP517 = "pythonpep517",
 
     /**
-     * Uses python
+     * Uses python setuptools
      */
     PythonSetuptools = "PythonSetuptools",
 
