@@ -15,6 +15,8 @@ module drafter.build;
 public import drafter.build.autotools;
 public import drafter.build.cmake;
 public import drafter.build.meson;
+public import drafter.build.python;
+
 
 import std.traits : EnumMembers;
 import std.string : capitalize;
@@ -63,6 +65,16 @@ public enum BuildType : string
      * Uses meson + ninja
      */
     Meson = "meson",
+
+    /**
+     * Uses python pep517
+     */
+    PythonPEP517 = "pythonpep517",
+
+    /**
+     * Uses python setuptools
+     */
+    PythonSetuptools = "PythonSetuptools",
 
     /**
      * Unsupported tooling
@@ -124,7 +136,7 @@ public enum BuildFlags
      */
     Installable = 1 << 3,
 
-    /** 
+    /**
      * Build has a check() stage available
      */
     Testable = 1 << 4,

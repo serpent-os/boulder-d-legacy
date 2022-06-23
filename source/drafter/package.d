@@ -31,7 +31,7 @@ import std.stdio : File;
 
 public import moss.format.source.upstream_definition;
 
-/** 
+/**
  * Map our downloads into something *usable* so we can remember
  * things about it.
  */
@@ -66,6 +66,7 @@ public final class Drafter
         analyser.addChain(autotoolsChain);
         analyser.addChain(mesonChain);
         analyser.addChain(cmakeChain);
+        analyser.addChain(pythonChain);
         analyser.addChain(licenseChain);
         controller.onFail.connect(&onFail);
         controller.onComplete.connect(&onComplete);
@@ -306,6 +307,7 @@ private:
         auto highest = keyset[0];
 
         auto build = buildTypeToHelper(highest);
+
         void emitSection(string displayName, string delegate() helper)
         {
             auto res = helper();
