@@ -48,13 +48,13 @@ public struct NewCommand
      */
     @CommandEntry() int run(ref string[] argv)
     {
-        if (writeLocation.exists)
+        if (outputPath.exists)
         {
-            stderr.writeln(writeLocation, " already exists - aborting.");
+            stderr.writeln(outputPath, " already exists - aborting.");
             return ExitStatus.Failure;
         }
 
-        auto drafter = new Drafter(writeLocation);
+        auto drafter = new Drafter(outputPath);
 
         archives.each!((a) => drafter.addSource(a, UpstreamType.Plain));
         vcsSources.each!((a) => drafter.addSource(a, UpstreamType.Git));
@@ -69,6 +69,7 @@ public struct NewCommand
     @Option("g", "git", "Git source to utilise")
     string[] vcsSources;
 
-    @Option("w", "write-to", "Location to output generated build recipe")
-    string writeLocation = "stone.yml";
+    /** Where to output the YML file */
+    @Option("o", "output", "Location to output generated build recipe")
+    string outputPath = "stone.yml";
 }
