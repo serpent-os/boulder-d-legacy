@@ -29,6 +29,7 @@ import moss.core;
 import std.algorithm : each;
 import std.stdio;
 import std.file : exists;
+import std.string : empty;
 
 /**
  * The BuildCommand is responsible for handling requests to build stone.yml
@@ -48,13 +49,13 @@ public struct NewCommand
      */
     @CommandEntry() int run(ref string[] argv)
     {
-        if ("stone.yml".exists)
+        if ("stone.yml".exists && writeLocation == "stone.yml")
         {
             stderr.writeln("stone.yml exists - aborting");
             return ExitStatus.Failure;
         }
 
-        auto drafter = new Drafter("stone.yml");
+        auto drafter = new Drafter(writeLocation);
 
         archives.each!((a) => drafter.addSource(a, UpstreamType.Plain));
         vcsSources.each!((a) => drafter.addSource(a, UpstreamType.Git));
@@ -68,4 +69,7 @@ public struct NewCommand
 
     @Option("g", "git", "Git source to utilise")
     string[] vcsSources;
+
+    @Option("w", "write-to", "Location to output generated build recipe")
+    string writeLocation = "stone.yml";
 }
