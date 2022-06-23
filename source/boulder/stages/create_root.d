@@ -20,6 +20,8 @@ import moss.core.mounts;
 import std.string : toStringz;
 import std.stdio : writefln;
 
+import boulder.stages : nobodyUser;
+
 /**
  * Handle creation of root tree
  */
@@ -30,7 +32,7 @@ public static immutable(Stage) stageCreateRoot = Stage("create-root", (StageCont
         context.job.hostPaths.compilerCache, context.job.hostPaths.pkgCache,
         guestPkgCachePath,
     ];
-    paths.each!((p) => { p.mkdirRecurse(); chown(p.toStringz, 65534, 65534); }());
+    paths.each!((p) => { p.mkdirRecurse(); chown(p.toStringz, nobodyUser, nobodyUser); }());
 
     /* Now add our mounts.. */
     auto pkgCache = Mount.bindRW(context.job.hostPaths.pkgCache, guestPkgCachePath);

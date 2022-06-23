@@ -16,6 +16,8 @@ import std.string : format;
 
 public import boulder.stages : Stage, StageReturn, StageContext;
 
+import boulder.stages : nobodyUser;
+
 /**
  * Encapsulate build stage
  */
@@ -44,6 +46,8 @@ static private StageReturn buildPackage(scope StageContext context)
         /* recipe tree */
         "--bind-ro",
         format!"%s=%s"(context.job.hostPaths.recipe, context.job.guestPaths.recipe),
+        /* Set the user to use */
+        format!"--uid=%s"(nobodyUser),
         /* Enable colours */
         "-s", "TERM=xterm-256color",
         /* Fakeroot, end of options */
