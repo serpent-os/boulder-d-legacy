@@ -17,7 +17,6 @@ public import drafter.build.cmake;
 public import drafter.build.meson;
 public import drafter.build.python;
 
-
 import std.traits : EnumMembers;
 import std.string : capitalize;
 import std.experimental.typecons : wrap;

@@ -39,7 +39,9 @@ static private AnalysisReturn acceptPython(scope Analyser an, ref FileInfo inpat
 /**
  * Handler for python projects
  */
-public static AnalysisChain pythonChain = AnalysisChain("python", [&acceptPython], 20);
+public static AnalysisChain pythonChain = AnalysisChain("python", [
+        &acceptPython
+        ], 20);
 
 /**
  * Python PEP517 Build (pyproject.toml/setup.cfg)
@@ -50,6 +52,7 @@ public struct Pythonpep517Build
     {
         return null;
     }
+
     string build()
     {
         return "%pyproject_build";
