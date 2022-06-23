@@ -49,9 +49,9 @@ public struct NewCommand
      */
     @CommandEntry() int run(ref string[] argv)
     {
-        if ("stone.yml".exists && writeLocation == "stone.yml")
+        if (writeLocation.exists)
         {
-            stderr.writeln("stone.yml exists - aborting");
+            stderr.writeln(writeLocation, " already exists - aborting.");
             return ExitStatus.Failure;
         }
 
