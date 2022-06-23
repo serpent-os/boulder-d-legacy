@@ -39,9 +39,6 @@ public struct BoulderCLI
     BaseCommand pt;
     alias pt this;
 
-    /** Select an alternative output location than the current working directory */
-    @Option("o", "output", "Directory to store build results") string outputDirectory = ".";
-
     /** When set to true, we enable debug output */
     @Option("d", "debug", "Enable debugging output") bool debugMode = false;
 }

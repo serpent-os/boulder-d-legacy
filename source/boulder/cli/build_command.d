@@ -71,6 +71,9 @@ public struct BuildControlCommand
         return ExitStatus.Success;
     }
 
+    /** Select an alternative output location than the current working directory */
+    @Option("o", "output", "Directory to store build results") string outputDirectory = ".";
+
     /** Specify the number of build jobs to execute in parallel. */
     @Option("j", "jobs", "Set the number of parallel build jobs (0 = automatic)") int jobs = 0;
 
