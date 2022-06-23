@@ -32,7 +32,10 @@ public static immutable(Stage) stageCreateRoot = Stage("create-root", (StageCont
         context.job.hostPaths.compilerCache, context.job.hostPaths.pkgCache,
         guestPkgCachePath,
     ];
-    paths.each!((p) => { p.mkdirRecurse(); chown(p.toStringz, nobodyUser, nobodyUser); }());
+    paths.each!((p) => {
+        p.mkdirRecurse();
+        chown(p.toStringz, nobodyUser, nobodyUser);
+    }());
 
     /* Now add our mounts.. */
     auto pkgCache = Mount.bindRW(context.job.hostPaths.pkgCache, guestPkgCachePath);
