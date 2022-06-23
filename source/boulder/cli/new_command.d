@@ -55,15 +55,11 @@ public struct NewCommand
         }
 
         auto drafter = new Drafter(outputPath);
-
-        archives.each!((a) => drafter.addSource(a, UpstreamType.Plain));
+        argv.each!((a) => drafter.addSource(a, UpstreamType.Plain));
         drafter.run();
         drafter.destroy(); /* Ensure we flush & close */
         return ExitStatus.Failure;
     }
-
-    @Option("a", "archive", "URL to an archive to use")
-    string[] archives;
 
     /** Where to output the YML file */
     @Option("o", "output", "Location to output generated build recipe")
