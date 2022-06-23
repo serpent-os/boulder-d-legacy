@@ -141,7 +141,7 @@ public final class Controller : StageContext
             auto stage = boulderStages[stageIndex];
             enforce(stage.functor !is null);
 
-            infof("Begin stage: %s", stage.name);
+            tracef("Stage begin: %s", stage.name);
             StageReturn result = StageReturn.Failure;
             try
             {
