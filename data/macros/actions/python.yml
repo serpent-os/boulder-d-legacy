@@ -10,3 +10,13 @@ actions:
     - python_install:
         command: |
             python3 setup.py install --root="%(installroot)"
+
+    # Build a wheel for python PEP517 projects
+    - pyproject_build:
+        command: |
+            python3 -m build --wheel --no-isolation
+
+    # Install wheel to destination directory
+    - pyproject_install:
+        command: |
+            python3 -m installer --destdir="%(installroot)" dist/*.whl
