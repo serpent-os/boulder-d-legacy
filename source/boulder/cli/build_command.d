@@ -28,6 +28,7 @@ import std.stdio;
 import boulder.cli : BoulderCLI;
 import boulder.controller;
 import core.sys.posix.unistd : geteuid;
+import std.experimental.logger;
 
 /**
  * The BuildCommand is responsible for handling requests to build stone.yml
@@ -59,7 +60,7 @@ public struct BuildControlCommand
         /* Ensure root permissions */
         if (geteuid() != 0)
         {
-            stderr.writeln("This program must be run with root permissions");
+            error("This program must be run with root permissions");
             return ExitStatus.Failure;
         }
 

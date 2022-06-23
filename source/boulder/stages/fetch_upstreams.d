@@ -13,9 +13,9 @@ module boulder.stages.fetch_upstreams;
 
 public import boulder.stages : Stage, StageReturn, StageContext;
 
-import std.algorithm : each;
 import moss.fetcher;
-import std.stdio : stderr;
+import std.algorithm : each;
+import std.experimental.logger;
 
 /**
  * Grab all sources for build
@@ -34,7 +34,7 @@ static private StageReturn fetchUpstreams(scope StageContext context)
         /* No point downloading it again.. */
         if (context.upstreamCache.contains(u))
         {
-            stderr.writeln("[boulder] Skipping download of " ~ u.uri);
+            infof("Skipped download: %s", u.uri);
             continue;
         }
         auto spath = context.upstreamCache.stagingPath(u);

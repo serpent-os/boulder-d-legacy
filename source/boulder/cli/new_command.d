@@ -27,8 +27,8 @@ import boulder.cli : BoulderCLI;
 import drafter;
 import moss.core;
 import std.algorithm : each;
-import std.stdio;
 import std.file : exists;
+import std.experimental.logger;
 
 /**
  * The BuildCommand is responsible for handling requests to build stone.yml
@@ -50,7 +50,7 @@ public struct NewCommand
     {
         if (outputPath.exists)
         {
-            stderr.writeln(outputPath, " already exists - aborting.");
+            errorf("Refusing to overwrite recipe: %s", outputPath);
             return ExitStatus.Failure;
         }
 

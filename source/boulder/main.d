@@ -22,11 +22,11 @@
 
 module main;
 
-import std.stdio;
 import boulder.cli;
 import mason.cli;
-import std.path : baseName;
 import moss.core.logging;
+import std.path : baseName;
+import std.stdio;
 
 /**
  * Handle main entry for the boulder subtool

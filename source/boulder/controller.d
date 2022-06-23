@@ -23,19 +23,19 @@
 module boulder.controller;
 
 import boulder.buildjob;
+import boulder.stages;
 import moss.core.mounts;
 import moss.core.util : computeSHA256;
 import moss.fetcher;
 import moss.format.source;
 import std.algorithm : filter;
 import std.exception : enforce;
-import std.range : take;
+import std.experimental.logger;
 import std.file : exists, rmdirRecurse;
-import std.path : buildNormalizedPath, baseName, dirName;
-import std.stdio : File, stderr, writeln, writefln;
-import std.string : format;
-import boulder.stages;
 import std.parallelism : totalCPUs;
+import std.path : baseName, buildNormalizedPath, dirName;
+import std.range : take;
+import std.string : format;
 
 /**
  * This is the main entry point for all build commands which will be dispatched
@@ -67,8 +67,8 @@ public final class Controller : StageContext
         enforce(_mossBinary.exists, "not found: " ~ _mossBinary);
         enforce(_containerBinary.exists, "not found: " ~ _containerBinary);
 
-        writeln("moss: ", _mossBinary);
-        writeln("moss-container: ", _containerBinary);
+        tracef("moss: %s", _mossBinary);
+        tracef("moss-container: %s", _containerBinary);
         _upstreamCache = new UpstreamCache();
         _fetcher = new FetchController(totalCPUs >= 4 ? 3 : 1);
         _fetcher.onComplete.connect(&onFetchComplete);
@@ -141,7 +141,7 @@ public final class Controller : StageContext
             auto stage = boulderStages[stageIndex];
             enforce(stage.functor !is null);
 
-            writeln("[boulder] ", stage.name);
+            infof("Begin stage: %s", stage.name);
             StageReturn result = StageReturn.Failure;
             try
             {
@@ -149,7 +149,7 @@ public final class Controller : StageContext
             }
             catch (Exception e)
             {
-                stderr.writefln!"Exception: %s"(e.message);
+                errorf("Exception: %s", e.message);
                 result = StageReturn.Failure;
             }
 
@@ -162,14 +162,14 @@ public final class Controller : StageContext
             final switch (result)
             {
             case StageReturn.Failure:
-                writeln("[boulder] Failed ", stage.name);
+                errorf("Stage failure: %s", stage.name);
                 break build_loop;
             case StageReturn.Success:
-                writeln("[boulder] Success ", stage.name);
+                infof("Stage success: %s", stage.name);
                 ++stageIndex;
                 break;
             case StageReturn.Skipped:
-                writeln("[boulder] Skipped ", stage.name);
+                tracef("Stage skipped: %s", stage.name);
                 ++stageIndex;
                 break;
             }
@@ -182,7 +182,7 @@ public final class Controller : StageContext
             auto err = m.unmount();
             if (!err.isNull())
             {
-                writefln("[boulder] Error unmounting %s: %s", m.target, err.get.toString);
+                errorf("Unmount failure: %s (%s)", m.target, err.get.toString);
             }
         }
     }
@@ -224,7 +224,7 @@ private:
     {
         fetcher.clear();
         failFlag = true;
-        stderr.writefln("Failed to download: %s (reason: %s)", f.sourceURI, failMsg);
+        errorf("Download failure: %s (reason: %s)", f.sourceURI, failMsg);
     }
 
     /**
