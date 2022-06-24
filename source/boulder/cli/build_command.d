@@ -67,7 +67,7 @@ public struct BuildControlCommand
             return ExitStatus.Failure;
         }
 
-        auto controller = new Controller();
+        auto controller = new Controller(!unconfined);
         foreach (recipe; argv)
         {
             controller.build(recipe);

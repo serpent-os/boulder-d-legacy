@@ -54,6 +54,12 @@ public interface StageContext
     pure @property const(BuildJob) job() @safe @nogc nothrow const;
 
     /**
+     * Confinement status
+     *
+      * Returns: true if confinement is employed
+     */
+    pure @property bool confinement() @safe @nogc nothrow const;
+    /**
      * Path to moss
      *
      * Returns: Immutable string containing the path

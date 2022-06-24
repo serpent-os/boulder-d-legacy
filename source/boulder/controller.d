@@ -43,9 +43,12 @@ import std.string : format;
  */
 public final class Controller : StageContext
 {
-    this()
+    @disable this();
+
+    this(bool confinement)
     {
         /* Construct recipe stages here */
+        this._confinement = confinement;
 
         /* Figure out where our utils are */
         debug
@@ -73,6 +76,16 @@ public final class Controller : StageContext
         _fetcher = new FetchController(totalCPUs >= 4 ? 3 : 1);
         _fetcher.onComplete.connect(&onFetchComplete);
         _fetcher.onFail.connect(&onFetchFail);
+    }
+
+    /** 
+     * Confinement status
+     *
+     * Returns: false if the CLI has `-u` passed as a flag
+     */
+    pure @property bool confinement() @safe @nogc nothrow const
+    {
+        return _confinement;
     }
 
     /**
@@ -244,6 +257,7 @@ private:
     UpstreamCache _upstreamCache = null;
     FetchController _fetcher = null;
     bool failFlag = false;
+    bool _confinement;
 
     Mount[] mountPoints;
 }
