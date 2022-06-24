@@ -1,4 +1,8 @@
-/* SPDX-License-Identifier: Zlib */
+/*
+ * SPDX-FileCopyrightText: Copyright © 2020-2022 Serpent OS Developers
+ *
+ * SPDX-License-Identifier: Zlib
+ */
 
 /**
  * Process helper
@@ -6,7 +10,7 @@
  * Provides wrappers around `spawnProcess` which are executed via `fork` with
  * a specified user ID for privilege dropping.
  *
- * Authors: © 2020-2022 Serpent OS Developers
+ * Authors: Copyright © 2020-2022 Serpent OS Developers
  * License: Zlib
  */
 module moss.container.process;

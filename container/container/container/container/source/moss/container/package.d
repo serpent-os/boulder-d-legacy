@@ -1,4 +1,8 @@
-/* SPDX-License-Identifier: Zlib */
+/*
+ * SPDX-FileCopyrightText: Copyright © 2020-2022 Serpent OS Developers
+ *
+ * SPDX-License-Identifier: Zlib
+ */
 
 /**
  * Container encapsulation
@@ -6,7 +10,7 @@
  * This module contains the [Container][Container] class which is used as
  * a main entry point for container workloads.
  *
- * Authors: © 2020-2022 Serpent OS Developers
+ * Authors: Copyright © 2020-2022 Serpent OS Developers
  * License: Zlib
  */
 module moss.container;

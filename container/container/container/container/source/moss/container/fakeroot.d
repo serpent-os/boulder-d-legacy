@@ -1,4 +1,8 @@
-/* SPDX-License-Identifier: Zlib */
+/*
+ * SPDX-FileCopyrightText: Copyright © 2020-2022 Serpent OS Developers
+ *
+ * SPDX-License-Identifier: Zlib
+ */
 
 /**
  * Fakeroot discovery
@@ -10,7 +14,7 @@
  * Notes: We intend to replace fakeroot usage in future with
  * our own library.
  *
- * Authors: © 2020-2022 Serpent OS Developers
+ * Authors: Copyright © 2020-2022 Serpent OS Developers
  * License: Zlib
  */
 module moss.container.fakeroot;
