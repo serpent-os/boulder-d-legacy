@@ -24,9 +24,11 @@ definitions:
 
     # Default cmake options as passed to cmake
     - options_cmake: |
-        -G Ninja . -B "%(builddir)" \
+        -G Ninja -S . -B "%(builddir)" \
         -DCMAKE_C_FLAGS="${CFLAGS}" \
         -DCMAKE_CXX_FLAGS="${CXXFLAGS}" \
+        -DCMAKE_C_FLAGS_RELEASE="" \
+        -DCMAKE_CXX_FLAGS_RELEASE="" \
         -DCMAKE_LD_FLAGS="${LDFLAGS}" \
         -DCMAKE_BUILD_TYPE="Release" \
         -DCMAKE_INSTALL_LIBDIR="lib" \
