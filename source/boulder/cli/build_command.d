@@ -82,5 +82,5 @@ public struct BuildControlCommand
     @Option("j", "jobs", "Set the number of parallel build jobs (0 = automatic)") int jobs = 0;
 
     /** Bypass container/moss logic and build directly on host (invoke carver) */
-    @Option("u", "unconfined", "Build directly on host without container or dependencies") bool unsafeBuild = false;
+    @Option("u", "unconfined", "Build directly on host without container or dependencies") bool unconfined = false;
 }
