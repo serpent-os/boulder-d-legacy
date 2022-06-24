@@ -54,7 +54,7 @@ int masonMain(string[] args)
 
 int main(string[] args)
 {
-    configureLogging();
+    configureLogging(true);
 
     auto programName = args[0].baseName;
     switch (programName)
