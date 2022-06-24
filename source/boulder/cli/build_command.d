@@ -57,6 +57,9 @@ public struct BuildControlCommand
      */
     @CommandEntry() int run(ref string[] argv)
     {
+        immutable useDebug = this.findAncestor!BoulderCLI.debugMode;
+        globalLogLevel = useDebug ? LogLevel.trace : LogLevel.info;
+
         /* Ensure root permissions */
         if (geteuid() != 0)
         {

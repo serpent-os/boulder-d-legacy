@@ -48,6 +48,9 @@ public struct NewCommand
      */
     @CommandEntry() int run(ref string[] argv)
     {
+        immutable useDebug = this.findAncestor!BoulderCLI.debugMode;
+        globalLogLevel = useDebug ? LogLevel.trace : LogLevel.info;
+
         if (outputPath.exists)
         {
             errorf("Refusing to overwrite recipe: %s", outputPath);
