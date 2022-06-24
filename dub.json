@@ -24,5 +24,6 @@
 		"moss-fetcher": {
 			"path": "../moss-fetcher"
 		}
-	}
+	},
+	"dflags": ["-J", "data"]
 }
