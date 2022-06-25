@@ -23,7 +23,8 @@ import moss.fetcher;
 import std.algorithm : each;
 import std.container.rbtree : RedBlackTree;
 import std.exception : enforce;
-import std.path : baseName;
+import std.file : thisExePath;
+import std.path : baseName, dirName, buildNormalizedPath, absolutePath;
 import std.process;
 import std.range : empty;
 import std.sumtype;
@@ -71,7 +72,10 @@ public final class Drafter
         controller.onFail.connect(&onFail);
         controller.onComplete.connect(&onComplete);
         _licenseEngine = new Engine();
-        _licenseEngine.loadFromDirectory("license-list-data/text");
+
+        auto licenseDir = thisExePath.dirName.buildNormalizedPath("..",
+                "share", "boulder", "licenses").absolutePath;
+        _licenseEngine.loadFromDirectory(licenseDir);
         _licenses = new RedBlackTree!(string, "a < b", false);
         outputFile = File(outputPath, "w");
     }
