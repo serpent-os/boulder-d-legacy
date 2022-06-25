@@ -242,12 +242,15 @@ private:
             AnalysisChain("badFiles", [&dropBadPaths], 100),
 
             /* Handle binary providers */
-            AnalysisChain("binary", [&acceptBinaryFiles, &handleBinaryFiles], 100),
+            AnalysisChain("binary", [&acceptBinaryFiles, &handleBinaryFiles],
+                    100),
 
             /* Handle ELF files */
+            /* FIXME: Parallel debuginfo handling truncates hardlinked files! */
             AnalysisChain("elves", [
-                    &acceptElfFiles, &scanElfFiles, &copyElfDebug,
-                    &stripElfFiles, &includeElfFiles,
+                    &acceptElfFiles, &scanElfFiles, /* &copyElfDebug 
+                    &stripElfFiles, */
+                    &includeElfFiles,
                     ], 90),
 
             /* Handle pkgconfig files */
@@ -443,7 +446,7 @@ private:
         import std.exception : enforce;
         import std.string : format;
 
-        if (!buildContext.spec.options.strip)
+        if (!buildContext.spec.options.strip || fileInfo.type != FileType.Regular)
         {
             return AnalysisReturn.NextFunction;
         }
