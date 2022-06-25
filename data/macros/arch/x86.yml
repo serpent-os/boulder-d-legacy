@@ -10,6 +10,7 @@ definitions:
     - cpp            : "%(compiler_cpp) -m32"
     - march          : i686
     - mtune          : i686
+    - rust_host_platform : "i686-unknown-linux-gnu"
 
 flags:
 

@@ -11,6 +11,7 @@ definitions:
     - march          : i686
     - mtune          : i686
     - pkgconfigpath  : "%(libdir)/pkgconfig:/usr/share/pkgconfig:%(prefix)/lib/pkgconfig"
+    - rust_host_platform : "i686-unknown-linux-gnu"
 
 flags:
 
