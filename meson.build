@@ -45,6 +45,10 @@ boulder_data_dir = [
     include_directories('data'),
 ]
 
+install_subdir('license-list-data' / 'text',
+    install_dir: get_option('prefix') / get_option('datadir') / 'boulder' / 'licenses',
+    strip_directory: true)
+
 # Actual linky buildy stuff
 subdir('source')
 
