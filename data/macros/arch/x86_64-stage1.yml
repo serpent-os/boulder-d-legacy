@@ -1,11 +1,15 @@
 # Based on x86_64 - provides the stage1 bootstrap definitions
-
+# We force a new cross compilation step into existence with
+# our "-xvendorID"
+#
+# This is washed out in stage2.
+# We also force a "GNU/Linux" host ABI in this stage.
 definitions:
 
     - prefix         : "/usr/bootstrap-stage1"
     - libsuffix      : ""
-    - build          : x86_64-%(vendorID)
-    - host           : x86_64-%(vendorID)
+    - build          : x86_64-x%(vendorID)
+    - host           : x86_64-linux-gnu
     - cc             : "%(compiler_c)"
     - cxx            : "%(compiler_cxx)"
     - cpp            : "%(compiler_cpp)"
