@@ -43,10 +43,10 @@ public static immutable(Stage) stageCreateRoot = Stage("create-root", (StageCont
         paths ~= context.job.unconfinedRecipe;
     }
 
-    paths.each!((p) => {
+    paths.each!((p) {
         p.mkdirRecurse();
         chown(p.toStringz, nobodyUser, nobodyUser);
-    }());
+    });
 
     /* Confinement requires bind-mounted package cache .. */
     if (context.confinement)
