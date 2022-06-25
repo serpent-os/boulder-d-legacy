@@ -11,6 +11,7 @@ module boulder.stages.build_package;
 
 import mason.build.util : executeCommand;
 import std.array : join;
+import std.conv : to;
 import std.experimental.logger;
 import std.string : format;
 import std.sumtype : match;
@@ -85,6 +86,21 @@ static private StageReturn buildPackageConfined(scope StageContext context)
  */
 static private StageReturn buildPackageUnconfined(scope StageContext context)
 {
-    critical("Unimplemented");
-    return StageReturn.Failure;
+    string[string] environ = ["PATH": "/usr/bin:/usr/sbin"];
+    /* runuser */
+    string[] args = [
+        /* Only run as nobody. No permisions *at all* kthxbai */
+        "-u", "nobody", "--",
+        /* fakeroot pls! */
+        "fakeroot", "--",
+        /* Buidl with mason */
+        "mason", "build", "-o", context.job.hostPaths.artefacts, "-b",
+        context.job.hostPaths.buildRoot,
+        /* Here be your recipe. */
+        join([context.job.hostPaths.recipe, context.job.name], "/")
+    ];
+    auto result = executeCommand("runuser", args, environ, "/");
+    auto ret = result.match!((int err) => err != 0 ? StageReturn.Failure
+            : StageReturn.Success, (e) => StageReturn.Failure);
+    return ret;
 }
