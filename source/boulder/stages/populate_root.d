@@ -20,6 +20,12 @@ import std.sumtype : match;
  *
  */
 public static immutable(Stage) stagePopulateRoot = Stage("populate-root", (StageContext context) {
+    /* Root configuration requires confinement */
+    if (!context.confinement)
+    {
+        return StageReturn.Skipped;
+    }
+
     /* TODO: Find a way to not hardcode these? */
     auto requiredInstalled = [
         "bash", "boulder", "coreutils", "dash", "diffutils", "gawk", "glibc-devel",

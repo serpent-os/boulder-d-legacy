@@ -30,21 +30,31 @@ public static immutable(Stage) stageCreateRoot = Stage("create-root", (StageCont
     auto paths = [
         context.job.hostPaths.artefacts, context.job.hostPaths.buildRoot,
         context.job.hostPaths.compilerCache, context.job.hostPaths.pkgCache,
-        guestPkgCachePath,
     ];
+
+    /* Not sharing a cache */
+    if (context.confinement)
+    {
+        paths ~= guestPkgCachePath;
+    }
+
     paths.each!((p) => {
         p.mkdirRecurse();
         chown(p.toStringz, nobodyUser, nobodyUser);
     }());
 
-    /* Now add our mounts.. */
-    auto pkgCache = Mount.bindRW(context.job.hostPaths.pkgCache, guestPkgCachePath);
-    auto err = pkgCache.mount();
-    if (!err.isNull)
+    /* Confinement requires bind-mounted package cache .. */
+    if (context.confinement)
     {
-        writefln("[boulder] Failed to mount %s: %s", pkgCache.target, err.get.toString);
-        return StageReturn.Failure;
+        auto pkgCache = Mount.bindRW(context.job.hostPaths.pkgCache, guestPkgCachePath);
+        auto err = pkgCache.mount();
+        if (!err.isNull)
+        {
+            writefln("[boulder] Failed to mount %s: %s", pkgCache.target, err.get.toString);
+            return StageReturn.Failure;
+        }
+        context.addMount(pkgCache);
     }
-    context.addMount(pkgCache);
+
     return StageReturn.Success;
 });

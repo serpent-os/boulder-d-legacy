@@ -11,8 +11,9 @@ module boulder.stages.build_package;
 
 import mason.build.util : executeCommand;
 import std.array : join;
-import std.sumtype : match;
+import std.experimental.logger;
 import std.string : format;
+import std.sumtype : match;
 
 public import boulder.stages : Stage, StageReturn, StageContext;
 
@@ -24,9 +25,21 @@ import boulder.stages : nobodyUser;
 public static immutable(Stage) stageBuildPackage = Stage("build-package", &buildPackage);
 
 /**
- * Go do the build!
+ * Proxy the build to the correct helper
  */
 static private StageReturn buildPackage(scope StageContext context)
+{
+    if (context.confinement)
+    {
+        return buildPackageConfined(context);
+    }
+    return buildPackageUnconfined(context);
+}
+
+/**
+ * Perform a confined build of the package
+ */
+static private StageReturn buildPackageConfined(scope StageContext context)
 {
     string[string] environ;
     environ["PATH"] = "/usr/bin:/usr/sbin";
@@ -65,4 +78,13 @@ static private StageReturn buildPackage(scope StageContext context)
     auto ret = result.match!((int err) => err != 0 ? StageReturn.Failure
             : StageReturn.Success, (e) => StageReturn.Failure);
     return ret;
+}
+
+/**
+ * Handle unconfined builds
+ */
+static private StageReturn buildPackageUnconfined(scope StageContext context)
+{
+    critical("Unimplemented");
+    return StageReturn.Failure;
 }

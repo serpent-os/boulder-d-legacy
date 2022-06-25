@@ -25,6 +25,11 @@ import std.array : join;
  * TODO: Don't lock this to protosnek! Use a configuration
  */
 public static immutable(Stage) stageConfigureRoot = Stage("configure-root", (StageContext context) {
+    /* Root configuration requires confinement */
+    if (!context.confinement)
+    {
+        return StageReturn.Skipped;
+    }
     auto repoFile = join([
         context.job.hostPaths.rootfs, "etc/moss/repos.conf.d/99_repo.conf"
     ], "/");
