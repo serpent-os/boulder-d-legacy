@@ -19,6 +19,7 @@ import core.sys.posix.unistd : chown;
 import moss.core.mounts;
 import std.string : toStringz;
 import std.stdio : writefln;
+import std.experimental.logger;
 
 import boulder.stages : nobodyUser;
 
@@ -37,6 +38,10 @@ public static immutable(Stage) stageCreateRoot = Stage("create-root", (StageCont
     {
         paths ~= guestPkgCachePath;
     }
+    else
+    {
+        paths ~= context.job.unconfinedRecipe;
+    }
 
     paths.each!((p) => {
         p.mkdirRecurse();
@@ -50,10 +55,21 @@ public static immutable(Stage) stageCreateRoot = Stage("create-root", (StageCont
         auto err = pkgCache.mount();
         if (!err.isNull)
         {
-            writefln("[boulder] Failed to mount %s: %s", pkgCache.target, err.get.toString);
+            errorf("Failed to mount %s: %s", pkgCache.target, err.get.toString);
             return StageReturn.Failure;
         }
         context.addMount(pkgCache);
+    }
+    else
+    {
+        auto recipeMount = Mount.bindRO(context.job.hostPaths.recipe, context.job.unconfinedRecipe);
+        auto err = recipeMount.mount();
+        if (!err.isNull)
+        {
+            errorf("Failed to mount %s: %s", recipeMount.target, err.get.toString);
+            return StageReturn.Failure;
+        }
+        context.addMount(recipeMount);
     }
 
     return StageReturn.Success;

@@ -97,7 +97,7 @@ static private StageReturn buildPackageUnconfined(scope StageContext context)
         "mason", "build", "-o", context.job.hostPaths.artefacts, "-b",
         context.job.hostPaths.buildRoot,
         /* Here be your recipe. */
-        join([context.job.hostPaths.recipe, context.job.name], "/")
+        join([context.job.unconfinedRecipe, context.job.name], "/")
     ];
     auto result = executeCommand("runuser", args, environ, "/");
     auto ret = result.match!((int err) => err != 0 ? StageReturn.Failure

@@ -78,6 +78,8 @@ public final class BuildJob
         _hostPaths.recipe = path.dirName.absolutePath.buildNormalizedPath;
         /* And where is the rootfs? */
         _hostPaths.rootfs = join([SharedRootBase, "root", subpath], "/");
+        /* Unconfined recipe tree? */
+        _unconfinedRecipe = join([SharedRootBase, "recipe", subpath], "/");
     }
 
     /**
@@ -98,6 +100,17 @@ public final class BuildJob
     pure @property immutable(string) name() @safe @nogc nothrow const
     {
         return cast(immutable(string)) _name;
+    }
+
+    /**
+     * Cheekily employed bind mount to deviate unix permissions
+     *
+     * "Nobody" user can't read the recipe so bind mount it and make it
+     * available.
+     */
+    pure @property immutable(string) unconfinedRecipe() @safe @nogc nothrow const
+    {
+        return cast(immutable(string)) _unconfinedRecipe;
     }
 
     /**
@@ -138,4 +151,5 @@ private:
     Spec* _recipe;
     BuildPaths _hostPaths;
     string _name = null;
+    string _unconfinedRecipe;
 }
