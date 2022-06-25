@@ -47,3 +47,6 @@ boulder_data_dir = [
 
 # Actual linky buildy stuff
 subdir('source')
+
+# Macros etc.
+subdir('data')
