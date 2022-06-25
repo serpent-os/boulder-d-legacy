@@ -171,7 +171,6 @@ public final class BuildContext
      */
     void prepareScripts(ref ScriptBuilder sbuilder, string architecture)
     {
-        import std.stdio : writefln;
         import std.conv : to;
 
         string[] arches = ["base", architecture];

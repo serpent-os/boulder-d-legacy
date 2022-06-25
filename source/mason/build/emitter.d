@@ -30,6 +30,7 @@ import moss.format.binary.payload;
 import moss.format.binary.writer;
 import moss.deps.analysis;
 import std.string : startsWith;
+import std.experimental.logger;
 
 /**
  * Resulting Package is only buildable once it contains
@@ -122,7 +123,7 @@ private:
             writer.close();
         }
 
-        writefln("Creating package %s...", finalPath);
+        infof("Generating package: %s", pkg.filename);
 
         /* Generate metadata first */
         generateMetadata(analyser, writer, pkg);
@@ -168,30 +169,21 @@ private:
         dependenciesFull.sort();
         auto dependencies = dependenciesFull.uniq();
 
-        /* TODO: Record in metadata */
-        import std.stdio : writefln, writeln;
-
-        writeln();
-
         if (!providers.empty)
         {
-            writefln(" -> Providers [%s]", pkg.pd.name);
-            providers.each!((p) => writefln("    - %s", p));
             foreach (prov; providers)
             {
+                infof("[%s] provides %s", pkg.pd.name, prov);
                 met.addRecord(RecordType.Provider, RecordTag.Provides, prov);
             }
-            writeln();
         }
         if (!dependencies.empty)
         {
-            writefln(" -> Dependencies [%s]", pkg.pd.name);
-            dependencies.each!((d) => writefln("    - %s", d));
             foreach (dep; dependencies)
             {
+                infof("[%s] depends on %s", pkg.pd.name, dep);
                 met.addRecord(RecordType.Dependency, RecordTag.Depends, dep);
             }
-            writeln();
         }
 
         writer.addPayload(met);

@@ -33,8 +33,8 @@ import moss.deps.analysis;
 import std.algorithm : each, filter, canFind;
 import moss.deps.analysis.elves;
 import std.path : dirName, baseName;
-import std.stdio : stderr;
 import std.string : startsWith, endsWith;
+import std.experimental.logger;
 
 import core.sys.posix.sys.stat;
 
@@ -55,7 +55,7 @@ private static AnalysisReturn dropBadPaths(scope Analyser analyser, ref FileInfo
     {
         if (!info.path.startsWith("/usr"))
         {
-            stderr.writefln!"[Analyse] Rejecting non /usr/ file from inclusion: %s"(info.path);
+            warningf("Not including non /usr/ file: %s", info.path);
         }
         return AnalysisReturn.IgnoreFile;
     }
@@ -129,14 +129,13 @@ public:
      */
     void prepareRoot() @system
     {
-        import std.stdio : writeln;
         import std.file : rmdirRecurse, mkdirRecurse, exists;
 
-        writeln("Preparing root tree");
+        trace("Preparing root tree");
 
         if (buildContext.rootDir.exists && !boulderRoot)
         {
-            writeln("Removing old build tree");
+            trace("Removing old build tree");
             buildContext.rootDir.rmdirRecurse();
         }
 
@@ -372,7 +371,6 @@ private:
     static AnalysisReturn copyElfDebug(scope Analyser analyser, ref FileInfo fileInfo)
     {
         auto instance = analyser.userdata!Builder;
-        import std.stdio : stdin, stdout, stderr, writeln;
         import std.exception : enforce;
         import std.string : format;
         import std.path : dirName;
@@ -403,7 +401,7 @@ private:
                 "--only-keep-debug", fileInfo.fullPath, debugInfoPath
                 ], null);
         auto code = ret.match!((err) {
-            writeln("[debuginfo] failure: ", err.toString());
+            errorf("debuginfo failure: %s", err.toString);
             return -1;
         }, (code) => code);
 
@@ -419,16 +417,16 @@ private:
                 "--add-gnu-debuglink", debugInfoPath, fileInfo.fullPath
                 ], null);
         code = linkRet.match!((err) {
-            writeln("[debuginfo:link] failure: ", err.toString());
+            errorf("debuginfo:link failure: %s", err.toString);
             return -1;
         }, (code) => code);
         if (code != 0)
         {
-            writeln("[debuginfo:link] not including broken debuginfo: /", debugInfoPathRelative);
+            warningf("debuginfo:link not including broken debuginfo: /%s", debugInfoPathRelative);
             return AnalysisReturn.NextFunction;
         }
 
-        writeln("[debuginfo] ", fileInfo.path);
+        tracef("debuginfo: %s", fileInfo.path);
         instance.collectPath(debugInfoPath, instance.profiles[0].installRoot);
 
         return AnalysisReturn.NextFunction;
@@ -441,7 +439,6 @@ private:
     static AnalysisReturn stripElfFiles(scope Analyser analyser, ref FileInfo fileInfo)
     {
         Builder instance = analyser.userdata!Builder();
-        import std.stdio : stdin, stdout, stderr, writeln;
         import std.exception : enforce;
         import std.string : format;
 
@@ -458,13 +455,13 @@ private:
                 "--strip-unneeded", fileInfo.fullPath
                 ], null);
         auto code = ret.match!((err) {
-            writeln("[strip] failure: ", err.toString);
+            errorf("strip failure: %s", err.toString);
             return -1;
         }, (code) => code);
 
         if (code == 0)
         {
-            writeln("[strip] ", fileInfo.path);
+            tracef("strip: %s", fileInfo.path);
         }
 
         return AnalysisReturn.NextFunction;

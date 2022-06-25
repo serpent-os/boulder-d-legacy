@@ -33,6 +33,7 @@ import std.string : format, endsWith;
 import moss.format.source.spec;
 import std.parallelism : TaskPool, totalCPUs;
 import std.array : join;
+import std.experimental.logger;
 
 /**
  * The BuildController is responsible for the main execution cycle of Boulder,
@@ -120,7 +121,6 @@ private:
     void runTimed(void delegate() dg, in string label)
     {
         import std.datetime.stopwatch : StopWatch, AutoStart;
-        import std.stdio : writefln;
 
         if (!running)
         {
@@ -129,7 +129,7 @@ private:
 
         auto sw = StopWatch(AutoStart.yes);
         dg();
-        writefln("[%s] Finished: %s", label, sw.peek);
+        infof("[%s] Finished: %s", label, sw.peek);
     }
 
     Builder builder = null;
