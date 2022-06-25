@@ -1,0 +1,20 @@
+# Based on x86_64 - provides the stage1 bootstrap definitions
+
+definitions:
+
+    - prefix         : "/usr/bootstrap-stage1"
+    - libsuffix      : ""
+    - build          : x86_64-%(vendorID)
+    - host           : x86_64-%(vendorID)
+    - cc             : "%(compiler_c)"
+    - cxx            : "%(compiler_cxx)"
+    - cpp            : "%(compiler_cpp)"
+    - march          : x86-64-v2
+    - mtune          : ivybridge
+
+flags:
+
+    # Set architecture flags
+    - architecture:
+        c         : "-march=x86-64-v2 -mtune=ivybridge"
+        cxx       : "-march=x86-64-v2 -mtune=ivybridge"
