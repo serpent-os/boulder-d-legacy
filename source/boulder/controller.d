@@ -51,9 +51,9 @@ public final class Controller : StageContext
      * Params:
      *      confinement = Enable confined builds
      */
-    this(bool confinement)
+    this(string architecture, bool confinement)
     {
-        /* Construct recipe stages here */
+        this._architecture = architecture;
         this._confinement = confinement;
 
         /* Relative locations for moss/moss-container */
@@ -87,12 +87,22 @@ public final class Controller : StageContext
         _fetcher.onFail.connect(&onFetchFail);
     }
 
+    /**
+     * Architecture target
+     *
+     * Returns: the current architecture target which may be "native"
+     */
+    pure override @property immutable(string) architecture() @safe @nogc nothrow const
+    {
+        return _architecture;
+    }
+
     /** 
      * Confinement status
      *
      * Returns: false if the CLI has `-u` passed as a flag
      */
-    pure @property bool confinement() @safe @nogc nothrow const
+    pure override @property bool confinement() @safe @nogc nothrow const
     {
         return _confinement;
     }
@@ -260,6 +270,7 @@ private:
 
     string _mossBinary;
     string _containerBinary;
+    string _architecture;
 
     Spec* recipe = null;
     BuildJob _job;

@@ -67,7 +67,7 @@ public struct BuildControlCommand
             return ExitStatus.Failure;
         }
 
-        auto controller = new Controller(!unconfined);
+        auto controller = new Controller(architecture, !unconfined);
         foreach (recipe; argv)
         {
             controller.build(recipe);
@@ -83,4 +83,7 @@ public struct BuildControlCommand
 
     /** Bypass container/moss logic and build directly on host (invoke carver) */
     @Option("u", "unconfined", "Build directly on host without container or dependencies") bool unconfined = false;
+
+    /** Set the architecture to build for. Defaults to native */
+    @Option("a", "architecture", "Target architecture for the build") string architecture = "native";
 }

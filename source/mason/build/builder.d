@@ -28,7 +28,6 @@ import mason.build.collector;
 import mason.build.profile;
 import mason.build.emitter;
 import mason.build.util;
-import moss.core.platform;
 import moss.deps.analysis;
 import std.algorithm : each, filter, canFind;
 import moss.deps.analysis.elves;
@@ -76,7 +75,7 @@ public:
      * Construct a new Builder with the given input file. It must be
      * a stone.yml formatted file and actually be valid.
      */
-    this()
+    this(string nativeArchitecture)
     {
         if (buildContext.rootDir is null)
         {
@@ -93,25 +92,24 @@ public:
         analyser.userdata = this;
         setupChains();
 
-        auto plat = platform();
-        /* Is emul32 supported for 64-bit OS? */
-        if (plat.emul32)
+        /* TODO: Ban emul32 on non-64bit hosts */
+        auto emul32name = "emul32/" ~ nativeArchitecture;
+        if (buildContext.spec.supportedArchitecture(emul32name)
+                || buildContext.spec.supportedArchitecture("emul32"))
         {
-            auto emul32name = "emul32/" ~ plat.name;
-            if (buildContext.spec.supportedArchitecture(emul32name)
-                    || buildContext.spec.supportedArchitecture("emul32"))
-            {
-                addArchitecture(emul32name);
-            }
+            addArchitecture(emul32name);
         }
 
         /* Add builds if this is a supported platform */
-        if (buildContext.spec.supportedArchitecture(plat.name)
-                || buildContext.spec.supportedArchitecture("native"))
+        if (buildContext.spec.supportedArchitecture(nativeArchitecture)
+                || buildContext.spec.supportedArchitecture("native")
+                || nativeArchitecture != "native")
         {
-            addArchitecture(plat.name);
+            addArchitecture(nativeArchitecture);
         }
 
+        info(architectures);
+        info(profiles);
         preparePackageDefinitions();
     }
 

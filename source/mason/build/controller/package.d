@@ -43,6 +43,19 @@ import std.experimental.logger;
  */
 public final class BuildController
 {
+    @disable this();
+
+    this(string architecture)
+    {
+        if (architecture == "native")
+        {
+            import moss.core.platform : platform;
+
+            architecture = platform().name;
+        }
+        this.architecture = architecture;
+        infof("Architecture: %s", architecture);
+    }
     /**
      * Request that we begin building the given path
      */
@@ -66,7 +79,7 @@ public final class BuildController
         buildContext.spec = s;
         buildContext.specDir = path.dirName.absolutePath;
 
-        builder = new Builder();
+        builder = new Builder(architecture);
 
         static struct Step
         {
@@ -152,4 +165,5 @@ private:
     }
 
     Builder builder = null;
+    string architecture = "native";
 }

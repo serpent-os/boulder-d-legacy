@@ -72,7 +72,7 @@ public struct BuildCommand
         }
         buildContext.rootDir = buildDir;
 
-        auto controller = new BuildController();
+        auto controller = new BuildController(architecture);
         foreach (specURI; argv)
         {
             if (!controller.build(specURI))
@@ -86,4 +86,7 @@ public struct BuildCommand
 
     /** Specify the number of build jobs to execute in parallel. */
     @Option("j", "jobs", "Set the number of parallel build jobs (0 = automatic)") int jobs = 0;
+
+    /** Set the architecture to build for. Defaults to native */
+    @Option("a", "architecture", "Target architecture for the build") string architecture = "native";
 }

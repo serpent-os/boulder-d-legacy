@@ -54,6 +54,11 @@ public interface StageContext
     pure @property const(BuildJob) job() @safe @nogc nothrow const;
 
     /**
+     * Required architecture for build
+     */
+    pure @property immutable(string) architecture() @safe @nogc nothrow const;
+
+    /**
      * Confinement status
      *
       * Returns: true if confinement is employed

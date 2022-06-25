@@ -29,6 +29,8 @@ import moss.format.source.script;
 import std.parallelism : totalCPUs;
 import std.concurrency : initOnce;
 import std.path : buildNormalizedPath;
+import std.string : endsWith;
+import std.experimental.logger;
 
 /**
  * Return the current shared Context for all moss operations
@@ -231,23 +233,25 @@ private:
             enforce(emulYml.exists, emulYml ~ " cannot be found");
         }
 
-        /* Load base YML */
-        file = new MacroFile(File(baseYml));
-        file.parse();
-        defFiles["base"] = file;
-
-        /* Load arch specific */
-        file = new MacroFile(File(nativeYml));
-        file.parse();
-        defFiles[plat.name] = file;
-
-        /* emul32? */
-        if (plat.emul32)
+        void loadDirectoryArchitectures(string prefix, string directory)
         {
-            file = new MacroFile(File(emulYml));
-            file.parse();
-            defFiles["emul32/%s".format(plat.name)] = file;
+            foreach (target; dirEntries(archDir, SpanMode.shallow, false))
+            {
+                if (!target.name.endsWith(".yml"))
+                {
+                    continue;
+                }
+                tracef("Loading architecture: %s", target.name.baseName);
+                auto f = new MacroFile(File(target.name));
+                f.parse();
+                /* Remove the .yml suffix */
+                auto identifier = target.name.baseName[0 .. $ - 4];
+                defFiles[format!"%s%s"(prefix, identifier)] = f;
+            }
         }
+
+        loadDirectoryArchitectures("", archDir);
+        loadDirectoryArchitectures("emul32/", archDir ~ "/emul32");
 
         if (!actionDir.exists)
         {

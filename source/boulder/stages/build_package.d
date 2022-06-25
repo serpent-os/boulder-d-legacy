@@ -72,7 +72,7 @@ static private StageReturn buildPackageConfined(scope StageContext context)
         /* Set output directory */
         "-o", context.job.guestPaths.artefacts,
         /* Set build directory */
-        "-b", context.job.guestPaths.buildRoot,
+        "-b", context.job.guestPaths.buildRoot, "-a", context.architecture,
         join([context.job.guestPaths.recipe, context.job.name], "/")
     ];
     auto result = executeCommand(context.containerBinary, args, environ, "/");
@@ -95,7 +95,7 @@ static private StageReturn buildPackageUnconfined(scope StageContext context)
         "fakeroot", "--",
         /* Buidl with mason */
         "mason", "build", "-o", context.job.hostPaths.artefacts, "-b",
-        context.job.hostPaths.buildRoot,
+        context.job.hostPaths.buildRoot, "-a", context.architecture,
         /* Here be your recipe. */
         join([context.job.unconfinedRecipe, context.job.name], "/")
     ];
