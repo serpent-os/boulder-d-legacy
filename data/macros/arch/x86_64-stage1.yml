@@ -15,6 +15,7 @@ definitions:
     - cpp            : "%(compiler_cpp)"
     - march          : x86-64-v2
     - mtune          : ivybridge
+    - bootstrap_root : /bill
 
 flags:
 
