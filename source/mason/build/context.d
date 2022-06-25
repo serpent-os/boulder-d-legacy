@@ -208,18 +208,21 @@ private:
         import std.exception : enforce;
         import std.array : join;
 
-        MacroFile* file = null;
+        MacroFile* file;
 
         /* bin/../share/boulder/macros */
-        auto resourceDir = thisExePath.dirName.buildNormalizedPath("..",
+        immutable resourceDir = thisExePath.dirName.buildNormalizedPath("..",
                 "share", "boulder", "macros").absolutePath;
         auto plat = platform();
-        string actionDir = join([resourceDir, "actions"], "/");
 
-        /* Architecture specific YMLs that MUST exist */
-        string baseYml = join([resourceDir, "base.yml"], "/");
-        string nativeYml = join([resourceDir, "%s.yml".format(plat.name)], "/");
-        string emulYml = join([resourceDir, "emul32/%s.yml".format(plat.name)], "/");
+        /** Shared actions */
+        immutable actionDir = join([resourceDir, "actions"], "/");
+
+        /* Architecture specific definitions */
+        immutable archDir = join([resourceDir, "arch"], "/");
+        immutable baseYml = join([archDir, "base.yml"], "/");
+        immutable nativeYml = join([archDir, "%s.yml".format(plat.name)], "/");
+        immutable emulYml = join([archDir, "emul32/%s.yml".format(plat.name)], "/");
 
         enforce(baseYml.exists, baseYml ~ " file cannot be found");
         enforce(nativeYml.exists, nativeYml ~ " cannot be found");
