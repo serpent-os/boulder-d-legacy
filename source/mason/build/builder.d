@@ -361,7 +361,7 @@ private:
     }
 
     /**
-     * TODO: Copy the ELF debug section into debug files
+     * Copy the ELF debug section into debug files
      */
     static AnalysisReturn copyElfDebug(scope Analyser analyser, ref FileInfo fileInfo)
     {
@@ -371,6 +371,12 @@ private:
         import std.path : dirName;
         import std.file : mkdirRecurse;
         import std.array : join;
+
+        /* Nowt left to do */
+        if (fileInfo.type != FileType.Regular)
+        {
+            return AnalysisReturn.IncludeFile;
+        }
 
         if (fileInfo.buildID is null)
         {
