@@ -31,6 +31,7 @@ import std.concurrency : initOnce;
 import std.path : buildNormalizedPath;
 import std.string : endsWith;
 import std.experimental.logger;
+import std.range : empty;
 
 /**
  * Return the current shared Context for all moss operations
@@ -194,6 +195,25 @@ public final class BuildContext
         {
             sbuilder.addFrom(action);
         }
+    }
+
+    /**
+     * Return the default tuning groups.
+     */
+    string[] defaultTuningGroups(string architecture) @trusted
+    {
+        string[] arches = ["base", architecture];
+        foreach_reverse (arch; arches)
+        {
+            auto archFile = defFiles[arch];
+            auto groups = archFile.defaultGroups;
+            if (groups.empty)
+            {
+                continue;
+            }
+            return groups;
+        }
+        return [];
     }
 
 private:

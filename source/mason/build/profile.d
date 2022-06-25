@@ -403,13 +403,8 @@ private:
             }
         }
 
-        /* Enable these tuning groups by default */
-        auto wanted = [
-            "base", "fortify", "optimize", "avxwidth", "harden", "asneeded",
-            "bindnow", "icf", "symbolic", "relr"
-        ];
-
-        foreach (w; wanted)
+        /* Apply the global defaults now */
+        foreach (w; buildContext.defaultTuningGroups(architecture))
         {
             if (!buildContext.spec.options.hasTuningSelection(w))
             {
