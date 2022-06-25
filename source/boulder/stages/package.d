@@ -22,6 +22,7 @@ public import boulder.stages.configure_root;
 public import boulder.stages.fetch_upstreams;
 public import boulder.stages.populate_root;
 public import boulder.stages.share_upstreams;
+public import boulder.stages.sync_artefacts;
 
 public import moss.core.fetchcontext;
 
@@ -38,6 +39,7 @@ public static uid_t nobodyUser = 65_534;
 static auto boulderStages = [
     &stageCleanRoot, &stageCreateRoot, &stageFetchUpstreams, &stageConfigureRoot,
     &stagePopulateRoot, &stageShareUpstreams, &stageBuildPackage,
+    &stageSyncArtefacts,
 ];
 
 /** 
@@ -52,6 +54,11 @@ public interface StageContext
      * Returns: Const reference to the BuildJob
      */
     pure @property const(BuildJob) job() @safe @nogc nothrow const;
+
+    /**
+     * Output directory for everything being dumped.
+     */
+    pure @property immutable(string) outputDirectory() @safe @nogc nothrow const;
 
     /**
      * Required architecture for build

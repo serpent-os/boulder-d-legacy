@@ -51,7 +51,7 @@ public final class Controller : StageContext
      * Params:
      *      confinement = Enable confined builds
      */
-    this(string architecture, bool confinement)
+    this(string outputDir, string architecture, bool confinement)
     {
         this._architecture = architecture;
         this._confinement = confinement;
@@ -60,6 +60,8 @@ public final class Controller : StageContext
         auto binDir = thisExePath.dirName;
         _mossBinary = binDir.buildNormalizedPath("moss").absolutePath;
         _containerBinary = binDir.buildNormalizedPath("moss-container").absolutePath;
+
+        _outputDirectory = outputDir.absolutePath;
 
         /* Only need moss/moss-container for confined builds */
         if (confinement)
@@ -85,6 +87,11 @@ public final class Controller : StageContext
         _fetcher = new FetchController(totalCPUs >= 4 ? 3 : 1);
         _fetcher.onComplete.connect(&onFetchComplete);
         _fetcher.onFail.connect(&onFetchFail);
+    }
+
+    pure override @property immutable(string) outputDirectory() @safe @nogc nothrow const
+    {
+        return _outputDirectory;
     }
 
     /**
@@ -271,6 +278,7 @@ private:
     string _mossBinary;
     string _containerBinary;
     string _architecture;
+    string _outputDirectory;
 
     Spec* recipe = null;
     BuildJob _job;

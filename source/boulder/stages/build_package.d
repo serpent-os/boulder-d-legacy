@@ -13,6 +13,7 @@ import mason.build.util : executeCommand;
 import std.array : join;
 import std.conv : to;
 import std.experimental.logger;
+import std.file : exists;
 import std.string : format;
 import std.sumtype : match;
 

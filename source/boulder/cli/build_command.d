@@ -24,6 +24,7 @@ module boulder.cli.build_command;
 
 public import moss.core.cli;
 import moss.core;
+import std.file : exists;
 import std.stdio;
 import boulder.cli : BoulderCLI;
 import boulder.controller;
@@ -60,6 +61,12 @@ public struct BuildControlCommand
         immutable useDebug = this.findAncestor!BoulderCLI.debugMode;
         globalLogLevel = useDebug ? LogLevel.trace : LogLevel.info;
 
+        if (!outputDirectory.exists)
+        {
+            errorf("Output directory does not exist: %s", outputDirectory);
+            return ExitStatus.Failure;
+        }
+
         /* Ensure root permissions */
         if (geteuid() != 0)
         {
@@ -67,7 +74,7 @@ public struct BuildControlCommand
             return ExitStatus.Failure;
         }
 
-        auto controller = new Controller(architecture, !unconfined);
+        auto controller = new Controller(outputDirectory, architecture, !unconfined);
         foreach (recipe; argv)
         {
             controller.build(recipe);

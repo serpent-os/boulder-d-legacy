@@ -15,6 +15,7 @@ boulder_sources = [
     'stages/fetch_upstreams.d',
     'stages/populate_root.d',
     'stages/share_upstreams.d',
+    'stages/sync_artefacts.d',
     'stages/package.d',
     'main.d',
 ]
