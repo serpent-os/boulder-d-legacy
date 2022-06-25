@@ -41,3 +41,8 @@ boulder = executable(
 	include_directories: boulder_includes,
 	link_args: ['--link-defaultlib-shared=false'],
 )
+
+# Ensure mason works
+install_symlink('mason',
+    install_dir: 'bin',
+    pointing_to: 'boulder')
