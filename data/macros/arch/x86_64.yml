@@ -3,8 +3,8 @@
 definitions:
 
     - libsuffix      : ""
-    - build          : x86_64-%(vendorID)
-    - host           : x86_64-%(vendorID)
+    - build_platform : x86_64-%(vendorID)
+    - host_platform  : x86_64-%(vendorID)
     - cc             : "%(compiler_c)"
     - cxx            : "%(compiler_cxx)"
     - cpp            : "%(compiler_cpp)"

@@ -8,8 +8,8 @@ definitions:
 
     - prefix         : "/usr/bootstrap-stage1"
     - libsuffix      : ""
-    - build          : x86_64-x%(vendorID)
-    - host           : x86_64-linux-gnu
+    - build_platform : x86_64-linux-gnu
+    - host_platform  : x86_64-%(vendorID)
     - cc             : "%(compiler_c)"
     - cxx            : "%(compiler_cxx)"
     - cpp            : "%(compiler_cpp)"

@@ -36,8 +36,8 @@ definitions:
         --prefix="%(prefix)" \
         --bindir="%(bindir)" \
         --sbindir="%(sbindir)" \
-        --build="%(build)" \
-        --host="%(host)" \
+        --build="%(build_platform)" \
+        --host="%(host_platform)" \
         --libdir="%(libdir)" \
         --mandir="%(mandir)" \
         --infodir="%(infodir)" \

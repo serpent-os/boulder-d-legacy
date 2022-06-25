@@ -3,8 +3,8 @@
 definitions:
 
     - libsuffix      : "32"
-    - build          : i686-%(vendorID)
-    - host           : i686-%(vendorID)
+    - build_platform : i686-%(vendorID)
+    - host_platform  : i686-%(vendorID)
     - cc             : "%(compiler_c) -m32"
     - cxx            : "%(compiler_cxx) -m32"
     - cpp            : "%(compiler_cpp) -m32"
