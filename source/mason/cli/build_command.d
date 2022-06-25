@@ -75,7 +75,10 @@ public struct BuildCommand
         auto controller = new BuildController();
         foreach (specURI; argv)
         {
-            controller.build(specURI);
+            if (!controller.build(specURI))
+            {
+                return ExitStatus.Failure;
+            }
         }
 
         return ExitStatus.Success;

@@ -46,7 +46,7 @@ public final class BuildController
     /**
      * Request that we begin building the given path
      */
-    void build(const(string) path)
+    bool build(const(string) path)
     {
         enforce(path.exists,
                 "BuildController.build(): Cannot build %s as it does not exist".format(path));
@@ -68,70 +68,88 @@ public final class BuildController
 
         builder = new Builder();
 
-        runTimed(&stagePrepare, "Prepare");
-        runTimed(&stageBuild, "Build");
-        runTimed(&stageAnalyse, "Analyse");
-        runTimed(&stageEmit, "Emit packages");
-        runTimed(&stageManifest, "Emit manifest");
+        static struct Step
+        {
+            bool delegate() command;
+            string name;
+        }
+
+        Step[] steps = [
+            Step(&stagePrepare, "Prepare"), Step(&stageBuild, "Build"),
+            Step(&stageAnalyse, "Analyse"), Step(&stageEmit,
+                    "Emit packages"), Step(&stageManifest, "Emit manifest"),
+        ];
+
+        foreach (ref step; steps)
+        {
+            auto ret = runTimed(step.command, step.name);
+            if (!ret)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
      * Run preparation for the package
      */
-    void stagePrepare()
+    bool stagePrepare()
     {
         builder.prepareRoot();
         builder.preparePkgFiles();
+        return true;
     }
 
     /**
      * Build the package profiles
      */
-    void stageBuild()
+    bool stageBuild()
     {
-        running = builder.buildProfiles();
+        return builder.buildProfiles();
     }
 
     /**
      * Analyse + collect
      */
-    void stageAnalyse()
+    bool stageAnalyse()
     {
         builder.collectAssets();
+        return true;
     }
 
     /**
      * Emit packages
      */
-    void stageEmit()
+    bool stageEmit()
     {
         builder.emitPackages();
+        return true;
     }
 
     /**
      * Product manifest files
      */
-    void stageManifest()
+    bool stageManifest()
     {
         builder.produceManifests();
+        return true;
     }
 
 private:
 
-    void runTimed(void delegate() dg, in string label)
+    bool runTimed(bool delegate() dg, in string label)
     {
         import std.datetime.stopwatch : StopWatch, AutoStart;
 
-        if (!running)
-        {
-            return;
-        }
-
         auto sw = StopWatch(AutoStart.yes);
-        dg();
-        infof("[%s] Finished: %s", label, sw.peek);
+        scope (exit)
+        {
+            infof("[%s] Finished: %s", label, sw.peek);
+        }
+        return dg();
     }
 
     Builder builder = null;
-    bool running = true;
 }
