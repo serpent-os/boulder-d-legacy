@@ -31,9 +31,9 @@ import moss.format.source;
 import std.algorithm : filter;
 import std.exception : enforce;
 import std.experimental.logger;
-import std.file : exists, rmdirRecurse;
+import std.file : exists, rmdirRecurse, thisExePath;
 import std.parallelism : totalCPUs;
-import std.path : baseName, buildNormalizedPath, dirName;
+import std.path : absolutePath, baseName, buildNormalizedPath, dirName, buildNormalizedPath;
 import std.range : take;
 import std.string : format;
 
@@ -45,33 +45,42 @@ public final class Controller : StageContext
 {
     @disable this();
 
+    /**
+     * Construct a new Controller
+     *
+     * Params:
+     *      confinement = Enable confined builds
+     */
     this(bool confinement)
     {
         /* Construct recipe stages here */
         this._confinement = confinement;
 
-        /* Figure out where our utils are */
-        debug
-        {
-            import std.file : thisExePath;
+        /* Relative locations for moss/moss-container */
+        auto binDir = thisExePath.dirName;
+        _mossBinary = binDir.buildNormalizedPath("moss").absolutePath;
+        _containerBinary = binDir.buildNormalizedPath("moss-container").absolutePath;
 
-            pragma(msg,
-                    "\n\n!!!!!!!!!!\n\nUSING UNSAFE DEBUG BUILD PATHS. DO NOT USE IN PRODUCTION\n\n");
-            _mossBinary = thisExePath.dirName.buildNormalizedPath("../../../../moss/build/moss");
-            _containerBinary = thisExePath.dirName.buildNormalizedPath(
-                    "../../../../moss-container/build/moss-container");
+        /* Only need moss/moss-container for confined builds */
+        if (confinement)
+        {
+            if (!mossBinary.exists)
+            {
+                fatalf("Cannot find `moss` at: %s", _mossBinary);
+            }
+            if (!containerBinary.exists)
+            {
+                fatalf("Cannot find `moss-container` at: %s", _containerBinary);
+            }
+
+            tracef("moss: %s", _mossBinary);
+            tracef("moss-container: %s", _containerBinary);
         }
         else
         {
-            _mossBinary = "/usr/bin/moss";
-            _containerBinary = "/usr/bin/moss-container";
+            warning("RUNNING BOULDER WITHOUT CONFINEMENT");
         }
 
-        enforce(_mossBinary.exists, "not found: " ~ _mossBinary);
-        enforce(_containerBinary.exists, "not found: " ~ _containerBinary);
-
-        tracef("moss: %s", _mossBinary);
-        tracef("moss-container: %s", _containerBinary);
         _upstreamCache = new UpstreamCache();
         _fetcher = new FetchController(totalCPUs >= 4 ? 3 : 1);
         _fetcher.onComplete.connect(&onFetchComplete);
