@@ -107,9 +107,6 @@ public:
         {
             addArchitecture(nativeArchitecture);
         }
-
-        info(architectures);
-        info(profiles);
         preparePackageDefinitions();
     }
 
