@@ -68,6 +68,18 @@ actions              :
             test -d "%(workdir)" || (echo "The work directory %(workdir) does not exist"; exit 1)
             cd "%(workdir)" && echo "The work directory %%(workdir) is ${PWD}"
 
+defaultTuningGroups :
+    - base
+    - fortify
+    - optimize
+    - avxwidth
+    - harden
+    - asneeded
+    - bindnow
+    - icf
+    - symbolic
+    - relr
+
 tuning              :
     # A set of groups we can toggle from the "tune" key
 
