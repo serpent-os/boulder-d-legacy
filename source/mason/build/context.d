@@ -29,6 +29,7 @@ import moss.format.source.script;
 import std.parallelism : totalCPUs;
 import std.concurrency : initOnce;
 import std.path : buildNormalizedPath;
+
 /**
  * Return the current shared Context for all moss operations
  */
@@ -211,7 +212,8 @@ private:
         MacroFile* file = null;
 
         /* bin/../share/boulder/macros */
-        auto resourceDir = thisExePath.dirName.buildNormalizedPath("..", "share", "boulder", "macros").absolutePath;
+        auto resourceDir = thisExePath.dirName.buildNormalizedPath("..",
+                "share", "boulder", "macros").absolutePath;
         auto plat = platform();
         string actionDir = join([resourceDir, "actions"], "/");
 
