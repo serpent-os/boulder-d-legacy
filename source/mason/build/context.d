@@ -28,7 +28,7 @@ import moss.format.source.script;
 
 import std.parallelism : totalCPUs;
 import std.concurrency : initOnce;
-
+import std.path : buildNormalizedPath;
 /**
  * Return the current shared Context for all moss operations
  */
@@ -202,7 +202,7 @@ private:
     void loadMacros()
     {
         import std.file : exists, dirEntries, thisExePath, SpanMode;
-        import std.path : dirName, baseName;
+        import std.path : dirName, baseName, absolutePath;
         import moss.core.platform : platform;
         import std.string : format;
         import std.exception : enforce;
@@ -210,18 +210,10 @@ private:
 
         MacroFile* file = null;
 
-        string resourceDir = "/usr/share/moss/macros";
-        string actionDir = null;
-        string localDir = join([dirName(thisExePath), "../data/macros"], "/");
-
-        /* Prefer local macros */
-        if (localDir.exists())
-        {
-            resourceDir = localDir;
-        }
-
+        /* bin/../share/boulder/macros */
+        auto resourceDir = thisExePath.dirName.buildNormalizedPath("..", "share", "boulder", "macros").absolutePath;
         auto plat = platform();
-        actionDir = join([resourceDir, "actions"], "/");
+        string actionDir = join([resourceDir, "actions"], "/");
 
         /* Architecture specific YMLs that MUST exist */
         string baseYml = join([resourceDir, "base.yml"], "/");
