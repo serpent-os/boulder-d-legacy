@@ -1,12 +1,16 @@
-/* SPDX-License-Identifier: Zlib */
+/*
+ * SPDX-FileCopyrightText: Copyright © 2020-2022 Serpent OS Developers
+ *
+ * SPDX-License-Identifier: Zlib
+ */
 
 /**
  * Drafter - License engine
  *
  * Preloading and comparison of licenses
  *
- * Authors: © 2020-2022 Serpent OS Developers
- * License: ZLib
+ * Authors: Copyright © 2020-2022 Serpent OS Developers
+ * License: Zlib
  */
 
 module drafter.license.engine;

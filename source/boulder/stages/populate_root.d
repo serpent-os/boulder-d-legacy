@@ -1,12 +1,16 @@
-/* SPDX-License-Identifier: Zlib */
+/*
+ * SPDX-FileCopyrightText: Copyright © 2020-2022 Serpent OS Developers
+ *
+ * SPDX-License-Identifier: Zlib
+ */
 
 /**
  * Stage: Populate root
  *
  * Populate root with useful packages
  *
- * Authors: © 2020-2022 Serpent OS Developers
- * License: ZLib
+ * Authors: Copyright © 2020-2022 Serpent OS Developers
+ * License: Zlib
  */
 
 module boulder.stages.populate_root;

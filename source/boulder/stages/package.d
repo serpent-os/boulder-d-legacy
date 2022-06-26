@@ -1,4 +1,8 @@
-/* SPDX-License-Identifier: Zlib */
+/*
+ * SPDX-FileCopyrightText: Copyright © 2020-2022 Serpent OS Developers
+ *
+ * SPDX-License-Identifier: Zlib
+ */
 
 /**
  * Boulder Stages
@@ -6,8 +10,8 @@
  * Modular simplistic API for various stages in the execution of the
  * boulder part of building, i.e. container and root encapsulation
  *
- * Authors: © 2020-2022 Serpent OS Developers
- * License: ZLib
+ * Authors: Copyright © 2020-2022 Serpent OS Developers
+ * License: Zlib
  */
 
 module boulder.stages;

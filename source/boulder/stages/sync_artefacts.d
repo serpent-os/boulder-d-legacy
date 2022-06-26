@@ -1,10 +1,14 @@
-/* SPDX-License-Identifier: Zlib */
+/*
+ * SPDX-FileCopyrightText: Copyright © 2020-2022 Serpent OS Developers
+ *
+ * SPDX-License-Identifier: Zlib
+ */
 
 /**
  * Stage: Share upstreams
  *
- * Authors: © 2020-2022 Serpent OS Developers
- * License: ZLib
+ * Authors: Copyright © 2020-2022 Serpent OS Developers
+ * License: Zlib
  */
 
 module boulder.stages.sync_artefacts;
