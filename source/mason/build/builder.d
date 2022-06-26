@@ -1,23 +1,17 @@
 /*
- * This file is part of boulder.
+ * SPDX-FileCopyrightText: Copyright © 2020-2022 Serpent OS Developers
  *
- * Copyright © 2020-2021 Serpent OS Developers
+ * SPDX-License-Identifier: Zlib
+ */
+
+/**
+ * mason.build.builder
  *
- * This software is provided 'as-is', without any express or implied
- * warranty. In no event will the authors be held liable for any damages
- * arising from the use of this software.
+ * Defines the notion of a Builder, which is responsible for converting a
+ * package recipe to a binary moss .stone package.
  *
- * Permission is granted to anyone to use this software for any purpose,
- * including commercial applications, and to alter it and redistribute it
- * freely, subject to the following restrictions:
- *
- * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software. If you use this software
- *    in a product, an acknowledgment in the product documentation would be
- *    appreciated but is not required.
- * 2. Altered source versions must be plainly marked as such, and must not be
- *    misrepresented as being the original software.
- * 3. This notice may not be removed or altered from any source distribution.
+ * Authors: Copyright © 2020-2022 Serpent OS Developers
+ * License: Zlib
  */
 
 module mason.build.builder;
@@ -32,7 +26,7 @@ import moss.deps.analysis;
 import std.algorithm : each, filter, canFind;
 import moss.deps.analysis.elves;
 import std.path : dirName, baseName;
-import std.string : startsWith, endsWith;
+import std.string : startsWith, endsWith, format;
 import std.experimental.logger;
 
 import core.sys.posix.sys.stat;
@@ -54,7 +48,7 @@ private static AnalysisReturn dropBadPaths(scope Analyser analyser, ref FileInfo
     {
         if (!info.path.startsWith("/usr"))
         {
-            warningf("Not including non /usr/ file: %s", info.path);
+            warning(format!"Not including non /usr/ file: %s"(info.path));
         }
         return AnalysisReturn.IgnoreFile;
     }
@@ -125,18 +119,20 @@ public:
     void prepareRoot() @system
     {
         import std.file : rmdirRecurse, mkdirRecurse, exists;
+        import std.process : environment;
 
-        trace("Preparing root tree");
+        trace(format!"Preparing root tree (as user: %s)"(environment.get("USER")));
 
         if (buildContext.rootDir.exists && !boulderRoot)
         {
-            trace("Removing old build tree");
-            buildContext.rootDir.rmdirRecurse();
+            trace("Removing existing (!boulderRoot) root tree");
+            buildContext.rootDir.rmdirRecurse;
         }
 
         if (!buildContext.rootDir.exists)
         {
-            mkdirRecurse(buildContext.rootDir);
+            trace("No existing root tree; creating fresh root tree");
+            buildContext.rootDir.mkdirRecurse;
         }
     }
 
@@ -148,11 +144,13 @@ public:
         import std.array : array, join;
         import std.file : copy, dirEntries, exists, isDir, mkdirRecurse, SpanMode;
         import std.path : asRelativePath;
+        import std.process : environment;
 
         /* Create directory for the package files*/
-        buildContext.pkgDir.mkdirRecurse();
+        trace(format!"Preparing buildContext.pkgDir: %s (as user: %s)"(buildContext.pkgDir, environment.get("USER")));
+        buildContext.pkgDir.mkdirRecurse;
 
-        /* Copy the files directory into the build */
+        /* Copy the pkg/ directory into the build */
         auto location = join([buildContext.specDir, "pkg"], "/");
         if (location.exists && location.isDir)
         {
@@ -405,7 +403,7 @@ private:
                 "--only-keep-debug", fileInfo.fullPath, debugInfoPath
                 ], null);
         auto code = ret.match!((err) {
-            errorf("debuginfo failure: %s", err.toString);
+            error(format!"debuginfo failure: %s"(err.toString));
             return -1;
         }, (code) => code);
 
@@ -421,16 +419,16 @@ private:
                 "--add-gnu-debuglink", debugInfoPath, fileInfo.fullPath
                 ], null);
         code = linkRet.match!((err) {
-            errorf("debuginfo:link failure: %s", err.toString);
+            error(format!"debuginfo:link failure: %s"(err.toString));
             return -1;
         }, (code) => code);
         if (code != 0)
         {
-            warningf("debuginfo:link not including broken debuginfo: /%s", debugInfoPathRelative);
+            warning(format!"debuginfo:link not including broken debuginfo: /%s"(debugInfoPathRelative));
             return AnalysisReturn.NextFunction;
         }
 
-        tracef("debuginfo: %s", fileInfo.path);
+        trace(format!"debuginfo: %s"(fileInfo.path));
         instance.collectPath(debugInfoPath, instance.profiles[0].installRoot);
 
         return AnalysisReturn.NextFunction;
@@ -459,7 +457,7 @@ private:
                 "--strip-unneeded", fileInfo.fullPath
                 ], null);
         auto code = ret.match!((err) {
-            errorf("strip failure: %s", err.toString);
+            error(format!"strip failure: %s"(err.toString));
             return -1;
         }, (code) => code);
 

@@ -29,6 +29,7 @@ import mason.build.context;
 import mason.build.controller;
 import mason.cli : MasonCLI;
 import std.parallelism : totalCPUs;
+import moss.core.logging;
 
 /**
  * The BuildCommand is responsible for handling requests to build stone.yml
@@ -57,6 +58,12 @@ public struct BuildCommand
      */
     @CommandEntry() int run(ref string[] argv)
     {
+        /// FIXME
+        ///immutable useDebug = pt.findAncestor!MasonCLI.debugMode;
+        ///globalLogLevel = useDebug ? LogLevel.trace : LogLevel.info;
+        configureLogging();
+        globalLogLevel = LogLevel.trace;
+
         import std.exception : enforce;
 
         auto outputDir = pt.findAncestor!(MasonCLI).outputDirectory;

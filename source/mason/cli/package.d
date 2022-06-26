@@ -42,4 +42,7 @@ public struct MasonCLI
 
     /** Override the build directory to one containing the prepared sources */
     @Option("b", "buildDir", "Set the build directory") string buildDir = null;
+
+    /** When set to true, we enable debug output */
+    @Option("d", "debug", "Enable debugging output") bool debugMode = false;
 }
