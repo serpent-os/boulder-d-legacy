@@ -29,7 +29,7 @@ import std.mmfile;
 import std.parallelism : taskPool;
 import std.path : baseName, dirName;
 import std.range : take, chunks, zip, lockstep, Take, empty, front, enumerate;
-import std.string : startsWith, toLower, endsWith;
+import std.string : startsWith, toLower, endsWith, format;
 import std.uni : byCodePoint, isAlphaNum;
 
 /**
@@ -168,7 +168,7 @@ public final class Engine
      */
     void loadFromDirectory(in string directory)
     {
-        enforce(directory.exists);
+        enforce(directory.exists, format!"Directory '%s' does not appear to exist?"(directory));
         trace("Preloading license data");
 
         /* Deliberately do NOT load deprecated licenses! */
