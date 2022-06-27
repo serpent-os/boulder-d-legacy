@@ -5,7 +5,9 @@
  */
 
 /**
- * Drafter - Python integration
+ * drafer.build.python
+ *
+ * Python integration
  *
  * Authors: Copyright © 2020-2022 Serpent OS Developers
  * License: Zlib

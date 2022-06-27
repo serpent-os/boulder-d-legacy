@@ -5,9 +5,9 @@
  */
 
 /**
- * GitHub metadata support
+ * drafter.metadata.github
  *
- * Extracts version, homepage, etc.
+ * GitHub specific metadata helpers
  *
  * Authors: Copyright © 2020-2022 Serpent OS Developers
  * License: Zlib

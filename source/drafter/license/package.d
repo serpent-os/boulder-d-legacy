@@ -5,9 +5,9 @@
  */
 
 /**
- * Drafter - License management
+ * drafter.license
  *
- * Analyse / compare licenses
+ * Definition of the `License` type
  *
  * Authors: Copyright © 2020-2022 Serpent OS Developers
  * License: Zlib

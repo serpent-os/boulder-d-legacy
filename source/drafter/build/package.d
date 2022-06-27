@@ -5,10 +5,9 @@
  */
 
 /**
- * Drafter - Build Management
+ * drafter.build
  *
- * Generation and manipulation of source recipe files that can then be consumed
- * by boulder.
+ * Module namespace imports & Build API
  *
  * Authors: Copyright © 2020-2022 Serpent OS Developers
  * License: Zlib

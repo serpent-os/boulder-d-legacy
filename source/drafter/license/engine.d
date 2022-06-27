@@ -5,9 +5,9 @@
  */
 
 /**
- * Drafter - License engine
+ * drafter.license.engine
  *
- * Preloading and comparison of licenses
+ * License detection engine
  *
  * Authors: Copyright © 2020-2022 Serpent OS Developers
  * License: Zlib

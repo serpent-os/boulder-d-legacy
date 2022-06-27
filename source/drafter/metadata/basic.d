@@ -5,9 +5,9 @@
  */
 
 /**
- * Basic metadata support
+ * drafter.metadata.basic
  *
- * Ultra simple matching.
+ * Basic metadata from the URI
  *
  * Authors: Copyright © 2020-2022 Serpent OS Developers
  * License: Zlib

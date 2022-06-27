@@ -5,7 +5,9 @@
  */
 
 /**
- * Drafter - CMake integration
+ * drafter.build.cmake
+ *
+ * CMake integration
  *
  * Authors: Copyright © 2020-2022 Serpent OS Developers
  * License: Zlib

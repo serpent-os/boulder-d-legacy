@@ -5,7 +5,9 @@
  */
 
 /**
- * Drafter - Autotools integration
+ * drafter.build.meson
+ *
+ * Meon integration
  *
  * Authors: Copyright © 2020-2022 Serpent OS Developers
  * License: Zlib

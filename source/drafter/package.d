@@ -5,10 +5,19 @@
  */
 
 /**
- * Drafter - Recipe Manipulation
+ * drafter
  *
- * Generation and manipulation of source recipe files that can then be consumed
- * by boulder.
+ * Automatic generation of boulder recipes from upstream URIs
+ *
+ * Drafter is the core implementation behind the `boulder new`
+ * subcommand, and allows users to generate a new `stone.yml` file
+ * from given upstream URIs.
+ *
+ * It integrates metadata and build system detetion in an attempt
+ * to provide a complete stone.yml file. It may not always be
+ * 100% accurate, but it is designed to detect as many build deps
+ * and licenses as possible to save the maintainer from doing all
+ * of the legwork, increasing our compliance.
  *
  * Authors: Copyright © 2020-2022 Serpent OS Developers
  * License: Zlib
