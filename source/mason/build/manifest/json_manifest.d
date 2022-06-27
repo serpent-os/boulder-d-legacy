@@ -5,12 +5,9 @@
  */
 
 /**
- * Module Name (use e.g. 'moss.core.foo.bar')
+ * mason.build.manifest.json_manifest
  *
- * Module Description (FIXME)
- *
- * In package.d files containing only imports and nothing else,
- * 'Module namespace imports.' is sufficient description.
+ * Human readable summary of build
  *
  * Authors: Copyright © 2020-2022 Serpent OS Developers
  * License: Zlib
