@@ -1,4 +1,8 @@
-/* SPDX-License-Identifier: Zlib */
+/*
+ * SPDX-FileCopyrightText: Copyright © 2020-2022 Serpent OS Developers
+ *
+ * SPDX-License-Identifier: Zlib
+ */
 
 /**
  * Main entry point
@@ -6,7 +10,7 @@
  * Provides the main entry point into the `moss-container` binary along
  * with some CLI parsing and container namespace initialisation.
  *
- * Authors: © 2020-2022 Serpent OS Developers
+ * Authors: Copyright © 2020-2022 Serpent OS Developers
  * License: Zlib
  */
 module main;
