@@ -147,7 +147,8 @@ public:
         import std.process : environment;
 
         /* Create directory for the package files*/
-        trace(format!"Preparing buildContext.pkgDir: %s (as user: %s)"(buildContext.pkgDir, environment.get("USER")));
+        trace(format!"Preparing buildContext.pkgDir: %s (as user: %s)"(buildContext.pkgDir,
+                environment.get("USER")));
         buildContext.pkgDir.mkdirRecurse;
 
         /* Copy the pkg/ directory into the build */
@@ -424,7 +425,8 @@ private:
         }, (code) => code);
         if (code != 0)
         {
-            warning(format!"debuginfo:link not including broken debuginfo: /%s"(debugInfoPathRelative));
+            warning(format!"debuginfo:link not including broken debuginfo: /%s"(
+                    debugInfoPathRelative));
             return AnalysisReturn.NextFunction;
         }
 
