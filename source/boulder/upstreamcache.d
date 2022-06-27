@@ -17,7 +17,7 @@
 
 module boulder.upstreamcache;
 
-import moss.core.util : hardLinkOrCopy;
+import moss.core.ioutil;
 import std.exception : enforce;
 import std.conv : to;
 import std.path : dirName;
@@ -25,6 +25,7 @@ import std.file : exists, mkdirRecurse, rename;
 import std.string : format;
 import std.array : join;
 public import moss.format.source.upstream_definition;
+import std.sumtype : tryMatch;
 
 /**
  * The UpstreamCache provides persistent paths and
@@ -87,7 +88,9 @@ public final class UpstreamCache
     {
         auto fp = finalPath(def);
         enforce(def.type == UpstreamType.Plain, "UpstreamCache: git not yet supported");
-        hardLinkOrCopy(fp, destPath);
+
+        auto res = IOUtil.hardlinkOrCopy(fp, destPath);
+        res.tryMatch!((bool b) => b);
     }
 
     /**

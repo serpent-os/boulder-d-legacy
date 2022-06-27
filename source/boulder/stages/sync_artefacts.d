@@ -21,10 +21,10 @@ import std.array : array;
 import std.algorithm : filter, map;
 import std.file : dirEntries, SpanMode, exists;
 import std.path : baseName;
-import std.string : join;
+import std.string : join, format;
 import std.sumtype : match;
 import std.experimental.logger;
-import moss.core.util : hardLinkOrCopy;
+import moss.core.ioutil;
 
 /**
  * Make sources available
@@ -51,7 +51,15 @@ static private StageReturn syncArtefacts(scope StageContext context)
         {
             toPath.remove();
         }
-        hardLinkOrCopy(copyable, toPath);
+        auto res = IOUtil.hardlinkOrCopy(copyable, toPath);
+        auto ret = res.match!((CError err) {
+            error(format!"Error syncing asset %s: %s"(copyable, err.toString));
+            return false;
+        }, (b) => true);
+        if (!ret)
+        {
+            return StageReturn.Failure;
+        }
     }
     return StageReturn.Success;
 }
