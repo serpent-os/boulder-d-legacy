@@ -5,7 +5,7 @@
  */
 
 /**
- * Stage: Fetch upstreams
+ * boulder.stages.fetch_upstreams
  *
  * Obtain all unfetched upstreams
  *

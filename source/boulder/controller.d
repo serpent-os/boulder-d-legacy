@@ -5,12 +5,13 @@
  */
 
 /**
- * Module Name (use e.g. 'moss.core.foo.bar')
+ * boulder.controller
  *
- * Module Description (FIXME)
+ * Recipe build lifeyxle management
  *
- * In package.d files containing only imports and nothing else,
- * 'Module namespace imports.' is sufficient description.
+ * Provides a StageContext implementation capable of building recipes
+ * given a set of predefined stages. Also implements moss-fetcher
+ * integration points to facilitate downloads.
  *
  * Authors: Copyright © 2020-2022 Serpent OS Developers
  * License: Zlib

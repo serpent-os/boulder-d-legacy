@@ -5,7 +5,9 @@
  */
 
 /**
- * Stage: Share upstreams
+ * boulder.stages.sync_artefacts
+ *
+ * Clone the build artefacts into the work tree (outside container)
  *
  * Authors: Copyright © 2020-2022 Serpent OS Developers
  * License: Zlib

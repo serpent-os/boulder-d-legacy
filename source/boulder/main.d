@@ -5,12 +5,13 @@
  */
 
 /**
- * Module Name (use e.g. 'moss.core.foo.bar')
+ * boulder.main
  *
- * Module Description (FIXME)
+ * Main entry point for our binary
  *
- * In package.d files containing only imports and nothing else,
- * 'Module namespace imports.' is sufficient description.
+ * Through symlink names (in `/usr`) we provide the main entry point
+ * for both `mason` and `boulder`. This decision was made to avoid
+ * having two binaries which would honestly just be bloat.
  *
  * Authors: Copyright © 2020-2022 Serpent OS Developers
  * License: Zlib

@@ -5,9 +5,9 @@
  */
 
 /**
- * Stage: Clean root
+ * boulder.stages.clean_root
  *
- * Simple stage that will just clean the existing root if found
+ * A simplisti stage that removes the existing build root
  *
  * Authors: Copyright © 2020-2022 Serpent OS Developers
  * License: Zlib

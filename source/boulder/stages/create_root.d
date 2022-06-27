@@ -5,9 +5,9 @@
  */
 
 /**
- * Stage: Clean root
+ * boulder.stages.create_root
  *
- * Simple stage that will just create required directories
+ * Simple stage that will just create required build directories
  *
  * Authors: Copyright © 2020-2022 Serpent OS Developers
  * License: Zlib

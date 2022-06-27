@@ -5,7 +5,7 @@
  */
 
 /**
- * Stage: Configure root
+ * boulder.stages.configure_root
  *
  * Configure the root prior to populating it
  *

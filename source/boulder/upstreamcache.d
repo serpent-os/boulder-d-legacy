@@ -5,9 +5,11 @@
  */
 
 /**
- * Upstream Cache
+ * boulder.upstreamcache
  *
  * Path mangling for retention of sources
+ *
+ * TODO: Rename module to boulder.upstream_cache
  *
  * Authors: Copyright © 2020-2022 Serpent OS Developers
  * License: Zlib

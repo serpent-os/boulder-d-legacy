@@ -5,9 +5,9 @@
  */
 
 /**
- * Build Job
+ * boulder.buildjob
  *
- * Simple Build Job encapsulation
+ * Provides encapsulation of a recipe build job
  *
  * Authors: Copyright © 2020-2022 Serpent OS Developers
  * License: Zlib

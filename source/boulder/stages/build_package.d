@@ -5,7 +5,9 @@
  */
 
 /**
- * Stage: Go buildy buildy
+ * boulder.stages.build_package
+ *
+ * Implements the build stage
  *
  * Authors: Copyright © 2020-2022 Serpent OS Developers
  * License: Zlib

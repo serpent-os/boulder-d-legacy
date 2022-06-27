@@ -5,7 +5,7 @@
  */
 
 /**
- * Stage: Populate root
+ * boulder.stages.populate_root
  *
  * Populate root with useful packages
  *

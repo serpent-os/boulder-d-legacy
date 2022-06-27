@@ -5,7 +5,9 @@
  */
 
 /**
- * Stage: Share upstreams
+ * boulder.stages.share_upstreams
+ *
+ * This stage makes the fetched sources available in the build environment
  *
  * Authors: Copyright © 2020-2022 Serpent OS Developers
  * License: Zlib

@@ -5,7 +5,7 @@
  */
 
 /**
- * Boulder Stages
+ * boulder.stages
  *
  * Modular simplistic API for various stages in the execution of the
  * boulder part of building, i.e. container and root encapsulation
