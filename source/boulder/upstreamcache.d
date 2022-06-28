@@ -19,6 +19,7 @@ module boulder.upstreamcache;
 
 import moss.core.ioutil;
 import std.exception : enforce;
+import std.experimental.logger;
 import std.conv : to;
 import std.path : dirName;
 import std.file : exists, mkdirRecurse, rename;
@@ -84,13 +85,20 @@ public final class UpstreamCache
     /**
      * Promote the shared upstream into a target tree using hardlink or copy.
      */
-    void share(in UpstreamDefinition def, in string destPath) @safe
+    void share(in UpstreamDefinition def, in string destPath) ///FIXME: @safe
     {
         auto fp = finalPath(def);
         enforce(def.type == UpstreamType.Plain, "UpstreamCache: git not yet supported");
 
-        auto res = IOUtil.hardlinkOrCopy(fp, destPath);
-        res.tryMatch!((bool b) => b);
+        try
+        {
+            auto res = IOUtil.hardlinkOrCopy(fp, destPath);
+            /// FIXME: res.tryMatch!((bool b) => b);
+        }
+        catch (Exception e)
+        {
+            error(e);
+        }
     }
 
     /**
