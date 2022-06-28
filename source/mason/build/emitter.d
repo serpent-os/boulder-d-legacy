@@ -22,7 +22,7 @@ import moss.format.source.source_definition;
 import moss.format.binary.payload;
 import moss.format.binary.writer;
 import moss.deps.analysis;
-import std.string : startsWith;
+import std.string : format, startsWith;
 import std.experimental.logger;
 
 /**
@@ -90,7 +90,7 @@ private:
      */
     void emitPackage(const(string) outputDirectory, scope Package* pkg, Analyser analyser) @trusted
     {
-        import std.stdio : File, writefln;
+        import std.stdio : File;
         import std.array : join;
         import std.range : empty;
 
@@ -116,7 +116,7 @@ private:
             writer.close();
         }
 
-        infof("Generating package: %s", pkg.filename);
+        info(format!"Generating package: %s"(pkg.filename));
 
         /* Generate metadata first */
         generateMetadata(analyser, writer, pkg);
@@ -166,7 +166,7 @@ private:
         {
             foreach (prov; providers)
             {
-                infof("[%s] provides %s", pkg.pd.name, prov);
+                info(format!"[%s] provides %s"(pkg.pd.name, prov));
                 met.addRecord(RecordType.Provider, RecordTag.Provides, prov);
             }
         }
@@ -174,7 +174,7 @@ private:
         {
             foreach (dep; dependencies)
             {
-                infof("[%s] depends on %s", pkg.pd.name, dep);
+                info(format!"[%s] depends on %s"(pkg.pd.name, dep));
                 met.addRecord(RecordType.Dependency, RecordTag.Depends, dep);
             }
         }

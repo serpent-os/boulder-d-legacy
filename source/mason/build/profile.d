@@ -23,6 +23,7 @@ import mason.build.stage;
 import mason.build.manifest;
 import std.array : join;
 import moss.deps.analysis;
+import std.experimental.logger;
 
 /**
  * A build profile is generated for each major build profile in the
@@ -157,7 +158,7 @@ public:
     {
         import mason.build.util;
 
-        import std.stdio : File, fflush, stdin, stderr, stdout, writefln;
+        import std.stdio : File, fflush, stdin, stderr, stdout;
         import std.string : format;
         import std.file : remove;
 
@@ -175,7 +176,7 @@ public:
         /* Error? Bail */
         if (err.errorCode != 0)
         {
-            writefln!"Fatal error in stage '%s': %s"(stage.name, cast(string) err.toString());
+            critical(format!"Critical error in stage '%s': %s"(stage.name, cast(string) err.toString()));
             return false;
         }
 
@@ -197,12 +198,12 @@ public:
         int statusCode = -1;
         auto res = executeCommand("/bin/sh", [tmpFile.realPath], null, workDir);
         res.match!((err) {
-            writefln!"Unable to execute script: %s"(cast(string) err.toString);
+            error(format!"Unable to execute script: %s"(cast(string) err.toString));
         }, (code) { statusCode = code; });
 
         if (statusCode != 0)
         {
-            writefln!"Stage '%s' exited with code [%d]"(stage.name, statusCode);
+            error(format!"Stage '%s' exited with code [%d]"(stage.name, statusCode));
         }
         return statusCode == 0;
     }

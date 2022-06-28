@@ -22,7 +22,6 @@ import std.file : mkdirRecurse;
 import core.sys.posix.unistd : chown;
 import moss.core.mounts;
 import std.string : toStringz;
-import std.stdio : writefln;
 import std.experimental.logger;
 
 import boulder.stages : nobodyUser;

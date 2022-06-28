@@ -37,8 +37,8 @@ public struct VersionCommand
     {
         import std.stdio : writefln, writeln;
 
-        writefln("boulder, version %s", moss.core.Version);
-        writeln("\nCopyright © 2020-2021 Serpent OS Developers");
+        writefln!"boulder, version %s"(moss.core.Version);
+        writeln("\nCopyright © 2020-2022 Serpent OS Developers");
         writeln("Available under the terms of the Zlib license");
         return ExitStatus.Success;
     }

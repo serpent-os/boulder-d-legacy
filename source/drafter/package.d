@@ -332,7 +332,7 @@ private:
             {
                 return;
             }
-            outputFile.writefln("%s |\n    %s", displayName, res);
+            outputFile.writefln!"%s |\n    %s"(displayName, res);
         }
 
         emitSection("setup       :", &build.setup);
