@@ -29,7 +29,7 @@ import drafter.build;
 import drafter.license;
 import drafter.metadata;
 import moss.core.ioutil;
-import moss.core.logging;
+import moss.core.logger;
 import moss.core.util : computeSHA256;
 import moss.deps.analysis;
 import moss.fetcher;

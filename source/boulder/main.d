@@ -21,7 +21,7 @@ module main;
 
 import boulder.cli;
 import mason.cli;
-import moss.core.logging;
+import moss.core.logger;
 import std.path : baseName;
 import std.stdio;
 
@@ -51,7 +51,7 @@ int masonMain(string[] args)
 
 int main(string[] args)
 {
-    configureLogging(ColorLoggerFlags.Color | ColorLoggerFlags.Timestamps);
+    configureLogger(ColorLoggerFlags.Color | ColorLoggerFlags.Timestamps);
 
     auto programName = args[0].baseName;
     switch (programName)
