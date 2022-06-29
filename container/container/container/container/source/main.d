@@ -24,11 +24,12 @@ import moss.container;
 import moss.container.context;
 import moss.core.mounts;
 import moss.core.cli;
+import moss.core.logger;
 import std.conv : octal;
 import std.exception : enforce;
 import std.file : exists, isDir;
 import std.stdio : stderr, stdout;
-import std.string : empty;
+import std.string : empty, format;
 
 /**
  * The BoulderCLI type holds some global configuration bits
@@ -43,6 +44,7 @@ general testing.`)
 
 public struct ContainerCLI
 {
+
     /** Extend BaseCommand to give a root command for our CLI */
     BaseCommand pt;
     alias pt this;
@@ -91,11 +93,15 @@ public struct ContainerCLI
      */
     @CommandEntry() int run(ref string[] args)
     {
+        /// FIXME: make configurable (-d is currently used for destination)
+        configureLogger(ColorLoggerFlags.Color | ColorLoggerFlags.Timestamps);
+        globalLogLevel = LogLevel.trace;
+
         umask(octal!22);
 
         if (showVersion)
         {
-            stdout.writefln("moss-container, version %s", "0.1");
+            stdout.writefln!"moss-container, version %s"("0.1");
             stdout.writeln("\nCopyright © 2020-2022 Serpent OS Developers");
             stdout.writeln("Available under the terms of the Zlib license");
             return 0;
@@ -109,7 +115,7 @@ public struct ContainerCLI
 
         if (!rootfsDir.exists || !rootfsDir.isDir)
         {
-            stderr.writefln("The directory specified does not exist: %s", rootfsDir);
+            stderr.writefln!"The directory specified does not exist: %s"(rootfsDir);
         }
 
         if (geteuid() != 0)

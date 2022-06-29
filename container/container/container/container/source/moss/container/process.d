@@ -18,9 +18,10 @@ module moss.container.process;
 import core.sys.posix.sys.wait;
 import core.sys.posix.unistd : _exit, fork, pid_t, setgid, setuid, uid_t;
 import moss.container.context;
+import std.experimental.logger;
 import std.process;
 import std.stdio : stderr, stdin, stdout;
-import std.string : toStringz;
+import std.string : format, fromStringz, toStringz;
 
 /**
  * Chroot to another root filesystem
@@ -73,9 +74,8 @@ package:
                 {
                     import core.stdc.errno : errno;
                     import core.stdc.string : strerror;
-                    import std.string : fromStringz;
 
-                    stderr.writeln("waitpid: Error: ", strerror(errno).fromStringz);
+                    error(format!"waitpid: Error: %s"(strerror(errno).fromStringz));
                 }
             }
             while (!WIFEXITED(status) && !WIFSIGNALED(status));
@@ -118,7 +118,7 @@ private:
         }
         catch (ProcessException px)
         {
-            stderr.writeln("Failed to run container: ", px.message);
+            error(format!"Failed to run container: %s"(px.message));
             return 1;
         }
     }

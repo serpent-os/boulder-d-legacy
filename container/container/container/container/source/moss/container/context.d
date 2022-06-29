@@ -16,12 +16,14 @@
 module moss.container.context;
 
 public import moss.container.fakeroot : FakerootBinary;
+
+import core.sys.posix.stdlib : uid_t;
 import moss.container.fakeroot : discoverFakeroot;
-import std.concurrency : initOnce;
 import std.array : join;
+import std.concurrency : initOnce;
+import std.experimental.logger;
 import std.stdio : stderr;
 import std.string : startsWith;
-import core.sys.posix.stdlib : uid_t;
 
 /**
  * Shared singleton instance
@@ -157,7 +159,7 @@ package:
 
         if (_fakerootBinary == FakerootBinary.None && fakeroot)
         {
-            stderr.writeln("Fakeroot requested but not available in rootfs, exiting..");
+            error("Fakeroot requested but not available in rootfs, exiting..");
             return false;
         }
 

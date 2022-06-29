@@ -20,6 +20,7 @@ public import moss.core.mounts;
 public import moss.container.process;
 import moss.container.context;
 import std.exception : enforce;
+import std.experimental.logger;
 import std.file : exists, remove, symlink, mkdirRecurse;
 import std.process;
 import std.stdio : stderr, stdin, stdout;
@@ -91,8 +92,7 @@ public final class Container
             auto err = m.mount();
             if (!err.isNull)
             {
-                stderr.writeln("Failed to activate mountpoint: ", m.target,
-                        ", ", err.get.toString);
+                error(format!"Failed to activate mountpoint: %s, %s"(m.target, err.get.toString));
                 /* Remove the mountpoint now */
                 mountPoints = mountPoints.remove!((m2) => m.target == m2.target);
                 return 1;
@@ -127,7 +127,7 @@ private:
             auto err = m.unmount();
             if (!err.isNull())
             {
-                stderr.writeln("Failed to bring down mountpoint: ", m, ", ", err.get.toString);
+                error(format!"Failed to bring down mountpoint: %s, %s"(m, err.get.toString));
             }
         }
     }
