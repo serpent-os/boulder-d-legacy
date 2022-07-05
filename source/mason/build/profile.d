@@ -176,7 +176,8 @@ public:
         /* Error? Bail */
         if (err.errorCode != 0)
         {
-            critical(format!"Critical error in stage '%s': %s"(stage.name, cast(string) err.toString()));
+            critical(format!"Critical error in stage '%s': %s"(stage.name,
+                    cast(string) err.toString()));
             return false;
         }
 
