@@ -51,6 +51,12 @@ static private StageReturn buildPackageConfined(scope StageContext context)
 {
     string[string] environ;
     environ["PATH"] = "/usr/bin:/usr/sbin";
+    string[] archCommand = null;
+    /* Set the non-native architecture */
+    if (context.architecture != "native")
+    {
+        archCommand = ["-a", context.architecture,];
+    }
     string[] args = [
         /* Root moss filesystem */
         "--directory", context.job.hostPaths.rootfs, "--bind-rw",
@@ -79,9 +85,13 @@ static private StageReturn buildPackageConfined(scope StageContext context)
         /* Set output directory */
         "-o", context.job.guestPaths.artefacts,
         /* Set build directory */
-        "-b", context.job.guestPaths.buildRoot, "-a", context.architecture,
+        "-b", context.job.guestPaths.buildRoot,
         join([context.job.guestPaths.recipe, context.job.name], "/")
     ];
+    if (archCommand !is null)
+    {
+        args ~= archCommand;
+    }
     auto result = executeCommand(context.containerBinary, args, environ, "/");
     auto ret = result.match!((int err) => err != 0 ? StageReturn.Failure
             : StageReturn.Success, (e) => StageReturn.Failure);
