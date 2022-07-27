@@ -4,3 +4,4 @@
 [submodule "license-list-data"]
 	path = license-list-data
 	url = https://github.com/spdx/license-list-data.git
+	shallow = true
