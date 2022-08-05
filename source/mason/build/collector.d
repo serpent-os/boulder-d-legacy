@@ -21,9 +21,10 @@ import std.algorithm : startsWith, filter;
 import std.exception : enforce;
 import std.string : format;
 import moss.format.source.package_definition;
+import moss.format.source.path_definition;
 
 /**
- * A CollectionRule simply defines a pattern to match against (glob style)
+ * A CollectionRule simply defines a path pattern to match against (glob style)
  * and a priority with which the pattern will be used.
  *
  * Increased priority numbers lead to the rule running before other rules.
@@ -31,9 +32,10 @@ import moss.format.source.package_definition;
 package struct CollectionRule
 {
     /**
-     * A glob style pattern to match against
+     * A PathDefinition supporting a glob style path pattern and a path type
+     * to match against.
      */
-    string pattern = null;
+    PathDefinition pathDef;
 
     /**
      * A target name to incorporate, such as "name-devel"
@@ -45,10 +47,11 @@ package struct CollectionRule
      */
     int priority = 0;
 
-    pure bool match(const(string) inp) @safe
+    /// FIXME: Update to care about types too
+    pure bool match(const(PathDefinition) inp) @safe
     {
-        return (inp == pattern || inp.startsWith(pattern)
-                || globMatch!(CaseSensitive.yes)(inp, pattern));
+        return (inp.path == pathDef.path || inp.path.startsWith(pathDef.path)
+                || globMatch!(CaseSensitive.yes)(inp.path, pathDef.path));
     }
 }
 
@@ -68,12 +71,12 @@ public:
     /**
      * Add a priority based rule to the system which can of course be overridden.
      */
-    void addRule(string pattern, string target, uint priority = 0) @safe
+    void addRule(PathDefinition pathDef, string target, uint priority = 0) @safe
     {
         import std.algorithm : sort;
 
         /* Sort ahead of time */
-        rules ~= CollectionRule(pattern, target, priority);
+        rules ~= CollectionRule(pathDef, target, priority);
         rules.sort!((a, b) => a.priority > b.priority);
     }
 
@@ -81,11 +84,11 @@ public:
      * Return the package target for the given filesystem path by matching
      * globs.
      */
-    auto packageTarget(const(string) targetPath)
+    auto packageTarget(const(PathDefinition) pathDef)
     {
-        auto matchingSet = rules.filter!((r) => r.match(targetPath));
+        auto matchingSet = rules.filter!((r) => r.match(pathDef));
         enforce(!matchingSet.empty,
-                "packageTarget: No matching rule for path: %s".format(targetPath));
+                "packageTarget: No matching rule for path: %s".format(pathDef));
 
         return matchingSet.front.target;
     }

@@ -396,6 +396,7 @@ private:
         auto debugInfoPath = join([
             instance.profiles[0].installRoot, debugInfoPathRelative
         ], "/");
+        trace("debugInfoPath: ", debugInfoPath);
         auto debugInfoDir = debugInfoPath.dirName;
         debugInfoDir.mkdirRecurse();
 
@@ -431,7 +432,7 @@ private:
         }
 
         trace(format!"debuginfo: %s"(fileInfo.path));
-        instance.collectPath(debugInfoPath, instance.profiles[0].installRoot);
+        instance.collectPath(PathDefinition(debugInfoPath), instance.profiles[0].installRoot);
 
         return AnalysisReturn.NextFunction;
     }
@@ -465,27 +466,28 @@ private:
 
         if (code == 0)
         {
-            tracef("strip: %s", fileInfo.path);
+            trace(format!"strip: %s"(fileInfo.path));
         }
 
         return AnalysisReturn.NextFunction;
     }
 
     /**
-        * Explicitly requested addition of some path, so add it now.
-        */
-    void collectPath(in string path, in string root)
+      * Explicitly requested addition of some path, so add it now.
+      */
+    void collectPath(in PathDefinition pd, in string root)
     {
         import std.path : relativePath;
         import std.string : format;
 
-        auto targetPath = path.relativePath(root);
+        auto targetPath = pd.path.relativePath(root);
         if (targetPath[0] != '/')
         {
             targetPath = format!"/%s"(targetPath);
         }
-        auto inf = FileInfo(targetPath, path);
-        inf.target = collector.packageTarget(targetPath);
+        /// FIXME: care about type information
+        auto inf = FileInfo(targetPath, pd.path);
+        inf.target = collector.packageTarget(PathDefinition(targetPath));
         analyser.addFile(inf);
     }
 
@@ -510,13 +512,13 @@ private:
             if (entries.empty)
             {
                 /* Include empty directory */
-                collectPath(path, root);
+                collectPath(PathDefinition(path), root);
                 return;
             }
             else if (specialDirectory)
             {
                 /* Include directory with non standard mode */
-                collectPath(path, root);
+                collectPath(PathDefinition(path), root);
             }
             /* Otherwise, ignore the directory and rely on mkdir recursive */
 
@@ -530,7 +532,7 @@ private:
                 }
                 else
                 {
-                    collectPath(entry.name, root);
+                    collectPath(PathDefinition(entry.name), root);
                 }
                 entry.destroy();
             }
@@ -569,34 +571,34 @@ private:
      * PackageDefinition merged object. This comes from the spec and
      * our base definitions.
      */
-    void addDefinition(PackageDefinition pd)
+    void addDefinition(PackageDefinition pkd)
     {
         import std.algorithm : each, uniq, sort;
         import std.range : chain;
         import std.array : array;
 
         /* Always insert paths as they're encountered */
-        pd = buildContext.spec.expand(pd);
-        void insertRule(const(string) name)
+        pkd = buildContext.spec.expand(pkd);
+        void insertRule(const(PathDefinition) pd)
         {
-            collector.addRule(name, pd.name, inclusionPriority);
+            collector.addRule(pd, pkd.name, inclusionPriority);
             ++inclusionPriority;
         }
 
-        pd.paths.each!((p) => insertRule(p));
+        pkd.paths.each!((pd) => insertRule(pd));
 
         /* Insert new package if needed */
-        if (!(pd.name in packages))
+        if (!(pkd.name in packages))
         {
-            packages[pd.name] = pd;
+            packages[pkd.name] = pkd;
             return;
         }
 
         /* Merge rules */
-        auto oldPkg = &packages[pd.name];
-        oldPkg.runtimeDependencies = oldPkg.runtimeDependencies.chain(pd.runtimeDependencies)
+        auto oldPkg = &packages[pkd.name];
+        oldPkg.runtimeDependencies = oldPkg.runtimeDependencies.chain(pkd.runtimeDependencies)
             .uniq.array;
-        oldPkg.paths = oldPkg.paths.chain(pd.paths).uniq.array;
+        oldPkg.paths = oldPkg.paths.chain(pkd.paths).uniq.array;
 
         sort(oldPkg.runtimeDependencies);
         sort(oldPkg.paths);
@@ -604,11 +606,11 @@ private:
         /* Merge details */
         if (oldPkg.summary is null)
         {
-            oldPkg.summary = pd.summary;
+            oldPkg.summary = pkd.summary;
         }
         if (oldPkg.description is null)
         {
-            oldPkg.description = pd.description;
+            oldPkg.description = pkd.description;
         }
     }
 
