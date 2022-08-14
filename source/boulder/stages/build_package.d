@@ -88,10 +88,16 @@ static private StageReturn buildPackageConfined(scope StageContext context)
         "-b", context.job.guestPaths.buildRoot,
         join([context.job.guestPaths.recipe, context.job.name], "/")
     ];
+    /* '-d' was supplied to the boulder invocation, carry it on to mason */
+    if (globalLogLevel == LogLevel.trace)
+    {
+        args ~= "-d";
+    }
     if (archCommand !is null)
     {
         args ~= archCommand;
     }
+    trace(format!"%s: executeCommand(%s, %s, %s, \"/\")"(__FUNCTION__, context.containerBinary, args, environ));
     auto result = executeCommand(context.containerBinary, args, environ, "/");
     auto ret = result.match!((int err) => err != 0 ? StageReturn.Failure
             : StageReturn.Success, (e) => StageReturn.Failure);
@@ -110,12 +116,18 @@ static private StageReturn buildPackageUnconfined(scope StageContext context)
         "-u", "nobody", "--",
         /* fakeroot pls! */
         "fakeroot", "--",
-        /* Buidl with mason */
+        /* Build with mason */
         "mason", "build", "-o", context.job.hostPaths.artefacts, "-b",
         context.job.hostPaths.buildRoot, "-a", context.architecture,
         /* Here be your recipe. */
         join([context.job.unconfinedRecipe, context.job.name], "/")
     ];
+    /* '-d' was supplied to the boulder invocation, carry it on to mason */
+    if (globalLogLevel == LogLevel.trace)
+    {
+        args ~= "-d";
+    }
+    trace(format!"%s: executeCommand('runuser, %s, %s, \"/\"')"(__FUNCTION__, args, environ));
     auto result = executeCommand("runuser", args, environ, "/");
     auto ret = result.match!((int err) => err != 0 ? StageReturn.Failure
             : StageReturn.Success, (e) => StageReturn.Failure);
