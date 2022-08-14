@@ -16,13 +16,14 @@
 module mason.cli.build_command;
 
 public import moss.core.cli;
-import moss.core;
-import std.stdio;
 import mason.build.context;
 import mason.build.controller;
 import mason.cli : MasonCLI;
-import std.parallelism : totalCPUs;
 import moss.core.logger;
+import moss.core;
+import std.experimental.logger;
+import std.format: format;
+import std.parallelism : totalCPUs;
 
 /**
  * The BuildCommand is responsible for handling requests to build stone.yml
@@ -51,13 +52,12 @@ public struct BuildCommand
      */
     @CommandEntry() int run(ref string[] argv)
     {
-        /// FIXME
-        ///immutable useDebug = pt.findAncestor!MasonCLI.debugMode;
-        ///globalLogLevel = useDebug ? LogLevel.trace : LogLevel.info;
+        /* configureLogger resets the globalLogLevel to LogLevel.info */
         configureLogger(ColorLoggerFlags.Color | ColorLoggerFlags.Timestamps);
-        globalLogLevel = LogLevel.trace;
 
-        import std.exception : enforce;
+        immutable useDebug = this.findAncestor!MasonCLI.debugMode;
+        globalLogLevel = useDebug ? LogLevel.trace : LogLevel.info;
+        info(format!"mason log level set to: %s"(globalLogLevel));
 
         auto outputDir = pt.findAncestor!(MasonCLI).outputDirectory;
         auto buildDir = pt.findAncestor!(MasonCLI).buildDir;
@@ -75,6 +75,7 @@ public struct BuildCommand
         auto controller = new BuildController(architecture);
         foreach (specURI; argv)
         {
+            trace(format!"%s: BuildController.build(%s)"(__FUNCTION__, specURI));
             if (!controller.build(specURI))
             {
                 return ExitStatus.Failure;
