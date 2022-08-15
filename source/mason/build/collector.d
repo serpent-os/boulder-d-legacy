@@ -17,9 +17,11 @@ module mason.build.collector;
 
 import std.path;
 import std.file;
+import std.stdio;
 import std.algorithm : startsWith, filter;
 import std.exception : enforce;
-import std.string : format;
+import std.experimental.logger;
+import std.format : format;
 import moss.format.source.package_definition;
 import moss.format.source.path_definition;
 
@@ -48,10 +50,11 @@ package struct CollectionRule
     int priority = 0;
 
     /// FIXME: Update to care about types too
-    pure bool match(const(PathDefinition) inp) @safe
+    bool match(const(string) encounteredFilePath) @safe
     {
-        return (inp.path == pathDef.path || inp.path.startsWith(pathDef.path)
-                || globMatch!(CaseSensitive.yes)(inp.path, pathDef.path));
+        debug { trace(format!"match build artefact '%s' against rule: %s"(encounteredFilePath,  pathDef)); }
+        return (pathDef.path == encounteredFilePath || encounteredFilePath.startsWith(pathDef.path)
+                || globMatch!(CaseSensitive.yes)(encounteredFilePath, pathDef.path));
     }
 }
 
@@ -69,32 +72,34 @@ final class BuildCollector
 public:
 
     /**
-     * Add a priority based rule to the system which can of course be overridden.
+     * Add a priority based CollectionRule to the system which can of course be overridden.
      */
-    void addRule(PathDefinition pathDef, string target, uint priority = 0) @safe
+    void addRule(PathDefinition pathDef, string packageTarget, uint priority = 0) @safe
     {
         import std.algorithm : sort;
 
         /* Sort ahead of time */
-        rules ~= CollectionRule(pathDef, target, priority);
+        rules ~= CollectionRule(pathDef, packageTarget, priority);
         rules.sort!((a, b) => a.priority > b.priority);
     }
 
     /**
-     * Return the package target for the given filesystem path by matching
-     * globs.
+     * Return the package target for the given encountered filesystem path by .match-ing
+     * it against the list of CollectionRules w/PathDefinition globs.
+     * TODO: .. and type
      */
-    auto packageTarget(const(PathDefinition) pathDef)
+    auto packageTarget(const(string) encounteredFilePath)
     {
-        auto matchingSet = rules.filter!((r) => r.match(pathDef));
+        ///FIXME this needs extra filtering functionality for the type
+        auto matchingSet = rules.filter!((r) => r.match(encounteredFilePath));
         enforce(!matchingSet.empty,
-                "packageTarget: No matching rule for path: %s".format(pathDef));
+                "LINT: packageTarget(): No matching rule for path: %s".format(encounteredFilePath));
 
         return matchingSet.front.target;
     }
 
 private:
 
-    /* Map file glob patterns to target packages */
+    /* Map PathDefinition glob patterns + file types to target packages */
     CollectionRule[] rules;
 }

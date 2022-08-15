@@ -16,20 +16,19 @@
 
 module mason.build.builder;
 
-import moss.format.source.spec;
-import mason.build.context;
+import core.sys.posix.sys.stat;
 import mason.build.collector;
-import mason.build.profile;
+import mason.build.context;
 import mason.build.emitter;
+import mason.build.profile;
 import mason.build.util;
-import moss.deps.analysis;
-import std.algorithm : each, filter, canFind;
 import moss.deps.analysis.elves;
+import moss.deps.analysis;
+import moss.format.source.spec;
+import std.algorithm : each, filter, canFind;
+import std.experimental.logger;
 import std.path : dirName, baseName;
 import std.string : startsWith, endsWith, format;
-import std.experimental.logger;
-
-import core.sys.posix.sys.stat;
 
 /**
  * As far as boulder is concerned, any directory mode 0755 is utterly uninteresting
@@ -71,6 +70,7 @@ public:
      */
     this(string nativeArchitecture)
     {
+        trace(__FUNCTION__);
         if (buildContext.rootDir is null)
         {
             buildContext.rootDir = getBuildRoot();
@@ -236,6 +236,7 @@ private:
      * Setup our boulder chains */
     void setupChains()
     {
+        trace(__FUNCTION__);
         const auto boulderChains = [
             /* Highest policy */
             AnalysisChain("badFiles", [&dropBadPaths], 100),
@@ -432,7 +433,7 @@ private:
         }
 
         trace(format!"debuginfo: %s"(fileInfo.path));
-        instance.collectPath(PathDefinition(debugInfoPath), instance.profiles[0].installRoot);
+        instance.collectPath(debugInfoPath, instance.profiles[0].installRoot);
 
         return AnalysisReturn.NextFunction;
     }
@@ -475,19 +476,20 @@ private:
     /**
       * Explicitly requested addition of some path, so add it now.
       */
-    void collectPath(in PathDefinition pd, in string root)
+    void collectPath(in string path, in string root)
     {
         import std.path : relativePath;
         import std.string : format;
 
-        auto targetPath = pd.path.relativePath(root);
+        debug { trace(format!"%s(%s, %s)"(__FUNCTION__, path, root)); }
+        auto targetPath = path.relativePath(root);
         if (targetPath[0] != '/')
         {
             targetPath = format!"/%s"(targetPath);
         }
         /// FIXME: care about type information
-        auto inf = FileInfo(targetPath, pd.path);
-        inf.target = collector.packageTarget(PathDefinition(targetPath));
+        auto inf = FileInfo(targetPath, path);
+        inf.target = collector.packageTarget(targetPath);
         analyser.addFile(inf);
     }
 
@@ -498,6 +500,8 @@ private:
     void collectRootfs(const(string) root)
     {
         import std.file : dirEntries, DirEntry, SpanMode;
+
+        trace(__FUNCTION__);
 
         /**
          * Custom recursive dirEntries (DFS) style function which lets us
@@ -512,13 +516,13 @@ private:
             if (entries.empty)
             {
                 /* Include empty directory */
-                collectPath(PathDefinition(path), root);
+                collectPath(path, root);
                 return;
             }
             else if (specialDirectory)
             {
                 /* Include directory with non standard mode */
-                collectPath(PathDefinition(path), root);
+                collectPath(path, root);
             }
             /* Otherwise, ignore the directory and rely on mkdir recursive */
 
@@ -532,7 +536,7 @@ private:
                 }
                 else
                 {
-                    collectPath(PathDefinition(entry.name), root);
+                    collectPath(entry.name, root);
                 }
                 entry.destroy();
             }
@@ -549,6 +553,7 @@ private:
         import std.algorithm : map, each, joiner;
         import std.array : array;
 
+        trace(__FUNCTION__);
         string[] arches = ["base"];
         arches ~= architectures;
 
@@ -577,10 +582,13 @@ private:
         import std.range : chain;
         import std.array : array;
 
+        trace(format!"%s(%s)"(__FUNCTION__, pkd.name));
         /* Always insert paths as they're encountered */
         pkd = buildContext.spec.expand(pkd);
+
         void insertRule(const(PathDefinition) pd)
         {
+            debug { trace(format!"'- collector.addRule(%s, %s, %s)"(pd, pkd.name, inclusionPriority)); }
             collector.addRule(pd, pkd.name, inclusionPriority);
             ++inclusionPriority;
         }
