@@ -1,0 +1,32 @@
+name        : nano
+version     : 6.4
+release     : 3
+homepage    : https://www.nano-editor.org/dist/v6
+upstreams   :
+    - https://www.nano-editor.org/dist/v6/nano-6.4.tar.xz : 4199ae8ca78a7796de56de1a41b821dc47912c0307e9816b56cc317df34661c0
+summary     : GNU Text Editor
+description : |
+    GNU nano is a small and friendly text editor.
+
+    Besides basic text editing, nano offers features like undo/redo,
+    syntax coloring, interactive search-and-replace, auto-indentation,
+    line numbers, word completion, file locking, backup files,
+    and internationalization support.
+license     :
+    - GPL-3.0-or-later
+builddeps   :
+    - make
+    - file-devel
+    - ncurses-devel
+    - zlib-devel
+setup       : |
+    %configure
+build       : |
+    %make
+install     : |
+    %make_install
+packages    :
+    - "%(name)-sharedoc":
+        paths:
+            - "/usr/share/doc"
+toolchain   : gnu

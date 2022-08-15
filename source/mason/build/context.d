@@ -15,17 +15,18 @@
 
 module mason.build.context;
 
+
+
 import moss.format.source.macros;
-import moss.format.source.spec;
 import moss.format.source.script;
-
-import std.parallelism : totalCPUs;
+import moss.format.source.spec;
 import std.concurrency : initOnce;
-import std.path : buildNormalizedPath;
-import std.string : endsWith;
 import std.experimental.logger;
+import std.format : format;
+import std.parallelism : totalCPUs;
+import std.path : buildNormalizedPath;
 import std.range : empty;
-
+import std.string : endsWith;
 /**
  * Return the current shared Context for all moss operations
  */
@@ -53,7 +54,9 @@ public final class BuildContext
 
         jobs = 0;
 
+        trace(format!"%s.loadMacros()"(__FUNCTION__));
         this.loadMacros();
+        trace(format!"%s.loadMacros() complete"(__FUNCTION__));
     }
 
     /**
@@ -254,7 +257,7 @@ private:
                 {
                     continue;
                 }
-                tracef("Loading architecture: %s", target.name.baseName);
+                trace(format!"%s: Parsing YML macro file: %s"(__FUNCTION__, target.name.baseName));
                 auto f = new MacroFile(File(target.name));
                 f.parse();
                 /* Remove the .yml suffix */
@@ -280,7 +283,9 @@ private:
             }
             auto name = nom.name.baseName[0 .. $ - 4];
             file = new MacroFile(File(nom.name));
+            trace(format!"%s: %s.parse()"(__FUNCTION__, nom.name));
             file.parse();
+            trace(format!"%s: %s.parse() complete"(__FUNCTION__, nom.name));
             actionFiles ~= file;
         }
     }

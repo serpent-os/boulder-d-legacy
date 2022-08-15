@@ -17,13 +17,16 @@ module mason.build.collector;
 
 import std.path;
 import std.file;
+import std.stdio;
 import std.algorithm : startsWith, filter;
 import std.exception : enforce;
-import std.string : format;
+import std.experimental.logger;
+import std.format : format;
 import moss.format.source.package_definition;
+import moss.format.source.path_definition;
 
 /**
- * A CollectionRule simply defines a pattern to match against (glob style)
+ * A CollectionRule simply defines a path pattern to match against (glob style)
  * and a priority with which the pattern will be used.
  *
  * Increased priority numbers lead to the rule running before other rules.
@@ -31,9 +34,10 @@ import moss.format.source.package_definition;
 package struct CollectionRule
 {
     /**
-     * A glob style pattern to match against
+     * A PathDefinition supporting a glob style path pattern and a path type
+     * to match against.
      */
-    string pattern = null;
+    PathDefinition pathDef;
 
     /**
      * A target name to incorporate, such as "name-devel"
@@ -45,10 +49,20 @@ package struct CollectionRule
      */
     int priority = 0;
 
-    pure bool match(const(string) inp) @safe
+    /// FIXME: Update to care about types too
+    bool match(const(string) encounteredFilePath) @safe
     {
-        return (inp == pattern || inp.startsWith(pattern)
-                || globMatch!(CaseSensitive.yes)(inp, pattern));
+        auto result = (pathDef.path == encounteredFilePath ||
+                       encounteredFilePath.startsWith(pathDef.path) ||
+                       globMatch!(CaseSensitive.yes)(encounteredFilePath, pathDef.path));
+        debug
+        {
+            if (result && target != null)
+            {
+                trace(format!"- '%s' matches rule '%s' from packageTarget '%s'"(encounteredFilePath,  pathDef, target));
+            }
+        }
+        return result;
     }
 }
 
@@ -66,32 +80,35 @@ final class BuildCollector
 public:
 
     /**
-     * Add a priority based rule to the system which can of course be overridden.
+     * Add a priority based CollectionRule to the system which can of course be overridden.
      */
-    void addRule(string pattern, string target, uint priority = 0) @safe
+    void addRule(PathDefinition pathDef, string packageTarget, uint priority = 0) @safe
     {
         import std.algorithm : sort;
 
+        debug { trace(format!"# %s(%s, %s, %s)"(__FUNCTION__, pathDef, packageTarget, priority)); }
         /* Sort ahead of time */
-        rules ~= CollectionRule(pattern, target, priority);
+        rules ~= CollectionRule(pathDef, packageTarget, priority);
         rules.sort!((a, b) => a.priority > b.priority);
     }
 
     /**
-     * Return the package target for the given filesystem path by matching
-     * globs.
+     * Return the package target for the given encountered filesystem path by .match-ing
+     * it against the list of CollectionRules w/PathDefinition globs.
+     * TODO: .. and type
      */
-    auto packageTarget(const(string) targetPath)
+    auto packageTarget(const(string) encounteredFilePath)
     {
-        auto matchingSet = rules.filter!((r) => r.match(targetPath));
+        ///FIXME this needs extra filtering functionality for the type
+        auto matchingSet = rules.filter!((r) => r.match(encounteredFilePath));
         enforce(!matchingSet.empty,
-                "packageTarget: No matching rule for path: %s".format(targetPath));
+                "LINT: packageTarget(): No matching rule for path: %s".format(encounteredFilePath));
 
         return matchingSet.front.target;
     }
 
 private:
 
-    /* Map file glob patterns to target packages */
+    /* Map PathDefinition glob patterns + file types to target packages */
     CollectionRule[] rules;
 }

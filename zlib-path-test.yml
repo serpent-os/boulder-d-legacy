@@ -1,0 +1,41 @@
+name        : zlib
+version     : 1.2.12
+release     : 1
+homepage    : https://zlib.net
+upstreams   :
+    - https://zlib.net/zlib-1.2.12.tar.xz : 7db46b8d7726232a621befaab4a1c870f00a90805511c0e0090441dac57def18
+summary     : The zlib compression library
+description : |
+    The zlib compression library provides in-memory compression and decompression functions, including integrity checks of the uncompressed data.
+
+    The formats zlib supports are described in RFC1950 (zlib format), RFC1951 (deflate format) and RFC1952 (gzip format).
+license     :
+    - Zlib
+builddeps   :
+    - make
+    - bison
+    - m4
+    - gzip
+    - texinfo
+    - flex
+#environment : |
+#    # Hack for lack of cc symlink
+#    mkdir -p bin
+#    ln -sf /usr/bin/clang bin/cc
+#    export PATH="${PATH}:%(workdir)/bin"
+setup       : |
+    CC=${CC} ./configure --prefix=/usr \
+        --libdir=/usr/lib \
+        --enable-shared
+build       : |
+    %make
+install     : |
+    %make_install
+packages :
+    - "%(name)-static":
+        summary: Static libraries for zlib
+        description: Not really useful but for testing
+        paths:
+            - "*.a"
+toolchain   : gnu
+

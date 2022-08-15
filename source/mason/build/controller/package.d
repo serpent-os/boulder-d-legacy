@@ -18,15 +18,16 @@ module mason.build.controller;
 import mason.build.builder;
 import mason.build.context;
 
-import std.algorithm : each, filter;
-import std.exception : enforce;
-import std.file : exists, mkdirRecurse;
-import std.path : dirName, absolutePath, baseName;
-import std.string : format, endsWith;
 import moss.format.source.spec;
-import std.parallelism : TaskPool, totalCPUs;
+import std.algorithm : each, filter;
 import std.array : join;
+import std.exception : enforce;
 import std.experimental.logger;
+import std.file : exists, mkdirRecurse;
+import std.format : format;
+import std.parallelism : TaskPool, totalCPUs;
+import std.path : absolutePath, baseName, dirName;
+import std.string : endsWith;
 
 /**
  * The BuildController is responsible for the main execution cycle of Boulder,
@@ -43,11 +44,11 @@ public final class BuildController
         if (architecture == "native")
         {
             import moss.core.platform : platform;
-
+            trace(format!"%s(%s)"(__FUNCTION__, architecture));
             architecture = platform().name;
         }
         this.architecture = architecture;
-        infof("Architecture: %s", architecture);
+        info(format!"Architecture: %s"(architecture));
     }
     /**
      * Request that we begin building the given path
@@ -67,7 +68,9 @@ public final class BuildController
 
         /* Set up the new builder */
         auto s = new Spec(File(path, "r"));
+        trace(format!"%s: Parsing Spec(%s)"(__FUNCTION__, path));
         s.parse();
+        trace(format!"%s: Parsing Spec(%s) complete"(__FUNCTION__, path));
 
         buildContext.spec = s;
         buildContext.specDir = path.dirName.absolutePath;
@@ -113,6 +116,7 @@ public final class BuildController
      */
     bool stageBuild()
     {
+        trace(__FUNCTION__);
         return builder.buildProfiles();
     }
 
@@ -152,7 +156,7 @@ private:
         auto sw = StopWatch(AutoStart.yes);
         scope (exit)
         {
-            infof("[%s] Finished: %s", label, sw.peek);
+            info(format!"[%s] Finished: %s"(label, sw.peek));
         }
         return dg();
     }

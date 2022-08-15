@@ -29,10 +29,10 @@ import std.algorithm : filter;
 import std.exception : enforce;
 import std.experimental.logger;
 import std.file : exists, rmdirRecurse, thisExePath;
+import std.format : format;
 import std.parallelism : totalCPUs;
 import std.path : absolutePath, baseName, buildNormalizedPath, dirName, buildNormalizedPath;
 import std.range : take;
-import std.string : format;
 
 /**
  * This is the main entry point for all build commands which will be dispatched
@@ -65,18 +65,19 @@ public final class Controller : StageContext
         {
             if (!mossBinary.exists)
             {
-                fatalf("Cannot find `moss` at: %s", _mossBinary);
+                fatal(format!"Cannot find `moss` at: %s"(_mossBinary));
             }
             if (!containerBinary.exists)
             {
-                fatalf("Cannot find `moss-container` at: %s", _containerBinary);
+                fatal(format!"Cannot find `moss-container` at: %s"(_containerBinary));
             }
 
-            tracef("moss: %s", _mossBinary);
-            tracef("moss-container: %s", _containerBinary);
+            trace(format!"moss: %s"(_mossBinary));
+            trace(format!"moss-container: %s"(_containerBinary));
         }
         else
         {
+            trace(format!"moss: %s"(_mossBinary));
             warning("RUNNING BOULDER WITHOUT CONFINEMENT");
         }
 
@@ -154,13 +155,26 @@ public final class Controller : StageContext
     void build(in string filename)
     {
         auto fi = File(filename, "r");
+        trace(format!"%s: Parsing recipe file %s"(__FUNCTION__, filename));
         recipe = new Spec(fi);
         recipe.parse();
-
+        trace(format!"%s: Constructing BuildJob from parsed recipe %s"(__FUNCTION__, filename));
         _job = new BuildJob(recipe, filename);
+
         scope (exit)
         {
             fi.close();
+            /* Unmount anything mounted on both error and normal exit */
+            foreach_reverse (ref m; mountPoints)
+            {
+                trace(format!"Unmounting %s"(m));
+                m.unmountFlags = UnmountFlags.Force | UnmountFlags.Detach;
+                auto err = m.unmount();
+                if (!err.isNull())
+                {
+                    error(format!"Unmount failure: %s (%s)"(m.target, err.get.toString));
+                }
+            }
         }
 
         int stageIndex = 0;
@@ -177,7 +191,7 @@ public final class Controller : StageContext
             auto stage = boulderStages[stageIndex];
             enforce(stage.functor !is null);
 
-            tracef("Stage begin: %s", stage.name);
+            trace(format!"Stage begin: %s"(stage.name));
             StageReturn result = StageReturn.Failure;
             try
             {
@@ -185,7 +199,7 @@ public final class Controller : StageContext
             }
             catch (Exception e)
             {
-                errorf("Exception: %s", e.message);
+                error(format!"Exception: %s"(e.message));
                 result = StageReturn.Failure;
             }
 
@@ -198,27 +212,16 @@ public final class Controller : StageContext
             final switch (result)
             {
             case StageReturn.Failure:
-                errorf("Stage failure: %s", stage.name);
+                error(format!"Stage failure: %s"(stage.name));
                 break build_loop;
             case StageReturn.Success:
-                infof("Stage success: %s", stage.name);
+                info(format!"Stage success: %s"(stage.name));
                 ++stageIndex;
                 break;
             case StageReturn.Skipped:
-                tracef("Stage skipped: %s", stage.name);
+                trace(format!"Stage skipped: %s"(stage.name));
                 ++stageIndex;
                 break;
-            }
-        }
-
-        /* Unmount anything mounted */
-        foreach_reverse (ref m; mountPoints)
-        {
-            m.unmountFlags = UnmountFlags.Force | UnmountFlags.Detach;
-            auto err = m.unmount();
-            if (!err.isNull())
-            {
-                errorf("Unmount failure: %s (%s)", m.target, err.get.toString);
             }
         }
     }
@@ -260,7 +263,7 @@ private:
     {
         fetcher.clear();
         failFlag = true;
-        errorf("Download failure: %s (reason: %s)", f.sourceURI, failMsg);
+        error(format!"Download failure: %s (reason: %s)"(f.sourceURI, failMsg));
     }
 
     /**

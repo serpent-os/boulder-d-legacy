@@ -16,20 +16,19 @@
 
 module mason.build.builder;
 
-import moss.format.source.spec;
-import mason.build.context;
+import core.sys.posix.sys.stat;
 import mason.build.collector;
-import mason.build.profile;
+import mason.build.context;
 import mason.build.emitter;
+import mason.build.profile;
 import mason.build.util;
-import moss.deps.analysis;
-import std.algorithm : each, filter, canFind;
 import moss.deps.analysis.elves;
+import moss.deps.analysis;
+import moss.format.source.spec;
+import std.algorithm : each, filter, canFind;
+import std.experimental.logger;
 import std.path : dirName, baseName;
 import std.string : startsWith, endsWith, format;
-import std.experimental.logger;
-
-import core.sys.posix.sys.stat;
 
 /**
  * As far as boulder is concerned, any directory mode 0755 is utterly uninteresting
@@ -71,6 +70,7 @@ public:
      */
     this(string nativeArchitecture)
     {
+        trace(__FUNCTION__);
         if (buildContext.rootDir is null)
         {
             buildContext.rootDir = getBuildRoot();
@@ -236,6 +236,7 @@ private:
      * Setup our boulder chains */
     void setupChains()
     {
+        trace(__FUNCTION__);
         const auto boulderChains = [
             /* Highest policy */
             AnalysisChain("badFiles", [&dropBadPaths], 100),
@@ -396,6 +397,7 @@ private:
         auto debugInfoPath = join([
             instance.profiles[0].installRoot, debugInfoPathRelative
         ], "/");
+        trace("debugInfoPath: ", debugInfoPath);
         auto debugInfoDir = debugInfoPath.dirName;
         debugInfoDir.mkdirRecurse();
 
@@ -465,25 +467,27 @@ private:
 
         if (code == 0)
         {
-            tracef("strip: %s", fileInfo.path);
+            trace(format!"strip: %s"(fileInfo.path));
         }
 
         return AnalysisReturn.NextFunction;
     }
 
     /**
-        * Explicitly requested addition of some path, so add it now.
-        */
+      * Explicitly requested addition of some path, so add it now.
+      */
     void collectPath(in string path, in string root)
     {
         import std.path : relativePath;
         import std.string : format;
 
+        debug { trace(format!"%s: %s"(__FUNCTION__, path)); }
         auto targetPath = path.relativePath(root);
         if (targetPath[0] != '/')
         {
             targetPath = format!"/%s"(targetPath);
         }
+        /// FIXME: care about type information
         auto inf = FileInfo(targetPath, path);
         inf.target = collector.packageTarget(targetPath);
         analyser.addFile(inf);
@@ -496,6 +500,8 @@ private:
     void collectRootfs(const(string) root)
     {
         import std.file : dirEntries, DirEntry, SpanMode;
+
+        trace(__FUNCTION__);
 
         /**
          * Custom recursive dirEntries (DFS) style function which lets us
@@ -547,6 +553,7 @@ private:
         import std.algorithm : map, each, joiner;
         import std.array : array;
 
+        trace(__FUNCTION__);
         string[] arches = ["base"];
         arches ~= architectures;
 
@@ -569,34 +576,36 @@ private:
      * PackageDefinition merged object. This comes from the spec and
      * our base definitions.
      */
-    void addDefinition(PackageDefinition pd)
+    void addDefinition(PackageDefinition pkd)
     {
         import std.algorithm : each, uniq, sort;
         import std.range : chain;
         import std.array : array;
 
+        trace(format!"%s: '%s'"(__FUNCTION__, pkd.name));
         /* Always insert paths as they're encountered */
-        pd = buildContext.spec.expand(pd);
-        void insertRule(const(string) name)
+        pkd = buildContext.spec.expand(pkd);
+
+        void insertRule(const(PathDefinition) pd)
         {
-            collector.addRule(name, pd.name, inclusionPriority);
+            collector.addRule(pd, pkd.name, inclusionPriority);
             ++inclusionPriority;
         }
 
-        pd.paths.each!((p) => insertRule(p));
+        pkd.paths.each!((pd) => insertRule(pd));
 
         /* Insert new package if needed */
-        if (!(pd.name in packages))
+        if (!(pkd.name in packages))
         {
-            packages[pd.name] = pd;
+            packages[pkd.name] = pkd;
             return;
         }
 
         /* Merge rules */
-        auto oldPkg = &packages[pd.name];
-        oldPkg.runtimeDependencies = oldPkg.runtimeDependencies.chain(pd.runtimeDependencies)
+        auto oldPkg = &packages[pkd.name];
+        oldPkg.runtimeDependencies = oldPkg.runtimeDependencies.chain(pkd.runtimeDependencies)
             .uniq.array;
-        oldPkg.paths = oldPkg.paths.chain(pd.paths).uniq.array;
+        oldPkg.paths = oldPkg.paths.chain(pkd.paths).uniq.array;
 
         sort(oldPkg.runtimeDependencies);
         sort(oldPkg.paths);
@@ -604,11 +613,11 @@ private:
         /* Merge details */
         if (oldPkg.summary is null)
         {
-            oldPkg.summary = pd.summary;
+            oldPkg.summary = pkd.summary;
         }
         if (oldPkg.description is null)
         {
-            oldPkg.description = pd.description;
+            oldPkg.description = pkd.description;
         }
     }
 
