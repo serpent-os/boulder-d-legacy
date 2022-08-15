@@ -1,6 +1,6 @@
 [submodule "serpent-style"]
 	path = serpent-style
-	url = https://gitlab.com/serpent-os/core/serpent-style.git
+	url = https://github.com/serpent-os/serpent-style.git
 [submodule "license-list-data"]
 	path = license-list-data
 	url = https://github.com/spdx/license-list-data.git
