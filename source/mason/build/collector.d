@@ -59,7 +59,7 @@ package struct CollectionRule
         {
             if (result && target != null)
             {
-                trace(format!"'-> '%s' matches rule '%s' from packageTarget '%s'"(encounteredFilePath,  pathDef, target));
+                trace(format!"- '%s' matches rule '%s' from packageTarget '%s'"(encounteredFilePath,  pathDef, target));
             }
         }
         return result;
