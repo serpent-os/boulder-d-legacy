@@ -15,15 +15,16 @@
 
 module mason.build.profile;
 
-import moss.format.source.spec;
-import moss.format.source.script;
 import mason.build.collector;
 import mason.build.context;
-import mason.build.stage;
 import mason.build.manifest;
-import std.array : join;
+import mason.build.stage;
 import moss.deps.analysis;
+import moss.format.source.script;
+import moss.format.source.spec;
+import std.array : join;
 import std.experimental.logger;
+import std.format : format;
 
 /**
  * A build profile is generated for each major build profile in the
@@ -42,6 +43,7 @@ public:
      */
     this(const(string) architecture)
     {
+        trace(__FUNCTION__);
         this._architecture = architecture;
         this._buildRoot = join([buildContext.rootDir, "build", architecture], "/");
         this._installRoot = join([buildContext.rootDir, "install"], "/");
@@ -165,6 +167,7 @@ public:
         import moss.core.ioutil;
         import std.sumtype : match;
 
+        trace(format!"%s(%s, %s, <script>)"(__FUNCTION__, stage.name, workDir));
         /* Ensure we get a temporary file */
         auto tmpResult = IOUtil.createTemporary(format!"/tmp/moss-stage-%s-XXXXXX"(stage.name));
         TemporaryFile tmpFile;
@@ -217,6 +220,7 @@ public:
         import std.array : replace;
         import std.file : exists, mkdirRecurse, rmdirRecurse;
 
+        trace(__FUNCTION__);
         bool preparedFS = false;
 
         foreach (ref e; stages)
@@ -276,6 +280,7 @@ public:
     {
         foreach (ref e; stages)
         {
+            trace(__FUNCTION__, "stage: ", e.name);
             ScriptBuilder builder;
             prepareScripts(e, builder, buildRoot);
 
@@ -289,6 +294,7 @@ public:
      */
     void prepareScripts(ExecutionStage* stage, ref ScriptBuilder sbuilder, string workDir)
     {
+        trace(__FUNCTION__);
         sbuilder.addDefinition("installroot", installRoot);
         sbuilder.addDefinition("buildroot", buildRoot);
         sbuilder.addDefinition("workdir", workDir);
@@ -462,6 +468,7 @@ private:
         import std.string : startsWith;
         import std.array : join;
 
+        trace(__FUNCTION__);
         /* TODO: Support workdir variable in spec and verify it exists */
         auto items = dirEntries(buildRoot, SpanMode.shallow, false);
         foreach (item; items)
