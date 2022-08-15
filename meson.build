@@ -12,7 +12,6 @@ pkgconf = import('pkgconfig')
 # Pre-configure moss-vendor
 moss_vendor = subproject('moss-vendor',
     default_options: [
-        'with_difflib=false',
         'with_elf=true',
         'with_rocksdb=false',
         'with_xxhash=true',
