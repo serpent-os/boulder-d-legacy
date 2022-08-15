@@ -481,7 +481,7 @@ private:
         import std.path : relativePath;
         import std.string : format;
 
-        debug { trace(format!"%s(%s, %s)"(__FUNCTION__, path, root)); }
+        debug { trace(format!"%s: %s"(__FUNCTION__, path)); }
         auto targetPath = path.relativePath(root);
         if (targetPath[0] != '/')
         {
@@ -582,13 +582,12 @@ private:
         import std.range : chain;
         import std.array : array;
 
-        trace(format!"%s(%s)"(__FUNCTION__, pkd.name));
+        trace(format!"%s: '%s'"(__FUNCTION__, pkd.name));
         /* Always insert paths as they're encountered */
         pkd = buildContext.spec.expand(pkd);
 
         void insertRule(const(PathDefinition) pd)
         {
-            debug { trace(format!"'- collector.addRule(%s, %s, %s)"(pd, pkd.name, inclusionPriority)); }
             collector.addRule(pd, pkd.name, inclusionPriority);
             ++inclusionPriority;
         }
