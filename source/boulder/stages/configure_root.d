@@ -38,7 +38,7 @@ public static immutable(Stage) stageConfigureRoot = Stage("configure-root", (Sta
     string[string] env;
     env["PATH"] = "/usr/bin";
     auto result = executeCommand(context.mossBinary, [
-        "ar", "-D", context.job.hostPaths.rootfs, "protosnek",
+        "-y", "ar", "-D", context.job.hostPaths.rootfs, "protosnek",
         "https://dev.serpentos.com/protosnek/x86_64/stone.index",
     ], env);
     return result.match!((i) => i == 0 ? StageReturn.Success
