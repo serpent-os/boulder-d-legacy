@@ -236,7 +236,7 @@ public final class Controller : StageContext
 
 private:
 
-    void onFetchComplete(in Fetchable f, long statusCode)
+    void onFetchComplete(Fetchable f, long statusCode) @trusted
     {
         /* Validate the statusCode */
         auto ud = fetchableToUpstream(f);
@@ -259,7 +259,7 @@ private:
     /**
      * Handle failed downloads
      */
-    void onFetchFail(in Fetchable f, in string failMsg)
+    void onFetchFail(Fetchable f, in string failMsg) @trusted
     {
         fetcher.clear();
         failFlag = true;

@@ -97,7 +97,8 @@ static private StageReturn buildPackageConfined(scope StageContext context)
     {
         args ~= archCommand;
     }
-    trace(format!"%s: executeCommand(%s, %s, %s, \"/\")"(__FUNCTION__, context.containerBinary, args, environ));
+    trace(format!"%s: executeCommand(%s, %s, %s, \"/\")"(__FUNCTION__,
+            context.containerBinary, args, environ));
     auto result = executeCommand(context.containerBinary, args, environ, "/");
     auto ret = result.match!((int err) => err != 0 ? StageReturn.Failure
             : StageReturn.Success, (e) => StageReturn.Failure);

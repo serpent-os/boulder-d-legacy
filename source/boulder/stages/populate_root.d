@@ -71,8 +71,8 @@ public static immutable(Stage) stagePopulateRoot = Stage("populate-root", (Stage
     string[string] env;
     env["PATH"] = "/usr/bin";
     auto result = executeCommand(context.mossBinary, [
-            "install", "-D", context.job.hostPaths.rootfs
-        ] ~ requiredInstalled, env);
+        "install", "-D", context.job.hostPaths.rootfs
+    ] ~ requiredInstalled, env);
     return result.match!((i) => i == 0 ? StageReturn.Success
         : StageReturn.Failure, (ExecutionError e) => StageReturn.Failure);
 });

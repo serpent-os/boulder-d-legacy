@@ -248,20 +248,20 @@ private:
             /* Handle ELF files */
             /* FIXME: Parallel debuginfo handling truncates hardlinked files! */
             AnalysisChain("elves", [
-                    &acceptElfFiles, &scanElfFiles, /* &copyElfDebug 
+                &acceptElfFiles, &scanElfFiles, /* &copyElfDebug 
                     &stripElfFiles, */
-                    &includeElfFiles,
-                    ], 90),
+                &includeElfFiles,
+            ], 90),
 
             /* Handle pkgconfig files */
             AnalysisChain("pkgconfig", [
-                    &acceptPkgconfigFiles, &handlePkgconfigFiles, &includeFile
-                    ], 50),
+                &acceptPkgconfigFiles, &handlePkgconfigFiles, &includeFile
+            ], 50),
 
             /* Handle cmake files */
             AnalysisChain("cmake", [
-                    &acceptCmakeFiles, &handleCmakeFiles, &includeFile
-                    ], 50),
+                &acceptCmakeFiles, &handleCmakeFiles, &includeFile
+            ], 50),
 
             /* Default inclusion policy */
             AnalysisChain("default", [&includeFile], 0),
@@ -403,8 +403,8 @@ private:
 
         /* Execute, TODO: Fix environment */
         auto ret = executeCommand(command, [
-                "--only-keep-debug", fileInfo.fullPath, debugInfoPath
-                ], null);
+            "--only-keep-debug", fileInfo.fullPath, debugInfoPath
+        ], null);
         auto code = ret.match!((err) {
             error(format!"debuginfo failure: %s"(err.toString));
             return -1;
@@ -419,8 +419,8 @@ private:
         /* GNU debuglink. */
         auto commandLink = useLLVM ? "/usr/bin/llvm-objcopy" : "/usr/bin/objcopy";
         auto linkRet = executeCommand(commandLink, [
-                "--add-gnu-debuglink", debugInfoPath, fileInfo.fullPath
-                ], null);
+            "--add-gnu-debuglink", debugInfoPath, fileInfo.fullPath
+        ], null);
         code = linkRet.match!((err) {
             error(format!"debuginfo:link failure: %s"(err.toString));
             return -1;
@@ -458,8 +458,8 @@ private:
 
         /* Execute, TODO: Fix environment */
         auto ret = executeCommand(command, [
-                "--strip-unneeded", fileInfo.fullPath
-                ], null);
+            "--strip-unneeded", fileInfo.fullPath
+        ], null);
         auto code = ret.match!((err) {
             error(format!"strip failure: %s"(err.toString));
             return -1;
@@ -481,7 +481,10 @@ private:
         import std.path : relativePath;
         import std.string : format;
 
-        debug { trace(format!"%s: %s"(__FUNCTION__, path)); }
+        debug
+        {
+            trace(format!"%s: %s"(__FUNCTION__, path));
+        }
         auto targetPath = path.relativePath(root);
         if (targetPath[0] != '/')
         {

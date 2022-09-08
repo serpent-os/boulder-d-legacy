@@ -34,22 +34,13 @@ public static immutable(Stage) stageConfigureRoot = Stage("configure-root", (Sta
     {
         return StageReturn.Skipped;
     }
-    auto repoFile = join([
-        context.job.hostPaths.rootfs, "etc/moss/repos.conf.d/99_repo.conf"
-    ], "/");
-    auto repoDir = repoFile.dirName;
-    repoDir.mkdirRecurse();
-    write(repoFile, `
-- protosnek:
-    description: "Automatically configured remote repository"
-    uri: "https://dev.serpentos.com/protosnek/x86_64/stone.index"
-`);
 
     string[string] env;
     env["PATH"] = "/usr/bin";
     auto result = executeCommand(context.mossBinary, [
-            "ur", "-D", context.job.hostPaths.rootfs
-        ], env);
+        "ar", "-D", context.job.hostPaths.rootfs, "protosnek",
+        "https://dev.serpentos.com/protosnek/x86_64/stone.index",
+    ], env);
     return result.match!((i) => i == 0 ? StageReturn.Success
         : StageReturn.Failure, (ExecutionError e) => StageReturn.Failure);
 });

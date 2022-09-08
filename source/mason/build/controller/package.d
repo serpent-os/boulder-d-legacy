@@ -44,6 +44,7 @@ public final class BuildController
         if (architecture == "native")
         {
             import moss.core.platform : platform;
+
             trace(format!"%s(%s)"(__FUNCTION__, architecture));
             architecture = platform().name;
         }

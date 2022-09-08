@@ -52,14 +52,14 @@ package struct CollectionRule
     /// FIXME: Update to care about types too
     bool match(const(string) encounteredFilePath) @safe
     {
-        auto result = (pathDef.path == encounteredFilePath ||
-                       encounteredFilePath.startsWith(pathDef.path) ||
-                       globMatch!(CaseSensitive.yes)(encounteredFilePath, pathDef.path));
+        auto result = (pathDef.path == encounteredFilePath || encounteredFilePath.startsWith(pathDef.path)
+                || globMatch!(CaseSensitive.yes)(encounteredFilePath, pathDef.path));
         debug
         {
             if (result && target != null)
             {
-                trace(format!"- '%s' matches rule '%s' from packageTarget '%s'"(encounteredFilePath,  pathDef, target));
+                trace(format!"- '%s' matches rule '%s' from packageTarget '%s'"(encounteredFilePath,
+                        pathDef, target));
             }
         }
         return result;
@@ -86,7 +86,10 @@ public:
     {
         import std.algorithm : sort;
 
-        debug { trace(format!"# %s(%s, %s, %s)"(__FUNCTION__, pathDef, packageTarget, priority)); }
+        debug
+        {
+            trace(format!"# %s(%s, %s, %s)"(__FUNCTION__, pathDef, packageTarget, priority));
+        }
         /* Sort ahead of time */
         rules ~= CollectionRule(pathDef, packageTarget, priority);
         rules.sort!((a, b) => a.priority > b.priority);

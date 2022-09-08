@@ -22,7 +22,7 @@ import mason.cli : MasonCLI;
 import moss.core.logger;
 import moss.core;
 import std.experimental.logger;
-import std.format: format;
+import std.format : format;
 import std.parallelism : totalCPUs;
 
 /**

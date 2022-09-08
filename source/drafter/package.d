@@ -101,7 +101,7 @@ public final class Drafter
     /**
      * Dull handler for failure
      */
-    void onFail(in Fetchable f, in string msg)
+    void onFail(Fetchable f, string msg) @trusted
     {
         errorf("Failed to download %s: %s", f.sourceURI, msg);
         fetchedDownloads = false;
@@ -110,7 +110,7 @@ public final class Drafter
     /**
      * Handle completion of downloads, validate them
      */
-    void onComplete(in Fetchable f, long code)
+    void onComplete(Fetchable f, long code) @trusted
     {
         tracef("Download of %s finished [code: %s]", f.sourceURI.baseName, code);
 

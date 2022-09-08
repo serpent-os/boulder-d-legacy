@@ -98,8 +98,8 @@ static private AnalysisReturn scanMeson(scope Analyser an, ref FileInfo inpath)
  * Handler for meson files
  */
 public static AnalysisChain mesonChain = AnalysisChain("meson", [
-        &acceptMeson, &scanMeson
-        ], 20);
+    &acceptMeson, &scanMeson
+], 20);
 
 /**
  * Build instructions

@@ -15,8 +15,6 @@
 
 module mason.build.context;
 
-
-
 import moss.format.source.macros;
 import moss.format.source.script;
 import moss.format.source.spec;
@@ -27,6 +25,7 @@ import std.parallelism : totalCPUs;
 import std.path : buildNormalizedPath;
 import std.range : empty;
 import std.string : endsWith;
+
 /**
  * Return the current shared Context for all moss operations
  */
