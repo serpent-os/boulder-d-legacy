@@ -13,7 +13,7 @@ pkgconf = import('pkgconfig')
 moss_vendor = subproject('moss-vendor',
     default_options: [
         'with_elf=true',
-        'with_rocksdb=false',
+        'with_lmdb=false',
         'with_xxhash=true',
         'with_yaml=true',
         'with_zstd=true',
