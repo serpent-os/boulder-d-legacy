@@ -25,8 +25,6 @@ import std.sumtype : match;
 
 public import boulder.stages : Stage, StageReturn, StageContext;
 
-import boulder.stages : nobodyUser;
-
 /**
  * Encapsulate build stage
  */
@@ -49,6 +47,11 @@ static private StageReturn buildPackage(scope StageContext context)
  */
 static private StageReturn buildPackageConfined(scope StageContext context)
 {
+    import core.sys.posix.pwd : getpwnam, passwd;
+
+    passwd* p = getpwnam("nobody");
+    immutable nobodyUser = p is null ? 65_534 : p.pw_uid;
+
     string[string] environ;
     environ["PATH"] = "/usr/bin:/usr/sbin";
     string[] archCommand = null;

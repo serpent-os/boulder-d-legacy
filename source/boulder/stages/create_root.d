@@ -24,8 +24,6 @@ import moss.core.mounts;
 import std.string : toStringz;
 import std.experimental.logger;
 
-import boulder.stages : nobodyUser;
-
 /**
  * Handle creation of root tree
  */
@@ -35,6 +33,11 @@ public static immutable(Stage) stageCreateRoot = Stage("create-root", (StageCont
         context.job.hostPaths.artefacts, context.job.hostPaths.buildRoot,
         context.job.hostPaths.compilerCache, context.job.hostPaths.pkgCache,
     ];
+
+    import core.sys.posix.pwd : getpwnam, passwd;
+
+    passwd* p = getpwnam("nobody");
+    immutable nobodyUser = p is null ? 65_534 : p.pw_uid;
 
     /* Not sharing a cache */
     if (context.confinement)

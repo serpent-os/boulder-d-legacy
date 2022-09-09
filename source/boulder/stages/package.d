@@ -33,11 +33,6 @@ public import moss.core.fetchcontext;
 import core.sys.posix.stdlib : uid_t;
 
 /**
- * By default boulder uses moss-container as the nobody user
- */
-public static uid_t nobodyUser = 65_534;
-
-/**
  * Default boulder stages
  */
 static auto boulderStages = [
