@@ -24,6 +24,8 @@ actions:
     - patch:
         command: |
             patch -f -p1 -i
+        dependencies:
+            - patch
 
     # Create a tmpfiles.d file for the package with given content
     - tmpfiles:
