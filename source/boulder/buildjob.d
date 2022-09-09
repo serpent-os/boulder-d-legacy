@@ -150,10 +150,27 @@ public final class BuildJob
         ], "/");
     }
 
+    /** 
+     * Extra deps
+     */
+    @property void extraDeps(string[] deps) @safe
+    {
+        _extraDeps = deps;
+    }
+
+    /**
+     * Automatic extra deps
+     */
+    @property auto extraDeps() @safe const
+    {
+        return _extraDeps;
+    }
+
 private:
 
     Spec* _recipe;
     BuildPaths _hostPaths;
     string _name = null;
     string _unconfinedRecipe;
+    string[] _extraDeps;
 }

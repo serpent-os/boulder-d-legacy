@@ -161,6 +161,37 @@ public final class Controller : StageContext
         trace(format!"%s: Constructing BuildJob from parsed recipe %s"(__FUNCTION__, filename));
         _job = new BuildJob(recipe, filename);
 
+        /* For now only extrapolate from rootBuild. */
+        import mason.build.context : buildContext;
+        import moss.core.platform : platform;
+        import moss.format.source.script : ScriptBuilder;
+
+        auto bc = buildContext();
+        foreach (scr; [
+            recipe.rootBuild.stepSetup, recipe.rootBuild.stepBuild,
+            recipe.rootBuild.stepCheck, recipe.rootBuild.stepInstall,
+            recipe.rootBuild.stepWorkload
+        ])
+        {
+            ScriptBuilder script;
+            bc.spec = recipe;
+            bc.prepareScripts(script, platform().name);
+            /* feed bullshit */
+            static immutable keyset = [
+                "installroot", "workdir", "cc", "pgo_dir", "compiler_ar",
+                "compiler_ranlib", "compiler_c", "compiler_cxx", "compiler_cpp",
+                "compiler_ld", "compiler_objcopy", "compiler_nm",
+                "compiler_strip", "path", "cflags", "cxxflags", "ldflags",
+            ];
+            foreach (bs; keyset)
+            {
+                script.addDefinition(bs, "unused");
+            }
+            script.bake();
+            script.process(scr);
+            _job.extraDeps = _job.extraDeps ~ script.extraDependencies;
+        }
+
         scope (exit)
         {
             fi.close();

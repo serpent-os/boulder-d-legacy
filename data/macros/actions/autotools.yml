@@ -5,11 +5,16 @@ actions:
         command: |
             test -x ./configure || ( echo "%%configure: The ./configure script could not be found" ; exit 1 )
             ./configure %(options_configure)
+        dependencies:
+            - autoconf
+            - automake
 
     # Perform a make
     - make:
         command: |
             make V=1 VERBOSE=1 -j "%(jobs)"
+        dependencies:
+            - make
 
     # Install results of build to the destination directory
     - make_install:
@@ -21,6 +26,9 @@ actions:
         command: |
             autoreconf -vfi || ( echo "%%reconfigure: Failed to run autoreconf"; exit 1 )
             %configure
+        dependencies:
+            - autoconf
+            - automake
 
     # Run autogen.sh script, attempting to only configure once
     - autogen:
@@ -28,6 +36,9 @@ actions:
             NOCONFIGURE="noconfigure"; export NOCONFIGURE
             sh ./autogen.sh %(options_configure)
             ./configure %(options_configure)
+        dependencies:
+            - autoconf
+            - automake
 
 definitions:
 

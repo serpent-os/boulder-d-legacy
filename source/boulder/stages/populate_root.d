@@ -68,6 +68,8 @@ public static immutable(Stage) stagePopulateRoot = Stage("populate-root", (Stage
     requiredInstalled ~= context.job.recipe.rootBuild.buildDependencies;
     requiredInstalled ~= context.job.recipe.rootBuild.checkDependencies;
 
+    requiredInstalled ~= context.job.extraDeps;
+
     string[string] env;
     env["PATH"] = "/usr/bin";
     auto result = executeCommand(context.mossBinary, [
