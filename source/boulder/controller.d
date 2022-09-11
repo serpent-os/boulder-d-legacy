@@ -176,19 +176,8 @@ public final class Controller : StageContext
             ScriptBuilder script;
             bc.spec = recipe;
             bc.prepareScripts(script, platform().name);
-            /* feed bullshit */
-            static immutable keyset = [
-                "installroot", "workdir", "cc", "pgo_dir", "compiler_ar",
-                "compiler_ranlib", "compiler_c", "compiler_cxx", "compiler_cpp",
-                "compiler_ld", "compiler_objcopy", "compiler_nm",
-                "compiler_strip", "path", "cflags", "cxxflags", "ldflags",
-            ];
-            foreach (bs; keyset)
-            {
-                script.addDefinition(bs, "unused");
-            }
-            script.bake();
-            script.process(scr);
+            script.bake(true);
+            script.process(scr, true);
             _job.extraDeps = _job.extraDeps ~ script.extraDependencies;
         }
 
