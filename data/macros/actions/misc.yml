@@ -20,7 +20,10 @@ actions:
         command: |
             install -Dm00644
 
-    # Patch sources from file (use: '%patch ${file}'; Add -p# at end after filename if needed)
+    # Patch sources from file
+    # Usage: %patch %(pkgdir)/${file}
+    # If you need to override -p#, add it after ${file}
+    # Example: %patch %(pkgdir)/some.patch -p3
     - patch:
         command: |
             patch -f -p1 -i
