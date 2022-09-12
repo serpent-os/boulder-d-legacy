@@ -20,7 +20,7 @@ actions:
         command: |
             install -Dm00644
 
-    # Patch sources from file (use: '%patch ${file}'; Add -p# at end if needed
+    # Patch sources from file (use: '%patch ${file}'; Add -p# at end after filename if needed)
     - patch:
         command: |
             patch -f -p1 -i
