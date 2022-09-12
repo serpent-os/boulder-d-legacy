@@ -68,6 +68,20 @@ public struct BuildControlCommand
         }
 
         auto controller = new Controller(outputDirectory, architecture, !unconfined);
+
+        /* When no recipes are specified, build stone.yml recipe in current directory if it exists */
+        if (argv == null && "stone.yml".exists)
+        {
+            trace("No recipe specified, building stone.yml recipe found in current directory");
+            controller.build("stone.yml");
+        }
+
+        /* Require a recipe to continue */
+        if (argv == null && !"stone.yml".exists)
+        {
+            error("No recipe specified and no stone.yml file found in current directory");
+        }
+
         foreach (recipe; argv)
         {
             controller.build(recipe);
