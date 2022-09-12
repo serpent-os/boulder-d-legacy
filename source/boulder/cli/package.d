@@ -34,4 +34,7 @@ public struct BoulderCLI
 
     /** When set to true, we enable debug output */
     @Option("d", "debug", "Enable debugging output") bool debugMode = false;
+
+    /** Specific build configuration profile to use */
+    @Option("p", "profile", "Override default build profile") string profile = "default-x86_64";
 }

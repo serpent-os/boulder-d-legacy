@@ -25,14 +25,15 @@ import moss.core.mounts;
 import moss.core.util : computeSHA256;
 import moss.fetcher;
 import moss.format.source;
-import std.algorithm : filter;
+import std.algorithm : filter, find;
 import std.exception : enforce;
 import std.experimental.logger;
 import std.file : exists, rmdirRecurse, thisExePath;
 import std.format : format;
 import std.parallelism : totalCPUs;
-import std.path : absolutePath, baseName, buildNormalizedPath, dirName, buildNormalizedPath;
-import std.range : take;
+import std.path : absolutePath, baseName, buildNormalizedPath, buildNormalizedPath, dirName;
+import std.range : empty, take;
+import std.string : startsWith;
 
 /**
  * This is the main entry point for all build commands which will be dispatched
@@ -48,10 +49,11 @@ public final class Controller : StageContext
      * Params:
      *      confinement = Enable confined builds
      */
-    this(string outputDir, string architecture, bool confinement)
+    this(string outputDir, string architecture, bool confinement, string profile)
     {
         this._architecture = architecture;
         this._confinement = confinement;
+        this._profile = profile;
 
         /* Relative locations for moss/moss-container */
         auto binDir = thisExePath.dirName;
@@ -59,6 +61,28 @@ public final class Controller : StageContext
         _containerBinary = binDir.buildNormalizedPath("moss-container").absolutePath;
 
         _outputDirectory = outputDir.absolutePath;
+
+        /* Init config */
+        auto config = new ProfileConfiguration();
+        config.load("/");
+
+        auto p = config.sections.find!((c) => c.id == _profile);
+        enforce(!p.empty, "No build profiles available");
+        profileObj = p[0];
+        trace(format!"Selected profile: %s"(_profile));
+
+        foreach (collection; this.profile.collections)
+        {
+            if (!collection.uri.startsWith("file://"))
+            {
+                continue;
+            }
+            immutable realp = collection.uri["file://".length .. $];
+            if (!realp.exists)
+            {
+                fatal(format!"Cannot find collection `%s` at %s"(collection.id, realp));
+            }
+        }
 
         /* Only need moss/moss-container for confined builds */
         if (confinement)
@@ -254,6 +278,14 @@ public final class Controller : StageContext
         mountPoints ~= mount;
     }
 
+    /**
+     * Returns: Active profile
+     */
+    pure @property Profile profile() @safe @nogc nothrow
+    {
+        return profileObj;
+    }
+
 private:
 
     void onFetchComplete(Fetchable f, long statusCode) @trusted
@@ -299,6 +331,7 @@ private:
     string _containerBinary;
     string _architecture;
     string _outputDirectory;
+    string _profile;
 
     Spec* recipe = null;
     BuildJob _job;
@@ -308,4 +341,5 @@ private:
     bool _confinement;
 
     Mount[] mountPoints;
+    Profile profileObj;
 }

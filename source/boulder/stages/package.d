@@ -27,6 +27,8 @@ public import boulder.stages.fetch_upstreams;
 public import boulder.stages.populate_root;
 public import boulder.stages.share_upstreams;
 public import boulder.stages.sync_artefacts;
+public import moss.config.profile;
+public import moss.config.repo;
 
 public import moss.core.fetchcontext;
 
@@ -93,6 +95,11 @@ public interface StageContext
      * Returns: The underlying fetch implementation
      */
     pure @property FetchContext fetcher() @safe @nogc nothrow;
+
+    /**
+     * Returns: The current configuration
+     */
+    pure @property Profile profile() @safe @nogc nothrow;
 
     /**
      * Add a mounted mointpoint in order to manually unmount later

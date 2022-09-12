@@ -22,6 +22,7 @@ import std.file : mkdirRecurse, write;
 import mason.build.util : executeCommand, ExecutionError;
 import std.sumtype : match;
 import std.array : join;
+import std.conv : to;
 
 /**
  * Go ahead and configure the tree
@@ -37,10 +38,23 @@ public static immutable(Stage) stageConfigureRoot = Stage("configure-root", (Sta
 
     string[string] env;
     env["PATH"] = "/usr/bin";
-    auto result = executeCommand(context.mossBinary, [
-        "-y", "ar", "-D", context.job.hostPaths.rootfs, "protosnek",
-        "https://dev.serpentos.com/protosnek/x86_64/stone.index",
-    ], env);
-    return result.match!((i) => i == 0 ? StageReturn.Success
-        : StageReturn.Failure, (ExecutionError e) => StageReturn.Failure);
+
+    foreach (collection; context.profile.collections)
+    {
+
+        auto result = executeCommand(context.mossBinary, [
+            "-y", "ar", "-D", context.job.hostPaths.rootfs, collection.id,
+            collection.uri, "-p", to!string(collection.priority)
+        ], env);
+        bool failed;
+        result.match!((i) { failed = i != 0; }, (ExecutionError e) {
+            failed = true;
+        });
+        if (failed)
+        {
+            return StageReturn.Failure;
+        }
+    }
+
+    return StageReturn.Success;
 });
