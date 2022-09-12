@@ -15,11 +15,16 @@ and development headers, including (in fedora package names format):
 - `moss` (build prior to building `boulder`)
 - `moss-container` (build after `moss` and prior to boulding `boulder`)
 
+### Cloning
+
+Remember to add the `--recurse-submodule` argument (for serpent-style commit hook, `update-format.sh` and editorconfig settings).
+
 ### Building
 
-    meson build/
+    meson --prefix=/usr build/
     meson compile -C build/
+    sudo ninja install -C build/
 
 ### Running
 
-    sudo build/boulder build stone.yml
+    sudo boulder build stone.yml
