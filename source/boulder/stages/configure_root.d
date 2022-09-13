@@ -23,6 +23,8 @@ import mason.build.util : executeCommand, ExecutionError;
 import std.sumtype : match;
 import std.array : join;
 import std.conv : to;
+import std.experimental.logger;
+import std.string : format;
 
 /**
  * Go ahead and configure the tree
@@ -48,6 +50,7 @@ public static immutable(Stage) stageConfigureRoot = Stage("configure-root", (Sta
         ], env);
         bool failed;
         result.match!((i) { failed = i != 0; }, (ExecutionError e) {
+            error(format!"Execution error: %s"(e.toString));
             failed = true;
         });
         if (failed)
