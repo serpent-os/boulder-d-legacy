@@ -73,6 +73,7 @@ public final class Controller : StageContext
 
         foreach (collection; this.profile.collections)
         {
+            trace(format!"Collection: %s"(collection));
             if (!collection.uri.startsWith("file://"))
             {
                 continue;
