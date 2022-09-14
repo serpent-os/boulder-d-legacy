@@ -17,6 +17,7 @@ module boulder.cli.version_command;
 
 public import moss.core.cli;
 import moss.core;
+import std.format : format;
 
 /**
  * The VersionCommand is just a simplistic printer for the version
@@ -37,7 +38,7 @@ public struct VersionCommand
     {
         import std.stdio : writefln, writeln;
 
-        writefln!"boulder, version %s"(moss.core.Version);
+        writeln(format!"boulder, version %s"(moss.core.Version));
         writeln("\nCopyright © 2020-2022 Serpent OS Developers");
         writeln("Available under the terms of the Zlib license");
         return ExitStatus.Success;

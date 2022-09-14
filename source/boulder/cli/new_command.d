@@ -17,10 +17,12 @@ module boulder.cli.new_command;
 
 public import moss.core.cli;
 import boulder.cli : BoulderCLI;
+import core.sys.posix.unistd : geteuid;
 import drafter;
 import moss.core;
 import std.algorithm : each;
 import std.file : exists;
+import std.format : format;
 import std.experimental.logger;
 
 /**
@@ -28,8 +30,8 @@ import std.experimental.logger;
  * formatted files into useful binary packages.
  */
 @CommandName("new")
-@CommandHelp("Create skeletal recipe")
-@CommandUsage("[-a $URL] [-g $GITURL]")
+@CommandHelp("Create skeletal stone.yml recipe from source archive URI")
+@CommandUsage("[$URI]")
 public struct NewCommand
 {
     /** Extend BaseCommand with NewCommand specific functionality */
@@ -44,9 +46,21 @@ public struct NewCommand
         immutable useDebug = this.findAncestor!BoulderCLI.debugMode;
         globalLogLevel = useDebug ? LogLevel.trace : LogLevel.info;
 
+        if (geteuid() != 0)
+        {
+            error("boulder must be run with root privileges.");
+            return ExitStatus.Failure;
+        }
+
+        if (argv == null)
+        {
+            warning("No arguments specified. For help, run boulder new -h");
+            return ExitStatus.Failure;
+        }
+
         if (outputPath.exists)
         {
-            errorf("Refusing to overwrite recipe: %s", outputPath);
+            error(format!"Refusing to overwrite existing recipe: %s"(outputPath));
             return ExitStatus.Failure;
         }
 
@@ -54,7 +68,12 @@ public struct NewCommand
         argv.each!((a) => drafter.addSource(a, UpstreamType.Plain));
         drafter.run();
         drafter.destroy(); /* Ensure we flush & close */
-        return ExitStatus.Failure;
+        info(format!"Successfully wrote skeletal recipe %s\n"(outputPath));
+        info("The next step is to edit and flesh out the freshly created");
+        info(format!"skeletal recipe %s\n"(outputPath));
+        info("Once that has been done, an attempt to build it should be");
+        info(format!"made with the command: sudo boulder build %s\n"(outputPath));
+        return ExitStatus.Success;
     }
 
     /** Where to output the YML file */

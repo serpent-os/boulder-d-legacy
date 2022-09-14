@@ -66,7 +66,7 @@ public struct BuildControlCommand
         /* Ensure root permissions */
         if (geteuid() != 0)
         {
-            error("boulder must be run with root permissions");
+            error("boulder must be run with root privileges.");
             return ExitStatus.Failure;
         }
 
