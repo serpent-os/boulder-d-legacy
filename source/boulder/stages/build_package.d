@@ -91,6 +91,10 @@ static private StageReturn buildPackageConfined(scope StageContext context)
         "-b", context.job.guestPaths.buildRoot,
         join([context.job.guestPaths.recipe, context.job.name], "/")
     ];
+    if (context.job.recipe.options.networking)
+    {
+        args = ["-n"] ~ args;
+    }
     /* '-d' was supplied to the boulder invocation, carry it on to mason */
     if (globalLogLevel == LogLevel.trace)
     {
