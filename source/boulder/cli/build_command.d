@@ -15,26 +15,27 @@
 
 module boulder.cli.build_command;
 
-public import moss.core.cli;
-import moss.core;
-import std.file : exists;
-import std.stdio;
 import boulder.cli : BoulderCLI;
 import boulder.controller;
 import core.sys.posix.unistd : geteuid;
+import moss.core;
 import std.experimental.logger;
+import std.file : exists;
+import std.format : format;
+import std.stdio;
+public import moss.core.cli;
 
 /**
  * The BuildCommand is responsible for handling requests to build stone.yml
  * formatted files into useful binary packages.
  */
 @CommandName("build") @CommandAlias("bi")
-@CommandHelp("Build a package",
-        "Build a binary package from the given package specification file. It will
-be built using the locally available build dependencies and the resulting
-binary packages (.stone) will be emitted to the output directory, which
+@CommandHelp("Build a binary .stone package",
+        "Using the given package recipe file (defaults to stone.yml), a binary
+.stone package will be built using the locally available build dependencies and
+the resulting binary artefact will be emitted to the output directory, which
 defaults to the current working directory.")
-@CommandUsage("[spec]")
+@CommandUsage("[recipe]")
 public struct BuildControlCommand
 {
     /** Extend BaseCommand with BuildControlCommand specific functionality */
@@ -58,14 +59,14 @@ public struct BuildControlCommand
 
         if (!outputDirectory.exists)
         {
-            errorf("Output directory does not exist: %s", outputDirectory);
+            error(format!"Output directory does not exist: %s"(outputDirectory));
             return ExitStatus.Failure;
         }
 
         /* Ensure root permissions */
         if (geteuid() != 0)
         {
-            error("This program must be run with root permissions");
+            error("boulder must be run with root permissions");
             return ExitStatus.Failure;
         }
 
@@ -82,6 +83,7 @@ public struct BuildControlCommand
         if (argv == null && !"stone.yml".exists)
         {
             error("No recipe specified and no stone.yml file found in current directory");
+            return ExitStatus.Failure;
         }
 
         foreach (recipe; argv)
