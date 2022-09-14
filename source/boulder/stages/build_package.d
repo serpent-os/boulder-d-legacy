@@ -81,6 +81,8 @@ static private StageReturn buildPackageConfined(scope StageContext context)
         format!"--uid=%s"(nobodyUser),
         /* Enable colours */
         "-s", "TERM=xterm-256color",
+        /* Set HOME for the packages that need it */
+        "-s", format!"HOME=\"%s\""(context.job.guestPaths.buildRoot),
         /* Fakeroot, end of options */
         "--fakeroot", "--",
         /* Real command to run */
