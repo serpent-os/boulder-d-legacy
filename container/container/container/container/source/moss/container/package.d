@@ -21,8 +21,9 @@ public import moss.container.process;
 import moss.container.context;
 import std.exception : enforce;
 import std.experimental.logger;
-import std.file : exists, remove, symlink, mkdirRecurse;
+import std.file : exists, remove, symlink, mkdirRecurse, copy;
 import std.process;
+import std.path : dirName;
 import std.stdio : stderr, stdin, stdout;
 import std.string : empty, format, toStringz;
 
@@ -105,6 +106,18 @@ public final class Container
         if (!context.inspectRoot())
         {
             return 1;
+        }
+
+        immutable targetResolve = context.joinPath("etc/resolv.conf");
+        if (context.networking && "/etc/resolv.conf".exists && !(targetResolve.exists))
+        {
+            immutable targetDir = targetResolve.dirName;
+            if (!targetDir.exists)
+            {
+                targetDir.mkdirRecurse();
+            }
+            info("Installing /etc/resolv.conf for networking");
+            "/etc/resolv.conf".copy(targetResolve);
         }
 
         auto ret = 0;

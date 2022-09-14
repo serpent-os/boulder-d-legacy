@@ -130,6 +130,7 @@ public struct ContainerCLI
         context.workDir = "/";
         context.environment = environment;
         context.effectiveUID = uid;
+        context.networking = networking;
         if (!("PATH" in context.environment))
         {
             context.environment["PATH"] = "/usr/bin:/bin";

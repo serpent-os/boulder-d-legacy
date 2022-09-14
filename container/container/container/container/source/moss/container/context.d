@@ -143,6 +143,16 @@ public final class Context
         return _effectiveUID;
     }
 
+    pure @property void networking(bool b) @safe @nogc nothrow
+    {
+        _networking = b;
+    }
+
+    pure @property bool networking() @safe @nogc nothrow const
+    {
+        return _networking;
+    }
+
     /**
      * Provide environment access
      */
@@ -181,4 +191,5 @@ private:
     bool _fakeroot = false;
     string _workDir = ".";
     uid_t _effectiveUID;
+    bool _networking;
 }
