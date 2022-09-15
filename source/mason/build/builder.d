@@ -245,10 +245,13 @@ private:
             AnalysisChain("binary", [&acceptBinaryFiles, &handleBinaryFiles],
                     100),
 
+            /* Reject libtool (.la) files */
+            AnalysisChain("libtoolFiles", [&rejectLibToolFiles], 90),
+
             /* Handle ELF files */
             /* FIXME: Parallel debuginfo handling truncates hardlinked files! */
             AnalysisChain("elves", [
-                &acceptElfFiles, &scanElfFiles, /* &copyElfDebug 
+                &acceptElfFiles, &scanElfFiles, /* &copyElfDebug
                     &stripElfFiles, */
                 &includeElfFiles,
             ], 90),
@@ -271,6 +274,28 @@ private:
             auto chain = cast(AnalysisChain) c;
             analyser.addChain(chain);
         }());
+    }
+
+    /**
+     * libtool archive files (.la) were used to supply information to older linkers,
+     * but aren't needed today (and are actively avoided) because the ELF object
+     * format already supplies the necessary information to the linker. Actively keeping
+     * them can also break builds for other packages.
+     */
+    static AnalysisReturn rejectLibToolFiles(scope Analyser analyser, ref FileInfo fileInfo)
+    {
+        import std.string : format;
+
+        auto filename = fileInfo.path;
+        auto directory = filename.dirName;
+
+        /* We have a libtool file, drop it */
+        if (filename.endsWith(".la") && directory.canFind("/usr/lib"))
+        {
+            trace(format!"[Analyse] Rejecting libtool file: %s"(filename));
+            return AnalysisReturn.IgnoreFile;
+        }
+        return AnalysisReturn.NextHandler;
     }
 
     /**
