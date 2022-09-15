@@ -46,12 +46,6 @@ public struct NewCommand
         immutable useDebug = this.findAncestor!BoulderCLI.debugMode;
         globalLogLevel = useDebug ? LogLevel.trace : LogLevel.info;
 
-        if (geteuid() != 0)
-        {
-            error("boulder must be run with root privileges.");
-            return ExitStatus.Failure;
-        }
-
         if (argv == null)
         {
             warning("No arguments specified. For help, run boulder new -h");
