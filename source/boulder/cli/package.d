@@ -37,4 +37,10 @@ public struct BoulderCLI
 
     /** Specific build configuration profile to use */
     @Option("p", "profile", "Override default build profile") string profile = "default-x86_64";
+
+    /**
+     * Where to find the root of configurations (/etc + /usr)
+     */
+    @Option("C", "config-directory", "Root directory for configurations")
+    string configDir;
 }

@@ -56,6 +56,7 @@ public struct BuildControlCommand
         globalLogLevel = useDebug ? LogLevel.trace : LogLevel.info;
 
         immutable profile = this.findAncestor!BoulderCLI.profile;
+        immutable configDir = this.findAncestor!BoulderCLI.configDir;
 
         if (!outputDirectory.exists)
         {
@@ -70,7 +71,8 @@ public struct BuildControlCommand
             return ExitStatus.Failure;
         }
 
-        auto controller = new Controller(outputDirectory, architecture, !unconfined, profile);
+        auto controller = new Controller(outputDirectory, architecture,
+                !unconfined, profile, configDir);
 
         /* When no recipes are specified, build stone.yml recipe in current directory if it exists */
         if (argv == null && "stone.yml".exists)
