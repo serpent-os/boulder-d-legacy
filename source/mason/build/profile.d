@@ -474,7 +474,7 @@ private:
         foreach (item; items)
         {
             auto name = item.name.baseName;
-            if (!item.name.startsWith("."))
+            if (!item.name.startsWith(".") && item.isDir)
             {
                 return join([buildRoot, name], "/");
             }
