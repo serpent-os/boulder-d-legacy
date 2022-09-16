@@ -238,6 +238,9 @@ public final class Controller : StageContext
             case "xz":
                 upstreamDeps ~= ["binary(tar)", "binary(xz)",];
                 break;
+            case "zst":
+                upstreamDeps ~= ["binary(tar)", "binary(zstd)"];
+                break;
             case "bz2":
                 upstreamDeps ~= ["binary(tar)", "binary(bzip2)",];
                 break;
@@ -254,6 +257,7 @@ public final class Controller : StageContext
                 upstreamDeps ~= "binary(ar)";
                 break;
             default:
+                trace(format!"Extension '.%s' not matched, no dependencies added."(extension));
                 break;
             }
         }
