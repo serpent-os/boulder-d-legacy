@@ -233,7 +233,6 @@ public final class Controller : StageContext
                 continue;
             }
             immutable extension = splits[$ - 1];
-            info(extension);
             switch (extension)
             {
             case "xz":
