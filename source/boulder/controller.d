@@ -25,7 +25,8 @@ import moss.core.mounts;
 import moss.core.util : computeSHA256;
 import moss.fetcher;
 import moss.format.source;
-import std.algorithm : filter, find;
+import std.array : array;
+import std.algorithm : filter, find, sort, uniq;
 import std.exception : enforce;
 import std.experimental.logger;
 import std.file : exists, rmdirRecurse, thisExePath;
@@ -33,7 +34,7 @@ import std.format : format;
 import std.parallelism : totalCPUs;
 import std.path : absolutePath, baseName, buildNormalizedPath, buildNormalizedPath, dirName;
 import std.range : empty, take;
-import std.string : startsWith;
+import std.string : startsWith, split;
 
 /**
  * This is the main entry point for all build commands which will be dispatched
@@ -200,6 +201,9 @@ public final class Controller : StageContext
         import moss.core.platform : platform;
         import moss.format.source.script : ScriptBuilder;
 
+        /**
+         * Accumulate automatic dependencies from *macros
+         */
         auto bc = buildContext();
         foreach (scr; [
             recipe.rootBuild.stepSetup, recipe.rootBuild.stepBuild,
@@ -214,6 +218,51 @@ public final class Controller : StageContext
             script.process(scr, true);
             _job.extraDeps = _job.extraDeps ~ script.extraDependencies;
         }
+
+        /**
+         * Examine sources for more autodeps..
+         */
+        auto plainUpstreams = recipe.upstreams.values.filter!((u) => u.type == UpstreamType.Plain);
+        string[] upstreamDeps;
+        foreach (u; plainUpstreams)
+        {
+            auto name = u.uri.baseName;
+            auto splits = name.split(".");
+            if (splits.length < 2)
+            {
+                continue;
+            }
+            immutable extension = splits[$ - 1];
+            info(extension);
+            switch (extension)
+            {
+            case "xz":
+                upstreamDeps ~= ["binary(tar)", "binary(xz)",];
+                break;
+            case "bz2":
+                upstreamDeps ~= ["binary(tar)", "binary(bzip2)",];
+                break;
+            case "gz":
+                upstreamDeps ~= ["binary(tar)", "binary(gzip)",];
+                break;
+            case "zip":
+                upstreamDeps ~= "binary(unzip)";
+                break;
+            case "rpm":
+                upstreamDeps ~= ["binary(rpm2cpio)", "cpio",];
+                break;
+            case "deb":
+                upstreamDeps ~= "binary(ar)";
+                break;
+            default:
+                break;
+            }
+        }
+
+        /* Merge, sort, uniq */
+        upstreamDeps ~= _job.extraDeps;
+        upstreamDeps.sort();
+        _job.extraDeps = () @trusted { return upstreamDeps.uniq.array(); }();
 
         scope (exit)
         {
