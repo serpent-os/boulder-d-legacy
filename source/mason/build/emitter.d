@@ -144,13 +144,14 @@ private:
         met.addRecord(RecordType.String, RecordTag.Summary, pkg.pd.summary);
         met.addRecord(RecordType.String, RecordTag.Description, pkg.pd.description);
         met.addRecord(RecordType.String, RecordTag.Homepage, pkg.source.homepage);
+        met.addRecord(RecordType.String, RecordTag.SourceID, pkg.source.name);
 
         /* TODO: Be more flexible encoding architecture. */
         import moss.core.platform : platform;
-
         auto plat = platform();
         met.addRecord(RecordType.String, RecordTag.Architecture, plat.name);
 
+        pkg.source.license.sort();
         pkg.source.license.uniq.each!((l) => met.addRecord(RecordType.String,
                 RecordTag.License, l));
 
