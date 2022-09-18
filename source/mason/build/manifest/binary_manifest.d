@@ -16,12 +16,14 @@
 module mason.build.manifest.binary_manifest;
 
 public import mason.build.manifest;
-import mason.build.context;
-import std.array : join;
 
 import moss.format.binary.archive_header;
 import moss.format.binary.payload;
 import moss.format.binary.writer;
+import std.string : format;
+import std.algorithm : substitute;
+import mason.build.context;
+import std.array : join;
 
 /**
  * Binary, read-write implementation of the BuildManifest
@@ -36,9 +38,6 @@ final class BuildManifestBinary : BuildManifest
      */
     this(const(string) architecture)
     {
-        import std.string : format;
-        import std.algorithm : substitute;
-
         /* i.e. manifest.x86_64 */
         fileName = "manifest.%s.bin".format(architecture.substitute!("/", "-"));
     }
@@ -54,7 +53,7 @@ final class BuildManifestBinary : BuildManifest
         auto targetPath = join([buildContext.outputDirectory, fileName], "/");
         auto fp = File(targetPath, "w");
         auto writer = new Writer(fp);
-        writer.compressionType = PayloadCompression.None;
+        writer.compressionType = PayloadCompression.Zstd;
         writer.fileType = MossFileType.BuildManifest;
         scope (exit)
         {
