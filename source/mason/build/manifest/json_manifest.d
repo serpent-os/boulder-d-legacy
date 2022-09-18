@@ -40,7 +40,7 @@ final class BuildManifestJSON : BuildManifest
         import std.algorithm : substitute;
 
         /* i.e. manifest.x86_64 */
-        fileName = "manifest.%s.json".format(architecture.substitute!("/", "-"));
+        fileName = "manifest.%s.jsonc".format(architecture.substitute!("/", "-"));
 
         /* Root values required in the manifest. */
         emissionNodes = [
