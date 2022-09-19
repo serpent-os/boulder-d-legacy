@@ -257,7 +257,7 @@ public final class Controller : StageContext
                 upstreamDeps ~= "binary(ar)";
                 break;
             default:
-                trace(format!"Extension '.%s' not matched, no dependencies added."(extension));
+                trace(format!"Extension '.%s' not matched, no binary deps added."(extension));
                 break;
             }
         }
