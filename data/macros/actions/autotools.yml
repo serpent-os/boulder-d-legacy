@@ -20,6 +20,8 @@ actions:
     - make_install:
         command: |
             %make install DESTDIR="%(installroot)"
+        dependencies:
+            - make
 
     # Re autotools-configure a project without an autogen.sh script
     - reconfigure:
