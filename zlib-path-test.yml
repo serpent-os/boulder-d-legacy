@@ -25,7 +25,7 @@ builddeps   :
 #    export PATH="${PATH}:%(workdir)/bin"
 setup       : |
     CC=${CC} ./configure --prefix=/usr \
-        --libdir=/usr/lib \
+        --libdir=%(libdir) \
         --enable-shared
 build       : |
     %make
@@ -36,6 +36,6 @@ packages :
         summary: Static libraries for zlib
         description: Not really useful but for testing
         paths:
-            - "*.a"
+            - "%(libdir)/*.a"
 toolchain   : gnu
 
