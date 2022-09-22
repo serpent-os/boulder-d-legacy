@@ -36,6 +36,6 @@ packages :
         summary: Static libraries for zlib
         description: Not really useful but for testing
         paths:
-            - "%(libdir)/*.a"
+            - "/usr/lib/*.a"
 toolchain   : gnu
 
