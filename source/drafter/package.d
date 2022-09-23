@@ -28,6 +28,7 @@ module drafter;
 import drafter.build;
 import drafter.license;
 import drafter.metadata;
+import moss.core : ExitStatus;
 import moss.core.ioutil;
 import moss.core.logger;
 import moss.core.util : computeSHA256;
@@ -129,7 +130,7 @@ public final class Drafter
     /**
      * Run Drafter lifecycle to completion
      */
-    void run()
+    ExitStatus run()
     {
         info("Beginning download");
 
@@ -153,13 +154,13 @@ public final class Drafter
         if (!fetchedDownloads)
         {
             error("Exiting due to abnormal downloads");
-            return;
+            return ExitStatus.Failure;
         }
 
         if (processPaths.empty)
         {
             error("Nothing for us to process, exiting");
-            return;
+            return ExitStatus.Failure;
         }
 
         exploreAssets();
@@ -171,6 +172,7 @@ public final class Drafter
         _licenses.each!((l) => outputFile.writefln!"    - %s"(l));
         emitBuildDependencies();
         emitBuild();
+        return ExitStatus.Success;
     }
 
     /**

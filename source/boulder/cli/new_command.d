@@ -60,14 +60,18 @@ public struct NewCommand
 
         auto drafter = new Drafter(outputPath);
         argv.each!((a) => drafter.addSource(a, UpstreamType.Plain));
-        drafter.run();
+        auto exitStatus = drafter.run();
+        if (exitStatus == ExitStatus.Success)
+        {
+            info(format!"Successfully wrote skeletal recipe %s\n"(outputPath));
+            info("The next step is to edit and flesh out the freshly created");
+            info(format!"skeletal recipe %s\n"(outputPath));
+            info("Once that has been done, an attempt to build it should be");
+            info(format!"made with the command: sudo boulder build %s\n"(outputPath));
+        }
         drafter.destroy(); /* Ensure we flush & close */
-        info(format!"Successfully wrote skeletal recipe %s\n"(outputPath));
-        info("The next step is to edit and flesh out the freshly created");
-        info(format!"skeletal recipe %s\n"(outputPath));
-        info("Once that has been done, an attempt to build it should be");
-        info(format!"made with the command: sudo boulder build %s\n"(outputPath));
-        return ExitStatus.Success;
+
+        return exitStatus;
     }
 
     /** Where to output the YML file */
