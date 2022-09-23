@@ -612,7 +612,7 @@ private:
 
         debug
         {
-            trace(format!"Add (sub)package definition: '%s'"(pkd.name));
+            trace(format!"Add (sub)package definition: [%s]"(pkd.name));
         }
         /* Always insert paths as they're encountered */
         pkd = buildContext.spec.expand(pkd);
