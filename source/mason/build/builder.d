@@ -70,7 +70,7 @@ public:
      */
     this(string nativeArchitecture)
     {
-        trace(__FUNCTION__);
+        //trace(__FUNCTION__);
         if (buildContext.rootDir is null)
         {
             buildContext.rootDir = getBuildRoot();
@@ -236,7 +236,7 @@ private:
      * Setup our boulder chains */
     void setupChains()
     {
-        trace(__FUNCTION__);
+        //trace(__FUNCTION__);
         const auto boulderChains = [
             /* Highest policy */
             AnalysisChain("badFiles", [&dropBadPaths], 100),
@@ -508,7 +508,7 @@ private:
 
         debug
         {
-            trace(format!"%s: %s"(__FUNCTION__, path));
+            //trace(format!"collectPath: %s"(path));
         }
         auto targetPath = path.relativePath(root);
         if (targetPath[0] != '/')
@@ -529,7 +529,7 @@ private:
     {
         import std.file : dirEntries, DirEntry, SpanMode;
 
-        trace(__FUNCTION__);
+        //trace(__FUNCTION__);
 
         /**
          * Custom recursive dirEntries (DFS) style function which lets us
@@ -581,7 +581,7 @@ private:
         import std.algorithm : map, each, joiner;
         import std.array : array;
 
-        trace(__FUNCTION__);
+        //trace(__FUNCTION__);
         string[] arches = ["base"];
         arches ~= architectures;
 
@@ -610,7 +610,10 @@ private:
         import std.range : chain;
         import std.array : array;
 
-        trace(format!"%s: '%s'"(__FUNCTION__, pkd.name));
+        debug
+        {
+            trace(format!"Add (sub)package definition: '%s'"(pkd.name));
+        }
         /* Always insert paths as they're encountered */
         pkd = buildContext.spec.expand(pkd);
 

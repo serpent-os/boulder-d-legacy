@@ -53,9 +53,9 @@ public final class BuildContext
 
         jobs = 0;
 
-        trace(format!"%s.loadMacros()"(__FUNCTION__));
+        //trace(format!"%s.loadMacros()"(__FUNCTION__));
         this.loadMacros();
-        trace(format!"%s.loadMacros() complete"(__FUNCTION__));
+        //trace(format!"%s.loadMacros() complete"(__FUNCTION__));
     }
 
     /**
@@ -256,7 +256,7 @@ private:
                 {
                     continue;
                 }
-                trace(format!"%s: Parsing YML macro file: %s"(__FUNCTION__, target.name.baseName));
+                //trace(format!"%s: Parsing YML macro file: %s"(__FUNCTION__, target.name.baseName));
                 auto f = new MacroFile(File(target.name));
                 f.parse();
                 /* Remove the .yml suffix */
@@ -282,9 +282,9 @@ private:
             }
             auto name = nom.name.baseName[0 .. $ - 4];
             file = new MacroFile(File(nom.name));
-            trace(format!"%s: %s.parse()"(__FUNCTION__, nom.name));
+            //trace(format!"%s: %s.parse()"(__FUNCTION__, nom.name));
             file.parse();
-            trace(format!"%s: %s.parse() complete"(__FUNCTION__, nom.name));
+            //trace(format!"%s: %s.parse() complete"(__FUNCTION__, nom.name));
             actionFiles ~= file;
         }
     }

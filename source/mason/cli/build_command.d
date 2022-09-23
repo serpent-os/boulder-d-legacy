@@ -75,9 +75,9 @@ public struct BuildCommand
         auto controller = new BuildController(architecture);
         foreach (specURI; argv)
         {
-            trace(format!"%s: BuildController.build(%s)"(__FUNCTION__, specURI));
             if (!controller.build(specURI))
             {
+                trace(format!"Could not build '%s'"(specURI));
                 return ExitStatus.Failure;
             }
         }

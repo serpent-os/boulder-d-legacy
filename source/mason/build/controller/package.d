@@ -45,7 +45,7 @@ public final class BuildController
         {
             import moss.core.platform : platform;
 
-            trace(format!"%s(%s)"(__FUNCTION__, architecture));
+            //trace(format!"%s(%s)"(__FUNCTION__, architecture));
             architecture = platform().name;
         }
         this.architecture = architecture;
@@ -69,9 +69,9 @@ public final class BuildController
 
         /* Set up the new builder */
         auto s = new Spec(File(path, "r"));
-        trace(format!"%s: Parsing Spec(%s)"(__FUNCTION__, path));
+        //trace(format!"%s: Parsing Spec(%s)"(__FUNCTION__, path));
         s.parse();
-        trace(format!"%s: Parsing Spec(%s) complete"(__FUNCTION__, path));
+        //trace(format!"%s: Parsing Spec(%s) complete"(__FUNCTION__, path));
 
         buildContext.spec = s;
         buildContext.specDir = path.dirName.absolutePath;
@@ -117,7 +117,7 @@ public final class BuildController
      */
     bool stageBuild()
     {
-        trace(__FUNCTION__);
+        //trace(__FUNCTION__);
         return builder.buildProfiles();
     }
 
