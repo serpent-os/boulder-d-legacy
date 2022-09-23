@@ -37,7 +37,7 @@ import moss.fetcher;
 import std.algorithm : each;
 import std.container.rbtree : RedBlackTree;
 import std.exception : enforce;
-import std.file : thisExePath;
+import std.file : exists, remove, thisExePath;
 import std.format : format;
 import std.path : baseName, dirName, buildNormalizedPath, absolutePath;
 import std.process;
@@ -93,11 +93,17 @@ public final class Drafter
         _licenseEngine.loadFromDirectory(licenseDir);
         _licenses = new RedBlackTree!(string, "a < b", false);
         outputFile = File(outputPath, "w");
+        /* only used in destructor on error */
+        outputPathDeleteMe_ = outputPath;
     }
 
     ~this()
     {
         outputFile.close();
+        if (run_ == ExitStatus.Failure && outputPathDeleteMe_.exists)
+        {
+            outputPathDeleteMe_.remove();
+        }
     }
 
     /**
@@ -154,13 +160,15 @@ public final class Drafter
         if (!fetchedDownloads)
         {
             error("Exiting due to abnormal downloads");
-            return ExitStatus.Failure;
+            run_ = ExitStatus.Failure;
+            return run_;
         }
 
         if (processPaths.empty)
         {
             error("Nothing for us to process, exiting");
-            return ExitStatus.Failure;
+            run_ = ExitStatus.Failure;
+            return run_;
         }
 
         exploreAssets();
@@ -357,4 +365,6 @@ private:
     BuildOptions _options;
     RedBlackTree!(string, "a < b", false) _licenses;
     File outputFile;
+    ExitStatus run_ = ExitStatus.Success;
+    string outputPathDeleteMe_;
 }
