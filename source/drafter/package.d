@@ -37,6 +37,7 @@ import std.algorithm : each;
 import std.container.rbtree : RedBlackTree;
 import std.exception : enforce;
 import std.file : thisExePath;
+import std.format : format;
 import std.path : baseName, dirName, buildNormalizedPath, absolutePath;
 import std.process;
 import std.range : empty;
@@ -103,7 +104,7 @@ public final class Drafter
      */
     void onFail(Fetchable f, string msg) @trusted
     {
-        errorf("Failed to download %s: %s", f.sourceURI, msg);
+        error(format!"Failed to download %s: %s"(f.sourceURI, msg));
         fetchedDownloads = false;
     }
 
@@ -112,15 +113,17 @@ public final class Drafter
      */
     void onComplete(Fetchable f, long code) @trusted
     {
-        tracef("Download of %s finished [code: %s]", f.sourceURI.baseName, code);
+        import std.algorithm : startsWith;
+        trace(format!"Download of %s finished [code: %d]"(f.sourceURI.baseName, code));
 
-        if (code == 200)
+        /* The file:// use case is for when wanting to re-use already downloaded artefacts */
+        if (code == 200 || (f.sourceURI.startsWith("file://") && code == 0))
         {
             processPaths ~= RemoteAsset(f.sourceURI, f.destinationPath);
-            infof("Downloaded: %s", f.destinationPath);
+            info(format!"Downloaded: %s"(f.destinationPath));
             return;
         }
-        onFail(f, "Server returned non-200 status code");
+        onFail(f, format!"Unhandled outcome: Server returned status code: %d"(code));
     }
 
     /**
@@ -136,10 +139,10 @@ public final class Drafter
             import std.algorithm : each;
 
             processPaths.each!((p) {
-                tracef("Removing: %s", p.localPath);
+                trace(format!"Removing: %s"(p.localPath));
                 p.localPath.remove();
             });
-            directories.each!((d) { tracef("Removing: %s", d); d.rmdirRecurse(); });
+            directories.each!((d) { trace(format!"Removing: %s"(d)); d.rmdirRecurse(); });
         }
 
         while (!controller.empty)
@@ -260,10 +263,10 @@ private:
 
         foreach (const p; processPaths)
         {
-            infof("Extracting: %s", p.localPath);
+            info(format!"Extracting: %s"(p.localPath));
             auto location = IOUtil.createTemporaryDirectory("/tmp/boulderDrafterExtraction.XXXXXX");
             auto directory = location.match!((string s) => s, (err) {
-                errorf("Error creating tmpdir: %s", err.toString);
+                error(format!"Error creating tmpdir: %s"(err.toString));
                 return null;
             });
             if (directory is null)
@@ -273,7 +276,7 @@ private:
             directories ~= directory;
 
             /* Capture an upstream definition */
-            infof("Computing hash for %s", p.localPath);
+            info(format!"Computing hash for %s"(p.localPath));
             auto hash = computeSHA256(p.localPath, true);
             auto ud = UpstreamDefinition(UpstreamType.Plain);
             ud.plain = PlainUpstreamDefinition(hash);
@@ -289,11 +292,11 @@ private:
             auto result = execute(cmd, null, Config.none, size_t.max, directory);
             if (result.status != 0)
             {
-                errorf("Extraction of %s failed with code %s", p.localPath, result.status);
+                error(format!"Extraction of %s failed with code %s"(p.localPath, result.status));
                 trace(result.output);
             }
 
-            infof("Scanning sources under %s", directory);
+            info(format!"Scanning sources under %s"(directory));
             foreach (string path; dirEntries(directory, SpanMode.depth, false))
             {
                 auto fi = FileInfo(path.relativePath(directory), path);
