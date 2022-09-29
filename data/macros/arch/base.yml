@@ -24,6 +24,7 @@ definitions:
     - libdir         : "%(prefix)/lib%(libsuffix)"
     - libexecdir     : "%(libdir)/%(name)"
     - builddir       : "serpent_builddir"
+    - udevrulesdir   : "%(libdir)/udev/rules.d"
 
     # The vendorID is encoded into the triplet, toolchain, builds, etc.
     # It must match the triplet from bootstrap-scripts.
