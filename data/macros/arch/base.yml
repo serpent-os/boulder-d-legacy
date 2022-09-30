@@ -468,7 +468,7 @@ flags               :
     # Enable relative vtables (OFF)
     - relative-vtables:
         llvm:
-            cxx       : "-fexperimental-relative-c++-abi-vtables"
+            cxx       : "-fexperimental-library -fexperimental-relative-c++-abi-vtables"
 
     # Toggle relr (ON)
     - relr:
