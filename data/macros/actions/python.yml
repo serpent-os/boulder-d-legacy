@@ -21,6 +21,7 @@ actions:
             python3 -m build --wheel --no-isolation
         dependencies:
             - python-build
+            - python-wheel
 
     # Install wheel to destination directory
     - pyproject_install:
