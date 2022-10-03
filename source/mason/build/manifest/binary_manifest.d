@@ -36,14 +36,15 @@ final class BuildManifestBinary : BuildManifest
     /**
      * Construct a new BuildManifest with the given architecture identifier
      */
-    this(const(string) architecture)
+    this(const(string) architecture) @safe
     {
         /* i.e. manifest.x86_64 */
         fileName = "manifest.%s.bin".format(architecture.substitute!("/", "-"));
     }
 
-    override void recordPackage(const(string) pkgName, ref FileInfo[] fileSet)
+    override void recordPackage(const(string) pkgName, scope MetaPayload mp, scope LayoutPayload lp) @safe
     {
+
     }
 
     override void write() @safe

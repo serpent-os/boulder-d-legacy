@@ -17,8 +17,11 @@ module mason.build.manifest;
 
 public import moss.deps.analysis.fileinfo;
 
+public import moss.format.binary.payload.meta;
+public import moss.format.binary.payload.layout;
+
 /**
- * A BuildManifest is produced for each BuildProfile and contains some
+ * A BuildManifest is produced for each build and contains some
  * data which we can use to verify that a source recipe has indeed been
  * build-verified.
  *
@@ -29,11 +32,13 @@ public class BuildManifest
 {
     /**
      * Write the whole manifest
-     *
-     * TODO: Replace with per-package emission
      */
     abstract void write() @safe;
-    abstract void recordPackage(const(string) pkgName, ref FileInfo[] fileSet);
+
+    /**
+     * Record details from the package.
+     */
+    abstract void recordPackage(const(string) pkgName, scope MetaPayload mp, scope LayoutPayload lp) @safe;
 
     pure @property final const(string) fileName() const @safe @nogc nothrow
     {

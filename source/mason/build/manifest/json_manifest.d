@@ -34,7 +34,7 @@ final class BuildManifestJSON : BuildManifest
     /**
      * Construct a new BuildManifest with the given architecture identifier
      */
-    this(const(string) architecture)
+    this(const(string) architecture) @safe
     {
         import std.string : format;
         import std.algorithm : substitute;
@@ -70,18 +70,8 @@ final class BuildManifestJSON : BuildManifest
         fp.write("\n");
     }
 
-    /**
-     * Emit a package as a JSON node to the manifest
-     */
-    override void recordPackage(const(string) pkgName, ref FileInfo[] fileSet)
+    override void recordPackage(const(string) pkgName, scope MetaPayload mp, scope LayoutPayload lp) @safe
     {
-        import std.algorithm : map;
-        import std.array : array;
-
-        const JSONValue fileSetMapped = fileSet.map!((m) => m.path).array;
-        JSONValue newPkg;
-        newPkg["files"] = fileSetMapped;
-        packageNodes[pkgName] = newPkg;
     }
 
 private:
