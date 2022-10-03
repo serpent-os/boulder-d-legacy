@@ -111,10 +111,12 @@ private:
         info(format!"Generating package: %s"(pkg.filename));
 
         /* Generate metadata first */
-        generateMetadata(analyser, writer, pkg);
+        auto bucket = analyser.bucket(pkg.pd.name);
+        auto mp = generateMetadata(bucket, pkg);
+        writer.addPayload(mp);
 
         /* Now generate the fileset */
-        auto lp = generateFiles(analyser, writer, pkg);
+        auto lp = generateFiles(bucket, writer, pkg);
 
         emitManifest(pkg, analyser.bucket(pkg.pd.name), lp);
 
@@ -122,66 +124,9 @@ private:
     }
 
     /**
-     * Generate metadata payload
-     */
-    void generateMetadata(scope Analyser analyser, scope Writer writer, scope Package* pkg) return @trusted
-    {
-        import moss.format.binary.payload.meta : MetaPayload, RecordTag, RecordType;
-        import std.algorithm : each, uniq, filter, map, sort;
-        import std.array : array;
-
-        auto met = new MetaPayload();
-        met.addRecord(RecordType.String, RecordTag.Name, pkg.pd.name);
-        met.addRecord(RecordType.String, RecordTag.Version, pkg.source.versionIdentifier);
-        met.addRecord(RecordType.Uint64, RecordTag.Release, pkg.source.release);
-        met.addRecord(RecordType.Uint64, RecordTag.BuildRelease, pkg.buildRelease);
-        met.addRecord(RecordType.String, RecordTag.Summary, pkg.pd.summary);
-        met.addRecord(RecordType.String, RecordTag.Description, pkg.pd.description);
-        met.addRecord(RecordType.String, RecordTag.Homepage, pkg.source.homepage);
-        met.addRecord(RecordType.String, RecordTag.SourceID, pkg.source.name);
-
-        /* TODO: Be more flexible encoding architecture. */
-        import moss.core.platform : platform;
-
-        auto plat = platform();
-        met.addRecord(RecordType.String, RecordTag.Architecture, plat.name);
-
-        pkg.source.license.sort();
-        pkg.source.license.uniq.each!((l) => met.addRecord(RecordType.String,
-                RecordTag.License, l));
-
-        auto bucket = analyser.bucket(pkg.pd.name);
-        auto providers = bucket.providers();
-        auto specifiedDeps = pkg.pd.runtimeDependencies.map!((const n) => fromString!Dependency(n));
-        auto discoveredDeps = bucket.dependencies();
-        auto dependenciesFull = specifiedDeps.array() ~ discoveredDeps.array();
-        dependenciesFull.sort();
-        auto dependencies = dependenciesFull.uniq();
-
-        if (!providers.empty)
-        {
-            foreach (prov; providers)
-            {
-                info(format!"[%s] provides %s"(pkg.pd.name, prov));
-                met.addRecord(RecordType.Provider, RecordTag.Provides, prov);
-            }
-        }
-        if (!dependencies.empty)
-        {
-            foreach (dep; dependencies)
-            {
-                info(format!"[%s] depends on %s"(pkg.pd.name, dep));
-                met.addRecord(RecordType.Dependency, RecordTag.Depends, dep);
-            }
-        }
-
-        writer.addPayload(met);
-    }
-
-    /**
      * Handle emission and inclusion of files
      */
-    LayoutPayload generateFiles(Analyser analyser, scope Writer writer, scope Package* pkg) return @trusted
+    LayoutPayload generateFiles(scope AnalysisBucket bucket, scope Writer writer, scope Package* pkg) return @trusted
     {
         import moss.core : FileType;
         import moss.format.binary.payload.layout : LayoutPayload, LayoutEntry;
@@ -198,7 +143,6 @@ private:
         writer.addPayload(indexPayload);
         writer.addPayload(contentPayload);
 
-        auto bucket = analyser.bucket(pkg.pd.name);
         auto allFiles = bucket.allFiles().array();
         auto uniqueFiles = bucket.uniqueFiles().array();
 
