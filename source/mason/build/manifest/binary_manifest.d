@@ -50,13 +50,15 @@ final class BuildManifestBinary : BuildManifest
     {
         /* Same metadata as .stone */
         auto met = generateMetadata(bucket, pkg, false);
-        auto buildDeps = buildContext.spec.rootBuild.buildDependencies ~ buildContext.spec.rootBuild.checkDependencies;
+        auto buildDeps = buildContext.spec.rootBuild.buildDependencies
+            ~ buildContext.spec.rootBuild.checkDependencies;
         buildDeps.sort();
         buildDeps = buildDeps.uniq.array;
         foreach (d; buildDeps)
         {
             () @trusted {
-                met.addRecord(RecordType.Dependency, RecordTag.BuildDepends, fromString!Dependency(d));
+                met.addRecord(RecordType.Dependency, RecordTag.BuildDepends,
+                        fromString!Dependency(d));
             }();
         }
         payloads ~= met;
