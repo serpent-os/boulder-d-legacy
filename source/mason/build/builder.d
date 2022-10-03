@@ -86,11 +86,18 @@ public:
         analyser.userdata = this;
         setupChains();
 
+        if (nativeArchitecture == "native")
+        {
+            import moss.core.platform : platform;
+
+            nativeArchitecture = platform().name;
+        }
+
         /* Handle emission */
         emitter = new BuildEmitter(nativeArchitecture);
 
         /* TODO: Ban emul32 on non-64bit hosts */
-        auto emul32name = "emul32/" ~ nativeArchitecture;
+        immutable emul32name = format!"emul32/%s"(nativeArchitecture);
         if (buildContext.spec.supportedArchitecture(emul32name)
                 || buildContext.spec.supportedArchitecture("emul32"))
         {

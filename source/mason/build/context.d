@@ -250,7 +250,7 @@ private:
 
         void loadDirectoryArchitectures(string prefix, string directory)
         {
-            foreach (target; dirEntries(archDir, SpanMode.shallow, false))
+            foreach (target; dirEntries(directory, SpanMode.shallow, false))
             {
                 if (!target.name.endsWith(".yml"))
                 {
