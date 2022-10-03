@@ -86,6 +86,9 @@ public:
         analyser.userdata = this;
         setupChains();
 
+        /* Handle emission */
+        emitter = new BuildEmitter();
+
         /* TODO: Ban emul32 on non-64bit hosts */
         auto emul32name = "emul32/" ~ nativeArchitecture;
         if (buildContext.spec.supportedArchitecture(emul32name)

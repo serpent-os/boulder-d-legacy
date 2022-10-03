@@ -56,10 +56,8 @@ package struct Package
  * The BuildEmitter is used to emit build assets from the build, collection +
  * analysis routines, into an actual package.
  */
-struct BuildEmitter
+public class BuildEmitter
 {
-
-public:
 
     /**
      * Add a package to the BuildEmitter. It is unknown whether or not
