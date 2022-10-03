@@ -224,10 +224,7 @@ public:
      */
     void produceManifests() @system
     {
-        import std.algorithm : each;
-
-        profiles.each!((ref p) => p.produceManifest(analyser));
-
+        warning("Manifest emission disabled");
     }
 
 private:

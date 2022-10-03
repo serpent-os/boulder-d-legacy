@@ -17,7 +17,6 @@ module mason.build.profile;
 
 import mason.build.collector;
 import mason.build.context;
-import mason.build.manifest;
 import mason.build.stage;
 import moss.deps.analysis;
 import moss.format.source.script;
@@ -47,14 +46,6 @@ public:
         this._architecture = architecture;
         this._buildRoot = join([buildContext.rootDir, "build", architecture], "/");
         this._installRoot = join([buildContext.rootDir, "install"], "/");
-
-        /* Construct manifests for comparison & emission */
-        _sourceManifest = new BuildManifestBinary(architecture);
-
-        _targetManifests = [
-            new BuildManifestJSON(architecture),
-            new BuildManifestBinary(architecture),
-        ];
 
         /* PGO handling */
         pgoDir = buildRoot ~ "-pgo";
@@ -137,21 +128,6 @@ public:
         return _installRoot;
     }
 
-    /**
-     * Return the original manifest, which may not be populated
-     */
-    pure @property BuildManifest sourceManifest() @safe @nogc nothrow
-    {
-        return _sourceManifest;
-    }
-
-    /**
-     * The manifest we're going to write
-     */
-    pure @property BuildManifest[2] targetManifests() @safe @nogc nothrow
-    {
-        return _targetManifests;
-    }
 
     /**
      * Write the temporary script to disk, then execute it.
@@ -336,34 +312,6 @@ public:
 
         /* Fully cooked */
         sbuilder.bake();
-    }
-
-    /**
-     * Save our future manifest now
-     */
-    void produceManifest(Analyser analyser)
-    {
-        import std.array : array;
-        import std.algorithm : sort, each, map, uniq;
-        import std.range : empty;
-
-        auto names = analyser.buckets.map!((b) => cast(string) b.name).array();
-        names.sort();
-        foreach (nom; names.uniq)
-        {
-            auto bucket = analyser.bucket(nom);
-            if (bucket.empty)
-            {
-                continue;
-            }
-
-            auto fileSet = bucket.allFiles().array();
-
-            /* Ensure stable sorting */
-            fileSet.sort!((a, b) => a.path < b.path);
-            targetManifests.each!((m) => m.recordPackage(nom, fileSet));
-        }
-        targetManifests.each!((m) => m.write());
     }
 
 private:
@@ -666,7 +614,4 @@ private:
     string _buildRoot;
     string _installRoot;
     string pgoDir;
-
-    BuildManifest _sourceManifest = null;
-    BuildManifest[2] _targetManifests = null;
 }
