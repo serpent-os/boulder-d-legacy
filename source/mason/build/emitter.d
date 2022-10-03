@@ -17,14 +17,14 @@ module mason.build.emitter;
 
 import mason.build.context : BuildContext;
 
-import moss.format.source.package_definition;
-import moss.format.source.source_definition;
+import mason.build.manifest;
+import moss.deps.analysis;
 import moss.format.binary.payload;
 import moss.format.binary.writer;
-import moss.deps.analysis;
-import std.string : format, startsWith;
+import moss.format.source.package_definition;
+import moss.format.source.source_definition;
 import std.experimental.logger;
-import mason.build.manifest;
+import std.string : format, startsWith, endsWith;
 
 /**
  * Resulting Package is only buildable once it contains
@@ -59,6 +59,23 @@ package struct Package
 public class BuildEmitter
 {
 
+    @disable this();
+
+    /**
+     * Construct new BuildEmitter for the system architecture
+     */
+    this(string systemArch) @safe
+    {
+        if (systemArch == "native")
+        {
+            import moss.core.platform : platform;
+
+            systemArch = platform().name;
+        }
+        binaryManifest = new BuildManifestBinary(systemArch);
+        jsonManifest = new BuildManifestJSON(systemArch);
+    }
+
     /**
      * Add a package to the BuildEmitter. It is unknown whether or not
      * a package will actually be emitted until such point as files are
@@ -80,6 +97,8 @@ public class BuildEmitter
         import std.algorithm : each;
 
         packages.values.each!((p) => emitPackage(outputDirectory, p, analyser));
+        binaryManifest.write();
+        jsonManifest.write();
     }
 
 private:
@@ -118,10 +137,12 @@ private:
         info(format!"Generating package: %s"(pkg.filename));
 
         /* Generate metadata first */
-        generateMetadata(analyser, writer, pkg);
+        auto mp = generateMetadata(analyser, writer, pkg);
 
         /* Now generate the fileset */
-        generateFiles(analyser, writer, pkg);
+        auto lp = generateFiles(analyser, writer, pkg);
+
+        emitManifest(pkg, mp, lp);
 
         writer.flush();
     }
@@ -129,7 +150,7 @@ private:
     /**
      * Generate metadata payload
      */
-    void generateMetadata(scope Analyser analyser, scope Writer writer, scope Package* pkg) @trusted
+    MetaPayload generateMetadata(scope Analyser analyser, scope Writer writer, scope Package* pkg) return @trusted
     {
         import moss.format.binary.payload.meta : MetaPayload, RecordTag, RecordType;
         import std.algorithm : each, uniq, filter, map, sort;
@@ -181,12 +202,13 @@ private:
         }
 
         writer.addPayload(met);
+        return met;
     }
 
     /**
      * Handle emission and inclusion of files
      */
-    void generateFiles(Analyser analyser, scope Writer writer, scope Package* pkg) @trusted
+    LayoutPayload generateFiles(Analyser analyser, scope Writer writer, scope Package* pkg) return @trusted
     {
         import moss.core : FileType;
         import moss.format.binary.payload.layout : LayoutPayload, LayoutEntry;
@@ -264,7 +286,32 @@ private:
         /* For every known file, insert it */
         allFiles.each!((ref f) => insertLayout(f));
         uniqueFiles.each!((ref f) => insertUniqueFile(f));
+
+        return layoutPayload;
+    }
+
+    /**
+     * Handle per-pkg emission
+     */
+    void emitManifest(scope Package* pkg, scope MetaPayload mp, scope LayoutPayload lp) @safe
+    {
+        if (pkg.pd.name.endsWith("-dbginfo"))
+        {
+            return;
+        }
+        binaryManifest.recordPackage(pkg.pd.name, mp, lp);
+        jsonManifest.recordPackage(pkg.pd.name, mp, lp);
     }
 
     Package*[string] packages;
+
+    /**
+     * Human readable manifest
+     */
+    BuildManifestJSON jsonManifest;
+
+    /**
+     * Binary manifest for machinery integration
+     */
+    BuildManifestBinary binaryManifest;
 }

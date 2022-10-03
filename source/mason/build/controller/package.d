@@ -86,8 +86,7 @@ public final class BuildController
 
         Step[] steps = [
             Step(&stagePrepare, "Prepare"), Step(&stageBuild, "Build"),
-            Step(&stageAnalyse, "Analyse"), Step(&stageEmit,
-                    "Emit packages"), Step(&stageManifest, "Emit manifest"),
+            Step(&stageAnalyse, "Analyse"), Step(&stageEmit, "Emit packages"),
         ];
 
         foreach (ref step; steps)
@@ -136,15 +135,6 @@ public final class BuildController
     bool stageEmit()
     {
         builder.emitPackages();
-        return true;
-    }
-
-    /**
-     * Product manifest files
-     */
-    bool stageManifest()
-    {
-        builder.produceManifests();
         return true;
     }
 

@@ -87,7 +87,7 @@ public:
         setupChains();
 
         /* Handle emission */
-        emitter = new BuildEmitter();
+        emitter = new BuildEmitter(nativeArchitecture);
 
         /* TODO: Ban emul32 on non-64bit hosts */
         auto emul32name = "emul32/" ~ nativeArchitecture;
@@ -220,14 +220,6 @@ public:
     void emitPackages() @system
     {
         emitter.emit(buildContext.outputDirectory, this.analyser);
-    }
-
-    /**
-     * Produce required manifests
-     */
-    void produceManifests() @system
-    {
-        warning("Manifest emission disabled");
     }
 
 private:
