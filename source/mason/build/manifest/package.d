@@ -15,10 +15,37 @@
 
 module mason.build.manifest;
 
-public import moss.deps.analysis.fileinfo;
+public import moss.deps.analysis;
+public import moss.format.source.package_definition;
+public import moss.format.source.source_definition;
 
-public import moss.format.binary.payload.meta;
 public import moss.format.binary.payload.layout;
+
+/**
+ * Resulting Package is only buildable once it contains
+ * actual files.
+ */
+public struct Package
+{
+    PackageDefinition pd;
+    SourceDefinition source;
+
+    uint64_t buildRelease = 1;
+
+    /**
+     * Resulting filename
+     */
+    const(string) filename() @safe
+    {
+        import moss.core.platform : platform;
+        import std.string : format;
+
+        auto plat = platform();
+
+        return "%s-%s-%d-%d-%s.stone".format(pd.name, source.versionIdentifier,
+                source.release, buildRelease, plat.name);
+    }
+}
 
 /**
  * A BuildManifest is produced for each build and contains some
@@ -38,7 +65,8 @@ public class BuildManifest
     /**
      * Record details from the package.
      */
-    abstract void recordPackage(const(string) pkgName, scope MetaPayload mp, scope LayoutPayload lp) @safe;
+    abstract void recordPackage(scope Package* pkg, scope AnalysisBucket bucket,
+            scope LayoutPayload lp) @safe;
 
     pure @property final const(string) fileName() const @safe @nogc nothrow
     {

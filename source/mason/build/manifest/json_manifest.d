@@ -21,7 +21,10 @@ import std.stdio : File;
 import std.conv : to;
 import std.json;
 import mason.build.context;
-import std.array : join;
+import std.array : join, array;
+import std.algorithm : map, filter;
+import std.range : empty;
+import moss.deps.dependency : Provider, Dependency;
 
 /**
  * JSON, write-only implementation of a BuildManifest
@@ -70,8 +73,23 @@ final class BuildManifestJSON : BuildManifest
         fp.write("\n");
     }
 
-    override void recordPackage(const(string) pkgName, scope MetaPayload mp, scope LayoutPayload lp) @safe
+    override void recordPackage(scope Package* pkg, scope AnalysisBucket bucket,
+            scope LayoutPayload lp) @safe
     {
+        JSONValue node;
+        node["name"] = pkg.pd.name;
+        node["files"] = lp.map!((r) { return join(["/usr", r.target], "/"); }).array;
+        auto providers = bucket.providers.map!((p) => p.toString);
+        if (!providers.empty)
+        {
+            node["provides"] = providers.array;
+        }
+        auto deps = bucket.dependencies.map!((d) => d.toString);
+        if (!deps.empty)
+        {
+            node["depends"] = deps.array;
+        }
+        packageNodes[pkg.pd.name] = node;
     }
 
 private:

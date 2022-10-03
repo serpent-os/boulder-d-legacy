@@ -27,32 +27,6 @@ import std.experimental.logger;
 import std.string : format, startsWith, endsWith;
 
 /**
- * Resulting Package is only buildable once it contains
- * actual files.
- */
-package struct Package
-{
-    PackageDefinition pd;
-    SourceDefinition source;
-
-    uint64_t buildRelease = 1;
-
-    /**
-     * Resulting filename
-     */
-    const(string) filename() @safe
-    {
-        import moss.core.platform : platform;
-        import std.string : format;
-
-        auto plat = platform();
-
-        return "%s-%s-%d-%d-%s.stone".format(pd.name, source.versionIdentifier,
-                source.release, buildRelease, plat.name);
-    }
-}
-
-/**
  * The BuildEmitter is used to emit build assets from the build, collection +
  * analysis routines, into an actual package.
  */
@@ -137,12 +111,12 @@ private:
         info(format!"Generating package: %s"(pkg.filename));
 
         /* Generate metadata first */
-        auto mp = generateMetadata(analyser, writer, pkg);
+        generateMetadata(analyser, writer, pkg);
 
         /* Now generate the fileset */
         auto lp = generateFiles(analyser, writer, pkg);
 
-        emitManifest(pkg, mp, lp);
+        emitManifest(pkg, analyser.bucket(pkg.pd.name), lp);
 
         writer.flush();
     }
@@ -150,7 +124,7 @@ private:
     /**
      * Generate metadata payload
      */
-    MetaPayload generateMetadata(scope Analyser analyser, scope Writer writer, scope Package* pkg) return @trusted
+    void generateMetadata(scope Analyser analyser, scope Writer writer, scope Package* pkg) return @trusted
     {
         import moss.format.binary.payload.meta : MetaPayload, RecordTag, RecordType;
         import std.algorithm : each, uniq, filter, map, sort;
@@ -202,7 +176,6 @@ private:
         }
 
         writer.addPayload(met);
-        return met;
     }
 
     /**
@@ -293,14 +266,14 @@ private:
     /**
      * Handle per-pkg emission
      */
-    void emitManifest(scope Package* pkg, scope MetaPayload mp, scope LayoutPayload lp) @safe
+    void emitManifest(scope Package* pkg, scope AnalysisBucket bucket, scope LayoutPayload lp) @safe
     {
         if (pkg.pd.name.endsWith("-dbginfo"))
         {
             return;
         }
-        binaryManifest.recordPackage(pkg.pd.name, mp, lp);
-        jsonManifest.recordPackage(pkg.pd.name, mp, lp);
+        binaryManifest.recordPackage(pkg, bucket, lp);
+        jsonManifest.recordPackage(pkg, bucket, lp);
     }
 
     Package*[string] packages;

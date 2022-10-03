@@ -42,9 +42,9 @@ final class BuildManifestBinary : BuildManifest
         fileName = "manifest.%s.bin".format(architecture.substitute!("/", "-"));
     }
 
-    override void recordPackage(const(string) pkgName, scope MetaPayload mp, scope LayoutPayload lp) @safe
+    override void recordPackage(scope Package* pkg, scope AnalysisBucket bucket,
+            scope LayoutPayload lp) @safe
     {
-
     }
 
     override void write() @safe
