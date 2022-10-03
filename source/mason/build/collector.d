@@ -58,8 +58,7 @@ package struct CollectionRule
         {
             if (result && target != null)
             {
-                trace(format!"# %s == (%s) from [%s]"(encounteredFilePath,
-                        pathDef, target));
+                trace(format!"# %s == (%s) from [%s]"(encounteredFilePath, pathDef, target));
             }
         }
         return result;

@@ -121,6 +121,7 @@ public final class Drafter
     void onComplete(Fetchable f, long code) @trusted
     {
         import std.algorithm : startsWith;
+
         trace(format!"Download of %s finished [code: %d]"(f.sourceURI.baseName, code));
 
         /* The file:// use case is for when wanting to re-use already downloaded artefacts */
@@ -149,7 +150,10 @@ public final class Drafter
                 trace(format!"Removing: %s"(p.localPath));
                 p.localPath.remove();
             });
-            directories.each!((d) { trace(format!"Removing: %s"(d)); d.rmdirRecurse(); });
+            directories.each!((d) {
+                trace(format!"Removing: %s"(d));
+                d.rmdirRecurse();
+            });
         }
 
         while (!controller.empty)

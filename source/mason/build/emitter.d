@@ -24,6 +24,7 @@ import moss.format.binary.writer;
 import moss.deps.analysis;
 import std.string : format, startsWith;
 import std.experimental.logger;
+import mason.build.manifest;
 
 /**
  * Resulting Package is only buildable once it contains
@@ -148,6 +149,7 @@ private:
 
         /* TODO: Be more flexible encoding architecture. */
         import moss.core.platform : platform;
+
         auto plat = platform();
         met.addRecord(RecordType.String, RecordTag.Architecture, plat.name);
 

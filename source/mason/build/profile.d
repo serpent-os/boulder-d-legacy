@@ -128,7 +128,6 @@ public:
         return _installRoot;
     }
 
-
     /**
      * Write the temporary script to disk, then execute it.
      */
