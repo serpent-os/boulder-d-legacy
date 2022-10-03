@@ -19,6 +19,7 @@ public import mason.build.manifest;
 
 import moss.format.binary.archive_header;
 import moss.format.binary.payload;
+import moss.format.binary.payload.meta;
 import moss.format.binary.writer;
 import std.string : format;
 import std.algorithm : substitute;
@@ -40,11 +41,15 @@ final class BuildManifestBinary : BuildManifest
     {
         /* i.e. manifest.x86_64 */
         fileName = "manifest.%s.bin".format(architecture.substitute!("/", "-"));
+        this.arch = architecture;
     }
 
     override void recordPackage(scope Package* pkg, scope AnalysisBucket bucket,
             scope LayoutPayload lp) @safe
     {
+        /* Same metadata as .stone */
+        auto met = generateMetadata(bucket, pkg, false);
+        payloads ~= met;
     }
 
     override void write() @safe
@@ -60,11 +65,15 @@ final class BuildManifestBinary : BuildManifest
         {
             writer.close();
         }
-        payloads.each!((ref p) => writer.addPayload(p));
+        foreach (p; payloads)
+        {
+            writer.addPayload(p);
+        }
         writer.flush();
     }
 
 private:
 
-    Payload[] payloads;
+    MetaPayload[] payloads;
+    string arch;
 }
