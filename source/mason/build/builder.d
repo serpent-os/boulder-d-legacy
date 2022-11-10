@@ -156,12 +156,13 @@ public:
         import std.path : asRelativePath;
         import std.process : environment;
 
+        ///FIXME: Ensure that moss-container exposes a USER env var
         /* Create directory for the package files*/
         trace(format!"Preparing buildContext.pkgDir: %s (as user: %s)"(buildContext.pkgDir,
                 environment.get("USER")));
         buildContext.pkgDir.mkdirRecurse;
 
-        /* Copy the pkg/ directory into the build */
+        /* Copy the recipe pkg/ directory into the buildroot */
         auto location = join([buildContext.specDir, "pkg"], "/");
         if (location.exists && location.isDir)
         {
