@@ -515,8 +515,8 @@ private:
             script = genPrepareScript();
         }
 
-        /* Need valid script to continue */
-        if (script is null)
+        /* Do not add stage if no commands appended to environment */
+        if (script == buildDef.environment())
         {
             return;
         }
