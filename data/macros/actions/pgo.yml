@@ -38,6 +38,8 @@ actions:
                 cp ${1}.bolt ${1}
             }
             boptim
+        dependencies:
+            - llvm-bolt
 
     # Collect perf data suitable for the bolt macros
     - bolt_perf:
@@ -47,6 +49,8 @@ actions:
                 perf record -F 6000 -e cycles:u -j any,u -o %(pgo_dir)/BOLT/perf.data -- ${@}
             }
             bperf
+        dependencies:
+            - perf
 
     # Convert perf data into bolt equivalent
     - bolt_perf2bolt:
