@@ -10,9 +10,10 @@ actions:
             - automake
 
     # Perform a make
+    # TIP: Add V=1 VERBOSE=1 after '%make' in the recipe if you need a more verbose build
     - make:
         command: |
-            make V=1 VERBOSE=1 -j "%(jobs)"
+            make -j "%(jobs)"
         dependencies:
             - make
 
