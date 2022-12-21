@@ -20,11 +20,12 @@ actions:
         command: |
             python3 -m build --wheel --no-isolation
         dependencies:
-            - python
+            - python-build
+            - python-wheel
 
     # Install wheel to destination directory
     - pyproject_install:
         command: |
             python3 -m installer --destdir="%(installroot)" dist/*.whl
         dependencies:
-            - python
+            - python-installer
