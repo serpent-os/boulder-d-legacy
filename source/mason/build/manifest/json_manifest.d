@@ -17,14 +17,15 @@ module mason.build.manifest.json_manifest;
 
 public import mason.build.manifest;
 
-import std.stdio : File;
-import std.conv : to;
-import std.json;
 import mason.build.context;
-import std.array : join, array;
-import std.algorithm : map, filter;
-import std.range : empty;
 import moss.deps.dependency : Provider, Dependency;
+import std.algorithm : filter, map, sort, substitute, uniq;
+import std.array : join, array;
+import std.conv : to;
+import std.format : format;
+import std.json;
+import std.range : empty;
+import std.stdio : File;
 
 /**
  * JSON, write-only implementation of a BuildManifest
@@ -39,26 +40,21 @@ final class BuildManifestJSON : BuildManifest
      */
     this(const(string) architecture) @safe
     {
-        import std.string : format;
-        import std.algorithm : substitute;
-
         /* i.e. manifest.x86_64 */
         fileName = "manifest.%s.jsonc".format(architecture.substitute!("/", "-"));
 
         /* Root values required in the manifest. */
         emissionNodes = [
-            "manifest-version": "0.1",
+            "manifest-version": "0.2",
             "source-name": buildContext.spec.source.name,
             "source-release": to!string(buildContext.spec.source.release),
             "source-version": to!string(buildContext.spec.source.versionIdentifier),
         ];
-
+        /// TODO: Add "build-version":
     }
 
     override void write() @trusted
     {
-        import std.algorithm : substitute;
-
         auto targetPath = join([buildContext.outputDirectory, fileName], "/");
         auto fp = File(targetPath, "w");
         scope (exit)
@@ -88,6 +84,14 @@ final class BuildManifestJSON : BuildManifest
         if (!deps.empty)
         {
             node["depends"] = deps.array;
+        }
+        auto buildDeps = buildContext.spec.rootBuild.buildDependencies
+            ~ buildContext.spec.rootBuild.checkDependencies;
+        buildDeps.sort();
+        buildDeps = buildDeps.uniq.array;
+        if (!buildDeps.empty)
+        {
+            node["build-depends"] = buildDeps;
         }
         packageNodes[pkg.pd.name] = node;
     }
