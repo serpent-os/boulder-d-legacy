@@ -17,15 +17,14 @@ module mason.build.manifest.binary_manifest;
 
 public import mason.build.manifest;
 
-import moss.format.binary.archive_header;
-import moss.format.binary.payload;
-import moss.format.binary.payload.meta;
-import moss.format.binary.writer;
-import std.array : array;
-import std.string : format;
-import std.algorithm : substitute, sort, uniq;
 import mason.build.context;
-import std.array : join;
+import moss.format.binary.archive_header;
+import moss.format.binary.payload.meta;
+import moss.format.binary.payload;
+import moss.format.binary.writer;
+import std.algorithm : sort, substitute, uniq;
+import std.array : array, join;
+import std.format : format;
 
 /**
  * Binary, read-write implementation of the BuildManifest
