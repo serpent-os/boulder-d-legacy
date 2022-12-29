@@ -4,6 +4,7 @@ libmason_sources = [
     'package.d',
     'build/analysers/cmake.d',
     'build/analysers/package.d',
+    'build/analysers/pkgconfig.d',
     'build/analysers/rejects.d',
     'build/collector.d',
     'build/context.d',
