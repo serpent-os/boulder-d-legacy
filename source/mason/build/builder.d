@@ -310,42 +310,6 @@ private:
     }
 
     /**
-     * Does this look like a valid cmake provider?
-     */
-    static AnalysisReturn acceptCmakeFiles(scope Analyser analyser, ref FileInfo fileInfo)
-    {
-        auto filename = fileInfo.path;
-        auto directory = filename.dirName;
-
-        if (!directory.canFind("/cmake"))
-        {
-            return AnalysisReturn.NextHandler;
-        }
-
-        if ((!filename.endsWith("Config.cmake")
-                && !filename.endsWith("-config.cmake")) || filename.endsWith("-Config.cmake"))
-        {
-            return AnalysisReturn.NextHandler;
-        }
-
-        return AnalysisReturn.NextFunction;
-    }
-
-    /**
-     * Do something with the cmake file, for now we only
-     * add providers.
-     */
-    static AnalysisReturn handleCmakeFiles(scope Analyser analyser, ref FileInfo fileInfo)
-    {
-        auto extension = fileInfo.fullPath.endsWith("-config.cmake") ? 13 : 12;
-
-        auto providerName = fileInfo.path.baseName()[0 .. $ - extension];
-        auto prov = Provider(providerName, ProviderType.CmakeName);
-        analyser.bucket(fileInfo).addProvider(prov);
-        return AnalysisReturn.NextHandler;
-    }
-
-    /**
      * Detect files in /usr/bin
      */
     static AnalysisReturn acceptBinaryFiles(scope Analyser analyser, ref FileInfo fileInfo)
