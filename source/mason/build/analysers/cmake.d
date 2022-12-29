@@ -5,9 +5,9 @@
  */
 
 /**
- * mason.build.analysers.rejects;
+ * mason.build.analysers.cmake;
  *
- * Straight up unwanted.
+ * cmake files
  *
  * Authors: Copyright © 2020-2022 Serpent OS Developers
  * License: Zlib
