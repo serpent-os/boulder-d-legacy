@@ -258,32 +258,6 @@ private:
     }
 
     /**
-     * Detect files in /usr/bin
-     */
-    static AnalysisReturn acceptBinaryFiles(scope Analyser analyser, ref FileInfo fileInfo)
-    {
-        auto filename = fileInfo.path;
-
-        if (!filename.startsWith("/usr/bin/"))
-        {
-            return AnalysisReturn.NextHandler;
-        }
-
-        return AnalysisReturn.NextFunction;
-    }
-
-    /**
-     * Add provider for files in /usr/bin that people can run from PATH
-     */
-    static AnalysisReturn handleBinaryFiles(scope Analyser analyser, ref FileInfo fileInfo)
-    {
-        auto providerName = fileInfo.path()[9 .. $];
-        auto prov = Provider(providerName, ProviderType.BinaryName);
-        analyser.bucket(fileInfo).addProvider(prov);
-        return AnalysisReturn.NextHandler;
-    }
-
-    /**
      * Copy the ELF debug section into debug files
      */
     static AnalysisReturn copyElfDebug(scope Analyser analyser, ref FileInfo fileInfo)

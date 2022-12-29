@@ -2,6 +2,7 @@ libmason_sources = [
     'cli/build_command.d',
     'cli/package.d',
     'package.d',
+    'build/analysers/binary.d',
     'build/analysers/cmake.d',
     'build/analysers/package.d',
     'build/analysers/pkgconfig.d',
