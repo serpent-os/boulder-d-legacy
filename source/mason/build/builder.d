@@ -17,13 +17,14 @@
 module mason.build.builder;
 
 import core.sys.posix.sys.stat;
+import mason.build.analysers;
 import mason.build.collector;
 import mason.build.context;
 import mason.build.emitter;
 import mason.build.profile;
 import mason.build.util;
-import moss.deps.analysis.elves;
 import moss.deps.analysis;
+import moss.deps.analysis.elves;
 import moss.format.source.spec;
 import std.algorithm : each, filter, canFind;
 import std.experimental.logger;
@@ -37,23 +38,6 @@ import std.string : startsWith, endsWith, format;
  */
 private static immutable auto regularDirectoryMode = S_IFDIR | S_IROTH | S_IXOTH
     | S_IRGRP | S_IXGRP | S_IRWXU;
-
-/*
- * Do not allow non /usr paths!
- */
-private static AnalysisReturn dropBadPaths(scope Analyser analyser, ref FileInfo info)
-{
-    if (!info.path.startsWith("/usr/"))
-    {
-        if (!info.path.startsWith("/usr"))
-        {
-            warning(format!"Not including non /usr/ file: %s"(info.path));
-        }
-        return AnalysisReturn.IgnoreFile;
-    }
-
-    return AnalysisReturn.NextHandler;
-}
 
 /**
  * The Builder is responsible for the full build of a source package
@@ -245,9 +229,6 @@ private:
             AnalysisChain("binary", [&acceptBinaryFiles, &handleBinaryFiles],
                     100),
 
-            /* Reject libtool (.la) files */
-            AnalysisChain("libtoolFiles", [&rejectLibToolFiles], 90),
-
             /* Handle ELF files */
             /* FIXME: Parallel debuginfo handling truncates hardlinked files! */
             AnalysisChain("elves", [
@@ -274,28 +255,6 @@ private:
             auto chain = cast(AnalysisChain) c;
             analyser.addChain(chain);
         }());
-    }
-
-    /**
-     * libtool archive files (.la) were used to supply information to older linkers,
-     * but aren't needed today (and are actively avoided) because the ELF object
-     * format already supplies the necessary information to the linker. Actively keeping
-     * them can also break builds for other packages.
-     */
-    static AnalysisReturn rejectLibToolFiles(scope Analyser analyser, ref FileInfo fileInfo)
-    {
-        import std.string : format;
-
-        auto filename = fileInfo.path;
-        auto directory = filename.dirName;
-
-        /* We have a libtool file, drop it */
-        if (filename.endsWith(".la") && directory.canFind("/usr/lib"))
-        {
-            trace(format!"[Analyse] Rejecting libtool file: %s"(filename));
-            return AnalysisReturn.IgnoreFile;
-        }
-        return AnalysisReturn.NextHandler;
     }
 
     /**

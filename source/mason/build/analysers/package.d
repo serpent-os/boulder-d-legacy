@@ -1,0 +1,18 @@
+/*
+ * SPDX-FileCopyrightText: Copyright © 2020-2022 Serpent OS Developers
+ *
+ * SPDX-License-Identifier: Zlib
+ */
+
+/**
+ * mason.build.analysers
+ *
+ * Handle various analysis routines for moss-deps
+ *
+ * Authors: Copyright © 2020-2022 Serpent OS Developers
+ * License: Zlib
+ */
+
+module mason.build.analysers;
+
+public import mason.build.analysers.rejects;
