@@ -17,10 +17,15 @@ module mason.build.analysers.elves;
 
 public import moss.deps.analysis;
 
-import std.experimental.logger;
-import mason.build.context;
 import mason.build.builder : Builder;
+import mason.build.context;
 import mason.build.util;
+import std.array : join;
+import std.exception : enforce;
+import std.experimental.logger;
+import std.file : mkdirRecurse;
+import std.path : dirName;
+import std.string : format;
 
 /**
  * Copy the ELF debug section into debug files
@@ -28,11 +33,6 @@ import mason.build.util;
 public AnalysisReturn copyElfDebug(scope Analyser analyser, ref FileInfo fileInfo)
 {
     auto instance = analyser.userdata!Builder;
-    import std.exception : enforce;
-    import std.string : format;
-    import std.path : dirName;
-    import std.file : mkdirRecurse;
-    import std.array : join;
 
     /* Nowt left to do */
     if (fileInfo.type != FileType.Regular)
@@ -100,8 +100,6 @@ public AnalysisReturn copyElfDebug(scope Analyser analyser, ref FileInfo fileInf
 public AnalysisReturn stripElfFiles(scope Analyser analyser, ref FileInfo fileInfo)
 {
     Builder instance = analyser.userdata!Builder();
-    import std.exception : enforce;
-    import std.string : format;
 
     if (!buildContext.spec.options.strip || fileInfo.type != FileType.Regular)
     {
