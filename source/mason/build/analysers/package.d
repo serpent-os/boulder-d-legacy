@@ -17,5 +17,6 @@ module mason.build.analysers;
 
 public import mason.build.analysers.binary;
 public import mason.build.analysers.cmake;
+public import mason.build.analysers.elves;
 public import mason.build.analysers.rejects;
 public import mason.build.analysers.pkgconfig;
