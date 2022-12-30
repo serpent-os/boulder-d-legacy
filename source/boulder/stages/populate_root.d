@@ -37,6 +37,10 @@ public static immutable(Stage) stagePopulateRoot = Stage("populate-root", (Stage
         "pkgconf", "sed", "util-linux"
     ];
     auto requiredEMUL32 = ["glibc-32bit-devel"];
+    if (context.compilerCache)
+    {
+        requiredInstalled ~= "binary(ccache)";
+    }
 
     /* Needed packages for GNU builds */
     auto requiredGNU = ["binutils", "gcc-devel"];

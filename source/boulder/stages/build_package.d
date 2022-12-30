@@ -106,6 +106,11 @@ static private StageReturn buildPackageConfined(scope StageContext context)
     {
         args ~= archCommand;
     }
+    /* pass through compiler cache request */
+    if (context.compilerCache)
+    {
+        args ~= "--compiler-cache";
+    }
     trace(format!"%s: executeCommand(%s, %s, %s, \"/\")"(__FUNCTION__,
             context.containerBinary, args, environ));
     auto result = executeCommand(context.containerBinary, args, environ, "/");

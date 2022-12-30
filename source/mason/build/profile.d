@@ -24,6 +24,7 @@ import moss.format.source.spec;
 import std.array : join;
 import std.experimental.logger;
 import std.format : format;
+import std.file : exists;
 
 /**
  * A build profile is generated for each major build profile in the
@@ -274,6 +275,20 @@ public:
         sbuilder.addDefinition("buildroot", buildRoot);
         sbuilder.addDefinition("workdir", workDir);
 
+        /* Use the shared ccache tree */
+        if ("/mason/ccache".exists)
+        {
+            sbuilder.addDefinition("compiler_cache", "/mason/ccache");
+        }
+        else
+        {
+            sbuilder.addDefinition("compiler_cache", "$HOME/.ccache");
+        }
+
+        /* Always include /bill (future work), and maybe ccache */
+        immutable string path = buildContext.compilerCache
+            ? "/usr/lib/ccache/bin:/bill/bin:/usr/bin:/bin" : "/bill/bin:/usr/bin:/bin";
+
         /* Set the relevant compilers */
         if (buildContext.spec.options.toolchain == "llvm")
         {
@@ -286,7 +301,7 @@ public:
             sbuilder.addDefinition("compiler_nm", "llvm-nm");
             sbuilder.addDefinition("compiler_ranlib", "llvm-ranlib");
             sbuilder.addDefinition("compiler_strip", "llvm-strip");
-            sbuilder.addDefinition("compiler_path", "/bill/bin:/usr/bin:/bin");
+            sbuilder.addDefinition("compiler_path", path);
         }
         else
         {
@@ -299,7 +314,7 @@ public:
             sbuilder.addDefinition("compiler_nm", "gcc-nm");
             sbuilder.addDefinition("compiler_ranlib", "gcc-ranlib");
             sbuilder.addDefinition("compiler_strip", "strip");
-            sbuilder.addDefinition("compiler_path", "/bill/bin:/usr/bin:/bin");
+            sbuilder.addDefinition("compiler_path", path);
         }
 
         sbuilder.addDefinition("pgo_dir", pgoDir);

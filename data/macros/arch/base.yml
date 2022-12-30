@@ -41,6 +41,7 @@ definitions:
     - ranlib         : "%(compiler_ranlib)"
     - strip          : "%(compiler_strip)"
     - path           : "%(compiler_path)"
+    - ccachedir      : "%(compiler_cache)"
 
 actions              :
 
@@ -64,6 +65,8 @@ actions              :
             RANLIB="%(ranlib)"; export RANLIB
             STRIP="%(strip)"; export STRIP
             PATH="%(path)"; export PATH
+            CCACHE_DIR="%(ccachedir)"; export CCACHE_DIR;
+            test -z "$CCACHE_DIR" && unset CCACHE_DIR;
             LANG="en_US.UTF-8"; export LANG
             LC_ALL="en_US.UTF-8"; export LC_ALL
             test -d "%(workdir)" || (echo "The work directory %(workdir) does not exist"; exit 1)

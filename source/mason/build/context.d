@@ -165,6 +165,25 @@ public final class BuildContext
     }
 
     /**
+     * Returns: compiler caching property
+     */
+    pure @property bool compilerCache() @safe @nogc nothrow const
+    {
+        return _compilerCache;
+    }
+
+    /**
+     * Toggle compiler caching
+     *
+     * Params:
+     *      b = True for compiler caching
+     */
+    pure @property void compilerCache(bool b) @safe @nogc nothrow
+    {
+        _compilerCache = b;
+    }
+
+    /**
      * Prepare a ScriptBuilder
      */
     void prepareScripts(ref ScriptBuilder sbuilder, string architecture)
@@ -298,4 +317,5 @@ package:
     uint _jobs = 0;
     string _outputDirectory = ".";
     string _specDir = ".";
+    bool _compilerCache;
 }

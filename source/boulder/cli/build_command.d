@@ -72,7 +72,7 @@ public struct BuildControlCommand
         }
 
         auto controller = new Controller(outputDirectory, architecture,
-                !unconfined, profile, configDir);
+                !unconfined, profile, compilerCache, configDir);
 
         /* When no recipes are specified, build stone.yml recipe in current directory if it exists */
         if (argv == null && "stone.yml".exists)
@@ -106,4 +106,7 @@ public struct BuildControlCommand
 
     /** Set the architecture to build for. Defaults to native */
     @Option("a", "architecture", "Target architecture for the build") string architecture = "native";
+
+    /** Enable compiler caching */
+    @Option("c", "compiler-cache", "Enable compiler caching") bool compilerCache = false;
 }

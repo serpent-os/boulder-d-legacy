@@ -64,6 +64,7 @@ public struct BuildCommand
 
         buildContext.outputDirectory = outputDir;
         buildContext.jobs = jobs;
+        buildContext.compilerCache = compilerCache;
 
         /* Auto discover job count */
         if (buildContext.jobs < 1)
@@ -90,4 +91,7 @@ public struct BuildCommand
 
     /** Set the architecture to build for. Defaults to native */
     @Option("a", "architecture", "Target architecture for the build") string architecture = "native";
+
+    /** Enable compiler caching */
+    @Option("c", "compiler-cache", "Enable compiler caching") bool compilerCache = false;
 }

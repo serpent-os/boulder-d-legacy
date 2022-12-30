@@ -51,11 +51,12 @@ public final class Controller : StageContext
      *      confinement = Enable confined builds
      */
     this(string outputDir, string architecture, bool confinement, string profile,
-            string configDir = null)
+            bool compilerCache, string configDir = null)
     {
         this._architecture = architecture;
         this._confinement = confinement;
         this._profile = profile;
+        this._compilerCache = compilerCache;
 
         /* Relative locations for moss/moss-container */
         auto binDir = thisExePath.dirName;
@@ -145,6 +146,14 @@ public final class Controller : StageContext
     pure override @property bool confinement() @safe @nogc nothrow const
     {
         return _confinement;
+    }
+
+    /**
+     * Returns: true if compiler caching is enabled
+     */
+    pure override @property bool compilerCache() @safe @nogc nothrow const
+    {
+        return _compilerCache;
     }
 
     /**
@@ -401,6 +410,7 @@ private:
     FetchController _fetcher = null;
     bool failFlag = false;
     bool _confinement;
+    bool _compilerCache;
 
     Mount[] mountPoints;
     Profile profileObj;

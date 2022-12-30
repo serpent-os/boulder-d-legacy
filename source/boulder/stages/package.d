@@ -67,6 +67,11 @@ public interface StageContext
     pure @property immutable(string) architecture() @safe @nogc nothrow const;
 
     /**
+     * Returns: true if compiler caching is enabled
+     */
+    pure @property bool compilerCache() @safe @nogc nothrow const;
+
+    /**
      * Confinement status
      *
       * Returns: true if confinement is employed
