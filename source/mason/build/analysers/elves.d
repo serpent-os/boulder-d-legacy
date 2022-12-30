@@ -24,7 +24,7 @@ import std.array : join;
 import std.exception : enforce;
 import std.experimental.logger;
 import std.file : mkdirRecurse;
-import std.path : dirName;
+import std.path : baseName, dirName;
 import std.string : format;
 
 public AnalysisReturn deferElfInclusion(scope Analyser analyser, ref FileInfo fileInfo)
@@ -114,9 +114,12 @@ public void stripElfFiles(scope Builder instance, ref FileInfo fileInfo)
 
     bool useLLVM = buildContext.spec.options.toolchain == "llvm";
     auto command = useLLVM ? "/usr/bin/llvm-strip" : "/usr/bin/strip";
+    immutable directory = fileInfo.path.dirName.baseName;
+    immutable isExecutable = (directory == "bin" || directory == "sbin");
 
     /* Execute, TODO: Fix environment */
-    auto ret = executeCommand(command, ["--strip-unneeded", fileInfo.fullPath], null);
+    auto ret = executeCommand(command, isExecutable
+            ? [fileInfo.fullPath] : ["-g", "--strip-unneeded"], null);
     auto code = ret.match!((err) {
         error(format!"strip failure: %s"(err.toString));
         return -1;
