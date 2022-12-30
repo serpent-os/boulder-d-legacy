@@ -310,7 +310,7 @@ private:
             AnalysisChain("badFiles", [&dropBadPaths], 100),
 
             /* Handle binary providers */
-            AnalysisChain("binary", [&acceptBinaryFiles, &handleBinaryFiles], 100),
+            AnalysisChain("binary", [&handleBinaryFiles], 100),
 
             /* Handle ELF files */
             /* FIXME: Parallel debuginfo handling truncates hardlinked files! */

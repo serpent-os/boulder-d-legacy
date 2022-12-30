@@ -20,26 +20,27 @@ public import moss.deps.analysis;
 
 /**
  * Detect files in /usr/bin
- */
-public AnalysisReturn acceptBinaryFiles(scope Analyser analyser, ref FileInfo fileInfo)
-{
-    auto filename = fileInfo.path;
-
-    if (!filename.startsWith("/usr/bin/"))
-    {
-        return AnalysisReturn.NextHandler;
-    }
-
-    return AnalysisReturn.NextFunction;
-}
-
-/**
- * Add provider for files in /usr/bin that people can run from PATH
+ *
+ * Params:
+ *      analyser = Scoped analyser for this run
+ *      fileInfo = Current file to run analysis on
+ * Returns: AnalysisReturn.NextFunction always
  */
 public AnalysisReturn handleBinaryFiles(scope Analyser analyser, ref FileInfo fileInfo)
 {
-    auto providerName = fileInfo.path()[9 .. $];
-    auto prov = Provider(providerName, ProviderType.BinaryName);
-    analyser.bucket(fileInfo).addProvider(prov);
-    return AnalysisReturn.NextHandler;
+    auto filename = fileInfo.path;
+
+    if (filename.startsWith("/usr/bin/"))
+    {
+        auto prov = Provider(fileInfo.path[`/usr/bin/`.length .. $], ProviderType.BinaryName);
+        analyser.bucket(fileInfo).addProvider(prov);
+    }
+    else if (filename.startsWith("/usr/sbin"))
+    {
+        auto prov = Provider(fileInfo.path[`/usr/sbin/`.length .. $], ProviderType.SystemBinaryName);
+        analyser.bucket(fileInfo).addProvider(prov);
+    }
+
+    /* Let someone else toy with it now */
+    return AnalysisReturn.NextFunction;
 }
