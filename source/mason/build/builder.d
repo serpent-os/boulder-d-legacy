@@ -26,10 +26,12 @@ import mason.build.util;
 import moss.deps.analysis;
 import moss.deps.analysis.elves;
 import moss.format.source.spec;
-import std.algorithm : each, filter, canFind;
+import std.algorithm : each, filter, sort, uniq;
 import std.experimental.logger;
-import std.path : dirName, baseName;
-import std.string : startsWith, endsWith, format;
+import std.path : baseName, dirName;
+import std.parallelism : parallel;
+import std.range : chain;
+import std.string : endsWith, format, startsWith;
 
 /**
  * As far as boulder is concerned, any directory mode 0755 is utterly uninteresting
@@ -204,6 +206,7 @@ public:
         roots.sort();
         roots.uniq.each!((const s) => this.collectRootfs(s));
         analyser.process();
+        collectElves();
     }
 
     /**
@@ -245,7 +248,57 @@ public:
         return profiles[0].installRoot;
     }
 
+    /**
+     * ELF files with a buildid need post-processing for dbginfo +
+     * stripping. To do so we must factor in uniqueness, hence
+     * running in a separate loop.
+     *
+     * Params:
+     *      fileInfo = Post-processing fileInfo
+     */
+    void pushDeferredElf(ref FileInfo fileInfo) @safe
+    {
+        synchronized (this)
+        {
+            deferred ~= fileInfo;
+        }
+    }
+
 private:
+
+    /**
+     * Post-process all of our ELF files
+     */
+    void collectElves() @system
+    {
+        deferred.sort!((a, b) => a.buildID < b.buildID);
+
+        auto nonLinkedFiles = deferred.filter!((d) => d.stat.st_nlink < 2);
+        auto linkedFiles = deferred.filter!((d) => d.stat.st_nlink >= 2)
+            .uniq!"a.digest == b.digest";
+
+        /* Uniquely generate dbginfo symbols  */
+        foreach (fileInfo; deferred.uniq!"a.digest == b.digest".parallel)
+        {
+            copyElfDebug(analyser, fileInfo);
+        }
+
+        /* Now go strip em all in parallel */
+        foreach (fileInfo; chain(nonLinkedFiles, linkedFiles).parallel)
+        {
+            stripElfFiles(this, fileInfo);
+        }
+
+        /* For all of them, re-stat + include */
+        foreach (ref fileInfo; deferred.parallel)
+        {
+            fileInfo.update();
+            analyser.forceAddFile(fileInfo);
+        }
+
+        /* Last run, may have some latent *new* files (dbginfo, etc) */
+        analyser.process();
+    }
 
     /**
      * Setup our boulder chains */
@@ -257,15 +310,12 @@ private:
             AnalysisChain("badFiles", [&dropBadPaths], 100),
 
             /* Handle binary providers */
-            AnalysisChain("binary", [&acceptBinaryFiles, &handleBinaryFiles],
-                    100),
+            AnalysisChain("binary", [&acceptBinaryFiles, &handleBinaryFiles], 100),
 
             /* Handle ELF files */
             /* FIXME: Parallel debuginfo handling truncates hardlinked files! */
             AnalysisChain("elves", [
-                &acceptElfFiles, &scanElfFiles, /* &copyElfDebug
-                    &stripElfFiles, */
-                &includeElfFiles,
+                &acceptElfFiles, &scanElfFiles, &deferElfInclusion,
             ], 90),
 
             /* Handle pkgconfig files */
@@ -448,4 +498,5 @@ private:
     PackageDefinition[string] packages;
     int inclusionPriority = 0;
     bool boulderRoot = false;
+    FileInfo[] deferred;
 }
