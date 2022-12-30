@@ -313,7 +313,6 @@ private:
             AnalysisChain("binary", [&handleBinaryFiles], 100),
 
             /* Handle ELF files */
-            /* FIXME: Parallel debuginfo handling truncates hardlinked files! */
             AnalysisChain("elves", [
                 &acceptElfFiles, &scanElfFiles, &deferElfInclusion,
             ], 90),
