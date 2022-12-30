@@ -271,7 +271,7 @@ private:
      */
     void collectElves() @system
     {
-        deferred.sort!((a, b) => a.buildID < b.buildID);
+        deferred.sort!((a, b) => a.digest < b.digest);
 
         auto nonLinkedFiles = deferred.filter!((d) => d.stat.st_nlink < 2);
         auto linkedFiles = deferred.filter!((d) => d.stat.st_nlink >= 2)
