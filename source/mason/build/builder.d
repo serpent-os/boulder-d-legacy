@@ -271,14 +271,14 @@ private:
      */
     void collectElves() @system
     {
-        deferred.sort!((a, b) => a.digest < b.digest);
+        deferred.sort!((a, b) => a.buildID < b.buildID);
 
         auto nonLinkedFiles = deferred.filter!((d) => d.stat.st_nlink < 2);
         auto linkedFiles = deferred.filter!((d) => d.stat.st_nlink >= 2)
-            .uniq!"a.digest == b.digest";
+            .uniq!"a.buildID == b.buildID";
 
         /* Uniquely generate dbginfo symbols  */
-        foreach (fileInfo; deferred.uniq!"a.digest == b.digest".parallel)
+        foreach (fileInfo; deferred.uniq!"a.buildID == b.buildID".parallel)
         {
             copyElfDebug(analyser, fileInfo);
         }
