@@ -37,10 +37,10 @@ public AnalysisReturn deferElfInclusion(scope Analyser analyser, ref FileInfo fi
         return AnalysisReturn.IncludeFile;
     }
 
-    /* Someone else can handle this */
+    /* Include without stripping or further modification */
     if (fileInfo.buildID is null)
     {
-        return AnalysisReturn.NextFunction;
+        return AnalysisReturn.IncludeFile;
     }
 
     /* Defer inclusion of real ELF file */
@@ -119,7 +119,9 @@ public void stripElfFiles(scope Builder instance, ref FileInfo fileInfo)
 
     /* Execute, TODO: Fix environment */
     auto ret = executeCommand(command, isExecutable
-            ? [fileInfo.fullPath] : ["-g", "--strip-unneeded", fileInfo.fullPath], null);
+            ? [fileInfo.fullPath] : [
+                "-g", "--strip-unneeded", fileInfo.fullPath
+            ], null);
     auto code = ret.match!((err) {
         error(format!"strip failure: %s"(err.toString));
         return -1;
