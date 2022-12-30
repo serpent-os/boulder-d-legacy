@@ -119,7 +119,7 @@ public void stripElfFiles(scope Builder instance, ref FileInfo fileInfo)
 
     /* Execute, TODO: Fix environment */
     auto ret = executeCommand(command, isExecutable
-            ? [fileInfo.fullPath] : ["-g", "--strip-unneeded"], null);
+            ? [fileInfo.fullPath] : ["-g", "--strip-unneeded", fileInfo.fullPath], null);
     auto code = ret.match!((err) {
         error(format!"strip failure: %s"(err.toString));
         return -1;
