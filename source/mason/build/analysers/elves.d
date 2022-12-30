@@ -27,23 +27,33 @@ import std.file : mkdirRecurse;
 import std.path : dirName;
 import std.string : format;
 
-/**
- * Copy the ELF debug section into debug files
- */
-public AnalysisReturn copyElfDebug(scope Analyser analyser, ref FileInfo fileInfo)
+public AnalysisReturn deferElfInclusion(scope Analyser analyser, ref FileInfo fileInfo)
 {
-    auto instance = analyser.userdata!Builder;
+    Builder instance = analyser.userdata!Builder;
 
-    /* Nowt left to do */
+    /* Need regular ELF files */
     if (fileInfo.type != FileType.Regular)
     {
         return AnalysisReturn.IncludeFile;
     }
 
+    /* Someone else can handle this */
     if (fileInfo.buildID is null)
     {
         return AnalysisReturn.NextFunction;
     }
+
+    /* Defer inclusion of real ELF file */
+    instance.pushDeferredElf(fileInfo);
+    return AnalysisReturn.IgnoreFile;
+}
+
+/**
+ * Copy the ELF debug section into debug files
+ */
+public void copyElfDebug(scope Analyser analyser, ref FileInfo fileInfo)
+{
+    auto instance = analyser.userdata!Builder;
 
     bool useLLVM = buildContext.spec.options.toolchain == "llvm";
     auto command = useLLVM ? "/usr/bin/llvm-objcopy" : "/usr/bin/objcopy";
@@ -69,7 +79,7 @@ public AnalysisReturn copyElfDebug(scope Analyser analyser, ref FileInfo fileInf
     /* Collect the debug asset */
     if (code != 0)
     {
-        return AnalysisReturn.NextFunction;
+        return;
     }
 
     /* GNU debuglink. */
@@ -84,26 +94,22 @@ public AnalysisReturn copyElfDebug(scope Analyser analyser, ref FileInfo fileInf
     if (code != 0)
     {
         warning(format!"debuginfo:link not including broken debuginfo: /%s"(debugInfoPathRelative));
-        return AnalysisReturn.NextFunction;
+        return;
     }
 
     trace(format!"debuginfo: %s"(fileInfo.path));
     instance.collectPath(debugInfoPath, instance.installRoot);
-
-    return AnalysisReturn.NextFunction;
 }
 
 /**
  * Interface back with boulder instance for file stripping. This is specific
  * to ELF files only (i.e. split for debuginfo)
  */
-public AnalysisReturn stripElfFiles(scope Analyser analyser, ref FileInfo fileInfo)
+public void stripElfFiles(scope Builder instance, ref FileInfo fileInfo)
 {
-    Builder instance = analyser.userdata!Builder();
-
     if (!buildContext.spec.options.strip || fileInfo.type != FileType.Regular)
     {
-        return AnalysisReturn.NextFunction;
+        return;
     }
 
     bool useLLVM = buildContext.spec.options.toolchain == "llvm";
@@ -120,6 +126,4 @@ public AnalysisReturn stripElfFiles(scope Analyser analyser, ref FileInfo fileIn
     {
         trace(format!"strip: %s"(fileInfo.path));
     }
-
-    return AnalysisReturn.NextFunction;
 }
