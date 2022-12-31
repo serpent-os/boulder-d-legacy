@@ -42,5 +42,5 @@ public AnalysisReturn handleBinaryFiles(scope Analyser analyser, ref FileInfo fi
     }
 
     /* Let someone else toy with it now */
-    return AnalysisReturn.NextFunction;
+    return AnalysisReturn.NextHandler;
 }
