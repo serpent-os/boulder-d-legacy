@@ -36,7 +36,7 @@ public static immutable(Stage) stagePopulateRoot = Stage("populate-root", (Stage
         "grep", "fakeroot", "findutils", "libarchive", "linux-headers",
         "pkgconf", "sed", "util-linux"
     ];
-    auto requiredEMUL32 = ["glibc-32bit-devel"];
+    auto requiredEMUL32 = ["glibc-32bit-devel", "fakeroot-32bit"];
     if (context.compilerCache)
     {
         requiredInstalled ~= "binary(ccache)";
