@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright © 2020-2022 Serpent OS Developers
+ * SPDX-FileCopyrightText: Copyright © 2020-2023 Serpent OS Developers
  *
  * SPDX-License-Identifier: Zlib
  */
@@ -10,7 +10,7 @@
  * Provides the main entry point into the `moss-container` binary along
  * with some CLI parsing and container namespace initialisation.
  *
- * Authors: Copyright © 2020-2022 Serpent OS Developers
+ * Authors: Copyright © 2020-2023 Serpent OS Developers
  * License: Zlib
  */
 module main;
@@ -102,7 +102,7 @@ public struct ContainerCLI
         if (showVersion)
         {
             stdout.writefln!"moss-container, version %s"("0.1");
-            stdout.writeln("\nCopyright © 2020-2022 Serpent OS Developers");
+            stdout.writeln("\nCopyright © 2020-2023 Serpent OS Developers");
             stdout.writeln("Available under the terms of the Zlib license");
             return 0;
         }
