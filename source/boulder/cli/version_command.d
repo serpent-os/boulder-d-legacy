@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright © 2020-2022 Serpent OS Developers
+ * SPDX-FileCopyrightText: Copyright © 2020-2023 Serpent OS Developers
  *
  * SPDX-License-Identifier: Zlib
  */
@@ -9,7 +9,7 @@
  *
  * Implements the `boulder version` subcommnd
  *
- * Authors: Copyright © 2020-2022 Serpent OS Developers
+ * Authors: Copyright © 2020-2023 Serpent OS Developers
  * License: Zlib
  */
 
@@ -39,7 +39,7 @@ public struct VersionCommand
         import std.stdio : writefln, writeln;
 
         writeln(format!"boulder, version %s"(moss.core.Version));
-        writeln("\nCopyright © 2020-2022 Serpent OS Developers");
+        writeln("\nCopyright © 2020-2023 Serpent OS Developers");
         writeln("Available under the terms of the Zlib license");
         return ExitStatus.Success;
     }
