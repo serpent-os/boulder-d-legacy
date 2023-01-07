@@ -509,6 +509,9 @@ packages          :
             - /usr/lib/lib*.so
             - /usr/lib/pkgconfig
             - /usr/share/aclocal
+            - /usr/share/man/man2
+            - /usr/share/man/man3
+            - /usr/share/man/man9
             - /usr/share/pkgconfig
         rundeps:
             - "%(name)"
