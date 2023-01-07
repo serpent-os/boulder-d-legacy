@@ -287,7 +287,7 @@ public:
 
         /* Always include /bill (future work), and maybe ccache */
         immutable string path = buildContext.compilerCache
-            ? "/usr/lib/ccache/bin:/bill/bin:/usr/bin:/bin" : "/bill/bin:/usr/bin:/bin";
+            ? "/usr/lib/ccache/bin:/usr/bin" : "/usr/bin";
 
         /* Set the relevant compilers */
         if (buildContext.spec.options.toolchain == "llvm")
