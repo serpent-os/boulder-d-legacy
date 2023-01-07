@@ -52,11 +52,14 @@ public static immutable(Stage) stageConfigureRoot = Stage("configure-root", (Sta
             immutable profilePath = chomp(realPath, "stone.index");
 
             info(format!"Updating index for `%s` at `%s`"(collection.id, realPath));
-            auto idxResult = executeCommand(context.mossBinary, ["index", profilePath], env);
+            auto idxResult = executeCommand(context.mossBinary, [
+                "index", profilePath
+            ], env);
 
             bool failed;
             idxResult.match!((i) { failed = i != 0; }, (ExecutionError e) {
-                error(format!"Failed to update index `%s` at `%s`. Error: %s"(collection.id, realPath, e.toString));
+                error(format!"Failed to update index `%s` at `%s`. Error: %s"(collection.id,
+                realPath, e.toString));
                 failed = true;
             });
             if (failed)
