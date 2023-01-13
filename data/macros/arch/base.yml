@@ -74,6 +74,7 @@ actions              :
 
 defaultTuningGroups :
     - base
+    - debug
     - fortify
     - optimize
     - avxwidth

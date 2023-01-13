@@ -348,7 +348,6 @@ private:
 
         /* Enable basic cflags always */
         sbuilder.enableGroup("architecture");
-        sbuilder.enableGroup("debug");
 
         /* Take all tuning selections */
         foreach (ref t; buildContext.spec.options.tuneSelections)
