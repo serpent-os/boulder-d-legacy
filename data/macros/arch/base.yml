@@ -132,10 +132,13 @@ tuning              :
     # Enable hardening
     - harden:
         options:
+            - none:
+                enabled: harden-none
             - lvl1:
                 enabled: harden-lvl1
             - lvl2:
                 enabled: harden-lvl2
+        disabled: harden-none
         default: lvl1
 
     # Enable optimisation per given levels
@@ -296,6 +299,11 @@ flags               :
     - fortify:
         c         : "-D_FORTIFY_SOURCE=2"
         cxx       : "-D_FORTIFY_SOURCE=2"
+
+    # No hardening!
+    - harden-none:
+        c         : "-fno-stack-protector"
+        cxx       : "-fno-stack-protector"
 
     # Hardening (ON harden-lvl1)
     - harden-lvl1:
