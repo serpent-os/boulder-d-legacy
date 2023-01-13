@@ -314,18 +314,18 @@ private:
 
             /* Handle ELF files */
             AnalysisChain("elves", [
-                &acceptElfFiles, &scanElfFiles, &deferElfInclusion,
-            ], 90),
+                    &acceptElfFiles, &scanElfFiles, &deferElfInclusion,
+                    ], 90),
 
             /* Handle pkgconfig files */
             AnalysisChain("pkgconfig", [
-                &acceptPkgconfigFiles, &handlePkgconfigFiles, &includeFile
-            ], 50),
+                    &acceptPkgconfigFiles, &handlePkgconfigFiles, &includeFile
+                    ], 50),
 
             /* Handle cmake files */
             AnalysisChain("cmake", [
-                &acceptCmakeFiles, &handleCmakeFiles, &includeFile
-            ], 50),
+                    &acceptCmakeFiles, &handleCmakeFiles, &includeFile
+                    ], 50),
 
             /* Default inclusion policy */
             AnalysisChain("default", [&includeFile], 0),

@@ -53,8 +53,8 @@ public static immutable(Stage) stageConfigureRoot = Stage("configure-root", (Sta
 
             info(format!"Updating index for `%s` at `%s`"(collection.id, realPath));
             auto idxResult = executeCommand(context.mossBinary, [
-                "index", profilePath
-            ], env);
+                    "index", profilePath
+                ], env);
 
             bool failed;
             idxResult.match!((i) { failed = i != 0; }, (ExecutionError e) {
@@ -69,9 +69,9 @@ public static immutable(Stage) stageConfigureRoot = Stage("configure-root", (Sta
         }
 
         auto result = executeCommand(context.mossBinary, [
-            "-y", "ar", "-D", context.job.hostPaths.rootfs, collection.id,
-            collection.uri, "-p", to!string(collection.priority)
-        ], env);
+                "-y", "ar", "-D", context.job.hostPaths.rootfs, collection.id,
+                collection.uri, "-p", to!string(collection.priority)
+            ], env);
         bool failed;
         result.match!((i) { failed = i != 0; }, (ExecutionError e) {
             error(format!"Execution error: %s"(e.toString));

@@ -215,10 +215,10 @@ public final class Controller : StageContext
          */
         auto bc = buildContext();
         foreach (scr; [
-            recipe.rootBuild.stepSetup, recipe.rootBuild.stepBuild,
-            recipe.rootBuild.stepCheck, recipe.rootBuild.stepInstall,
-            recipe.rootBuild.stepWorkload
-        ])
+                recipe.rootBuild.stepSetup, recipe.rootBuild.stepBuild,
+                recipe.rootBuild.stepCheck, recipe.rootBuild.stepInstall,
+                recipe.rootBuild.stepWorkload
+            ])
         {
             ScriptBuilder script;
             bc.spec = recipe;

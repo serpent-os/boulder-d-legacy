@@ -46,8 +46,8 @@ static private AnalysisReturn acceptPython(scope Analyser an, ref FileInfo inpat
  * Handler for python projects
  */
 public static AnalysisChain pythonChain = AnalysisChain("python", [
-    &acceptPython
-], 20);
+        &acceptPython
+        ], 20);
 
 /**
  * Python PEP517 Build (pyproject.toml/setup.cfg)

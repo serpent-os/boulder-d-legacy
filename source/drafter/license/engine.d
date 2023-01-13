@@ -130,8 +130,8 @@ static private AnalysisReturn scanLicenseFile(scope Analyser an, ref FileInfo fi
  * Incorporate licenseChain into analyzer to gain automatic license scanning
  */
 public static AnalysisChain licenseChain = AnalysisChain("licenseFiles", [
-    &scanLicenseFile
-], 10);
+        &scanLicenseFile
+        ], 10);
 
 /**
  * Used internally as a return type for license matching
@@ -210,8 +210,8 @@ public final class Engine
 
         /* Do we have a valid match for the first field ($SPDX.txt) ? (i.e. REUSE) */
         const auto baseToSuffix = join(splits.length > 1 ? splits[0 .. $ - 1] : [
-            splits[0]
-        ], ".");
+                splits[0]
+                ], ".");
         auto identicalIDs = licenses.filter!((m) => m.identifier.toLower == baseToSuffix);
         if (!identicalIDs.empty)
         {
@@ -259,7 +259,7 @@ private:
         double[] chunkCounts;
         context.license.textBody.chunks(ChunkSize)
             .lockstep(context.input.chunks(ChunkSize)).each!((a,
-                b) => chunkCounts ~= levenCount(a, b));
+                    b) => chunkCounts ~= levenCount(a, b));
         auto avg = mean!double(chunkCounts);
         return LicenseResult(context.license.identifier, avg);
     }
