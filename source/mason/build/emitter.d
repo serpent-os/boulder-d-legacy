@@ -197,7 +197,7 @@ private:
             chunkStartSize = index.end;
 
             indexPayload.addIndex(index);
-            contentPayload.addFile(file.digest, file.fullPath);
+            contentPayload.addFile(file.digest, file.fullPath, file.stat.st_size);
         }
 
         /* For every known file, insert it */
