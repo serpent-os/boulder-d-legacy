@@ -147,7 +147,7 @@ private:
         auto uniqueFiles = bucket.uniqueFiles().array();
 
         /* Keep sorted by path for better data locality + compression */
-        uniqueFiles.sort!((a, b) => a.fullPath < b.fullPath);
+        uniqueFiles.sort!((a, b) => a.stat.st_size > b.stat.st_size);
         allFiles.sort!((a, b) => a.path < b.path);
 
         /**
