@@ -32,10 +32,12 @@ public static immutable(Stage) stageShareUpstreams = Stage("share-upstreams", &s
  */
 static private StageReturn shareUpstreams(scope StageContext context)
 {
-    auto plains = context.job.recipe.upstreams.values.filter!((u) => u.type == UpstreamType.Plain);
-    foreach (p; plains)
+    auto shareable = context.job.recipe.upstreams.values.filter!(
+            (u) => u.type == UpstreamType.Plain || u.type == UpstreamType.Git);
+    foreach (p; shareable)
     {
-        auto name = p.plain.rename !is null ? p.plain.rename : p.uri.baseName;
+        auto name = (p.type == UpstreamType.Plain && p.plain.rename !is null) ? p.plain.rename
+            : p.uri.baseName;
         auto tgt = join([context.job.hostPaths.buildRoot, "sourcedir", name], "/");
         auto dd = tgt.dirName;
         dd.mkdirRecurse();

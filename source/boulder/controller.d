@@ -26,7 +26,7 @@ import moss.core.util : computeSHA256;
 import moss.fetcher;
 import moss.format.source;
 import std.array : array;
-import std.algorithm : filter, find, sort, uniq;
+import std.algorithm : any, filter, find, sort, uniq;
 import std.exception : enforce;
 import std.experimental.logger;
 import std.file : exists, rmdirRecurse, thisExePath;
@@ -271,6 +271,12 @@ public final class Controller : StageContext
             }
         }
 
+        /* Check if there are Git sources. If so, we need to install Git. */
+        if (recipe.upstreams.values.any!((u) => u.type == UpstreamType.Git))
+        {
+            upstreamDeps ~= "binary(git)";
+        }
+
         /* Merge, sort, uniq */
         upstreamDeps ~= _job.extraDeps;
         upstreamDeps.sort();
@@ -368,13 +374,18 @@ private:
             onFetchFail(f, "Download finished with status code: %d".format(statusCode));
             return;
         }
-        /* Verify hash */
-        auto foundHash = computeSHA256(f.destinationPath, true);
-        if (foundHash != ud.plain.hash)
+
+        if (ud.type == UpstreamType.Plain)
         {
-            onFetchFail(f, "Expected hash: %s, found '%s'".format(ud.plain.hash, foundHash));
-            return;
+            /* Verify hash */
+            auto foundHash = computeSHA256(f.destinationPath, true);
+            if (foundHash != ud.plain.hash)
+            {
+                onFetchFail(f, "Expected hash: %s, found '%s'".format(ud.plain.hash, foundHash));
+                return;
+            }
         }
+
         /* Promote the source now */
         upstreamCache.promote(ud);
     }
@@ -394,8 +405,15 @@ private:
      */
     auto fetchableToUpstream(in Fetchable f)
     {
-        return job.recipe.upstreams.values.filter!(
-                (u) => u.plain.hash == f.destinationPath.baseName).take(1).front;
+        return job.recipe.upstreams.values.filter!((u) {
+            final switch (u.type)
+            {
+            case UpstreamType.Plain:
+                return u.plain.hash == f.destinationPath.baseName;
+            case UpstreamType.Git:
+                return f.destinationPath.baseName == u.uri.baseName;
+            }
+        }).take(1).front;
     }
 
     string _mossBinary;
