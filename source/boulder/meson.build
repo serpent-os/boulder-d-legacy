@@ -2,6 +2,7 @@
 
 boulder_sources = [
     'cli/package.d',
+    'cli/deletecache_command.d',
     'cli/new_command.d',
     'cli/version_command.d',
     'cli/build_command.d',

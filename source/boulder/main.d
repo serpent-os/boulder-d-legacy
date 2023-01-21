@@ -32,6 +32,7 @@ int boulderMain(string[] args)
 {
     auto clip = cliProcessor!BoulderCLI(args);
     clip.addCommand!BuildControlCommand;
+    clip.addCommand!DeleteCacheCommand;
     clip.addCommand!NewCommand;
     clip.addCommand!VersionCommand;
     clip.addCommand!HelpCommand;
