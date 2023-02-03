@@ -16,7 +16,10 @@
 module boulder.cli.deletecache_command;
 
 public import moss.core.cli;
+import boulder.buildjob : SharedRootArtefactsCache, SharedRootBuildCache,
+    SharedRootCcacheCache, SharedRootPkgCacheCache, SharedRootRootCache;
 import boulder.cli : BoulderCLI;
+import boulder.upstreamcache : SharedRootUpstreamsCache;
 import core.sys.posix.unistd : geteuid;
 import moss.core : ExitStatus;
 import moss.core.sizing : formattedSize;
@@ -59,19 +62,13 @@ public struct DeleteCacheCommand
             return ExitStatus.Failure;
         }
 
-        /* FIXME: These paths should be easily importable from boulder */
-        immutable static artefacts = "/var/cache/boulder/artefacts";
-        immutable static build = "/var/cache/boulder/build";
-        immutable static ccache = "/var/cache/boulder/ccache";
-        immutable static pkgCache = "/var/cache/boulder/pkgCache";
-        immutable static root = "/var/cache/boulder/root";
-        immutable static upstreams = "/var/cache/boulder/upstreams";
-
         /* Print out disk usage and return if sizes is requested */
         if (sizes == true)
         {
             string[] cachePaths = [
-                artefacts, build, ccache, pkgCache, root, upstreams,
+                SharedRootArtefactsCache, SharedRootBuildCache,
+                SharedRootCcacheCache, SharedRootPkgCacheCache,
+                SharedRootRootCache, SharedRootUpstreamsCache,
             ];
             double totalSize = 0;
             foreach (string path; cachePaths)
@@ -85,7 +82,7 @@ public struct DeleteCacheCommand
         }
 
         /* Figure out what paths we're nuking */
-        string[] nukeCachePaths = [root];
+        string[] nukeCachePaths = [SharedRootRootCache];
         if (deleteAll == true)
         {
             delArtefacts = true;
@@ -95,15 +92,15 @@ public struct DeleteCacheCommand
             delUpstreams = true;
         }
         if (delArtefacts == true)
-            nukeCachePaths ~= artefacts;
+            nukeCachePaths ~= SharedRootArtefactsCache;
         if (delBuild == true)
-            nukeCachePaths ~= build;
+            nukeCachePaths ~= SharedRootBuildCache;
         if (delCcache == true)
-            nukeCachePaths ~= ccache;
+            nukeCachePaths ~= SharedRootCcacheCache;
         if (delPkgCache == true)
-            nukeCachePaths ~= pkgCache;
+            nukeCachePaths ~= SharedRootPkgCacheCache;
         if (delUpstreams == true)
-            nukeCachePaths ~= upstreams;
+            nukeCachePaths ~= SharedRootUpstreamsCache;
 
         /* Nuke the paths */
         double totalSize = 0;
