@@ -21,7 +21,7 @@ import mason.build.stage;
 import moss.deps.analysis;
 import moss.format.source.script;
 import moss.format.source.spec;
-import std.array : join;
+import std.array : join, empty;
 import std.experimental.logger;
 import std.format : format;
 import std.file : exists;
@@ -571,20 +571,25 @@ private:
                 ~ u.plain.stripdirs ~ " || (echo \"Failed to extract archive\"; exit 1);";
         }
 
-        /* Fetch a git commit or tag */
-        void fetchGit(ref UpstreamDefinition u)
+        /**
+         * Push commands to copy submodules-ready git repository from
+         * %(sourcedir).
+         *
+         * Note that for now, we're doing literal folder copying (i.e.
+         * `cp -Ra`), because doing a mirror clone would result in
+         * submodules being fetched once more from the internet. In the future,
+         * we may want to mount the repository read-only into %(sourcedir) to
+         * prevent tampering with an overlayfs on top for the build process to
+         * write stuff.
+         */
+        void copyGitRepo(ref UpstreamDefinition u)
         {
-            ret ~= "mkdir -p " ~ u.git.clonedir ~ "\n";
-            ret ~= "git -C " ~ u.git.clonedir
-                ~ " init || (echo \"Failed to init git repo\"; exit 1);";
-            ret ~= "git -C " ~ u.git.clonedir ~ " remote add origin " ~ u.uri
-                ~ " || (echo \"Failed to add git repo\"; exit 1);";
-            ret ~= "git -C " ~ u.git.clonedir ~ " fetch --depth 1 origin "
-                ~ u.git.refID ~ " || (echo \"Failed to fetch git repo\"; exit 1);";
-            ret ~= "git -C " ~ u.git.clonedir ~ " checkout FETCH_HEAD"
-                ~ " || (echo \"Failed to checkout " ~ u.git.refID ~ "\"; exit 1);";
-            ret ~= "git -C " ~ u.git.clonedir ~ " submodule update --init --recursive"
-                ~ " || (echo \"Failed to checkout submodules\"; exit 1);";
+            /**
+             * cp will fail to preserve ownership if it sees a symlink.
+             * e.g. cp: failed to preserve ownership for X: Operation not supported
+             */
+            ret ~= "cp -Ra --no-preserve=ownership \"%(sourcedir)/"
+                ~ u.uri.baseName ~ "/\" \"" ~ u.git.clonedir ~ "\"\n";
         }
 
         foreach (source; buildContext.spec.upstreams)
@@ -611,12 +616,16 @@ private:
                 }
                 break;
             case UpstreamType.Git:
-                /* Ensure a clone directory target */
-                if (source.git.clonedir is null)
+                /**
+                 * Manually set clonedir. The layout of a union in D causes
+                 * the default initialization of GitUpstreamDefinition to
+                 * not work as expected.
+                 */
+                if (source.git.clonedir == null || source.git.clonedir.empty)
                 {
-                    source.git.clonedir = buildContext.spec.source.name;
+                    source.git.clonedir = ".";
                 }
-                fetchGit(source);
+                copyGitRepo(source);
             }
         }
 

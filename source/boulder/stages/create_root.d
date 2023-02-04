@@ -18,6 +18,7 @@ module boulder.stages.create_root;
 public import boulder.stages : Stage, StageReturn, StageContext;
 
 import std.algorithm : each;
+import std.format : format;
 import std.file : mkdirRecurse;
 import core.sys.posix.unistd : chown;
 import moss.core.mounts;
@@ -61,7 +62,7 @@ public static immutable(Stage) stageCreateRoot = Stage("create-root", (StageCont
         auto err = pkgCache.mount();
         if (!err.isNull)
         {
-            errorf("Failed to mount %s: %s", pkgCache.target, err.get.toString);
+            error(format!"Failed to mount %s: %s"(pkgCache.target, err.get.toString));
             return StageReturn.Failure;
         }
         context.addMount(pkgCache);
@@ -72,7 +73,7 @@ public static immutable(Stage) stageCreateRoot = Stage("create-root", (StageCont
         auto err = recipeMount.mount();
         if (!err.isNull)
         {
-            errorf("Failed to mount %s: %s", recipeMount.target, err.get.toString);
+            error(format!"Failed to mount %s: %s"(recipeMount.target, err.get.toString));
             return StageReturn.Failure;
         }
         context.addMount(recipeMount);

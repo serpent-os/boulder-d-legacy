@@ -21,7 +21,7 @@ import moss.core.ioutil;
 import std.exception : enforce;
 import std.experimental.logger;
 import std.conv : to;
-import std.path : dirName;
+import std.path : dirName, pathSplitter;
 import std.file : exists, mkdirRecurse, rename;
 import std.string : format;
 import std.array : join;
@@ -67,19 +67,137 @@ public final class UpstreamCache
     }
 
     /** 
-     *  Promote from staging to real
+     *  Promote from staging to real. This is where Git sources fetch their
+     *  submodules.
      */
     void promote(in UpstreamDefinition def) @safe
     {
+        import std.process;
+
+        enforce(def.type == UpstreamType.Plain || def.type == UpstreamType.Git,
+                "UpstreamCache: only plain and git types are supported");
+
         auto st = stagingPath(def);
         auto fp = finalPath(def);
-        enforce(def.type == UpstreamType.Plain, "UpstreamCache: git not yet supported");
-        enforce(st.exists, "UpstreamCache.promote(): %s does not exist".format(st));
 
-        /* Move from staging path to final path */
+        enforce(st.exists, format!"UpstreamCache.promote(): %s does not exist"(st));
+
         auto dirn = fp.dirName;
-        dirn.mkdirRecurse();
-        st.rename(fp);
+        if (!dirn.exists)
+        {
+            dirn.mkdirRecurse();
+        }
+
+        final switch (def.type)
+        {
+        case UpstreamType.Plain:
+            /* Move from staging path to final path */
+            st.rename(fp);
+            break;
+        case UpstreamType.Git:
+            /**
+             * Clone the repository from staging path to final path. Check out
+             * the desired ref. Then, fetch submodules recursively.
+             */
+
+            string[string] env;
+            string workdir = fp;
+            if (!fp.exists)
+            {
+                auto cmd = ["git", "clone", "--", st, fp];
+                debug
+                {
+                    trace(cmd);
+                }
+                auto clone = spawnProcess(cmd, env, Config.none);
+                int exitCode = clone.wait();
+                enforce(exitCode == 0,
+                        format!"Failed to clone git source from staging path %s to final path %s"(st,
+                            fp));
+            }
+
+            string refID = (() @trusted => def.git.refID)();
+
+            if (!refExists(def, refID))
+            {
+                trace(format!"Ref %s doesn't exist in the repository clone in final path. Fetching new refs from local upstream in staging path"(
+                        refID));
+
+                auto fetch = spawnProcess(["git", "fetch",], env, Config.none, workdir);
+                int exitCode = fetch.wait();
+                enforce(exitCode == 0,
+                        format!"Failed to fetch more refs from local upstream in staging path %s to final path %s"(st,
+                            fp));
+                enforce(refExists(def, refID),
+                        format!"Ref %s still doesn't exist in the repository clone in final path %s"(fp,
+                            refID));
+            }
+
+            resetToRef(def, refID);
+
+            break;
+        }
+    }
+
+    /**
+     * Reset the non-bare Git repository in def's **final path** to the
+     * requested ref.
+     * 
+     * Note that its submodules will also be fetched and checked out to their
+     * corresponding ref.
+     *
+     * For obvious reasons, def must be a Git upstream.
+     */
+    void resetToRef(in UpstreamDefinition def, in string refID) @safe
+    {
+        import std.process;
+
+        enforce(def.type == UpstreamType.Git,
+                "UpstreamCache.resetToRef: only supports Git upstreams!");
+
+        string[string] env;
+        string workdir = finalPath(def);
+
+        auto cmd = ["git", "reset", "--hard", refID,];
+        auto checkOut = spawnProcess(cmd, env, Config.none, workdir);
+        int exitCode = checkOut.wait();
+        enforce(exitCode == 0, format!"Failed to reset to requested git ref %s"(refID));
+
+        auto submodules = spawnProcess([
+            "git", "submodule", "update", "--init", "--recursive", "--depth",
+            "1", "--jobs", "4",
+        ], env, Config.none, workdir);
+        exitCode = submodules.wait();
+        enforce(exitCode == 0, "Failed to fetch/checkout submodules");
+    }
+
+    /**
+     * Given an UpstreamDefinition and a Git ref, check if the ref is present in
+     * the upstream source's mirror clone in the **staging directory**. Always
+     * returns false if the source's staging directory doesn't exist.
+     * 
+     * Note that it does not actually verify that ref exists as a commit. It
+     * only verifies that there is an object in the database corresponding to
+     * the SHA1 provided. However, it's enough for our purposes, since
+     * oftentimes we specify the git tag anyway.
+     */
+    bool refExists(in UpstreamDefinition def, in string refID) @safe
+    {
+        enforce(def.type == UpstreamType.Git,
+                "UpstreamCache.refExists: Only Git upstreams can query ref existence");
+
+        import std.process;
+
+        auto st = stagingPath(def);
+
+        if (!st.exists)
+        {
+            return false;
+        }
+
+        string[string] env;
+        auto verify = spawnProcess(["git", "cat-file", "-e", refID,], env, Config.none, st,);
+        return verify.wait() == 0;
     }
 
     /**
@@ -87,13 +205,28 @@ public final class UpstreamCache
      */
     void share(in UpstreamDefinition def, in string destPath) ///FIXME: @safe
     {
+        enforce(def.type == UpstreamType.Plain || def.type == UpstreamType.Git,
+                "UpstreamCache: only plain and git types are supported");
+
         auto fp = finalPath(def);
-        enforce(def.type == UpstreamType.Plain, "UpstreamCache: git not yet supported");
+
+        debug
+        {
+            trace(format!"Sharing from %s to %s"(fp, destPath));
+        }
 
         try
         {
-            auto res = IOUtil.hardlinkOrCopy(fp, destPath);
-            /// FIXME: res.tryMatch!((bool b) => b);
+            final switch (def.type)
+            {
+            case UpstreamType.Plain:
+                auto res = IOUtil.hardlinkOrCopy(fp, destPath);
+                /// FIXME: res.tryMatch!((bool b) => b);
+                break;
+            case UpstreamType.Git:
+                copyDir(fp, destPath);
+                break;
+            }
         }
         catch (Exception e)
         {
@@ -106,10 +239,21 @@ public final class UpstreamCache
      */
     const(string) stagingPath(in UpstreamDefinition def) @trusted
     {
-        enforce(def.type == UpstreamType.Plain, "UpstreamCache: git not yet supported");
-        enforce(def.plain.hash.length >= 5,
-                "UpstreamCache: Hash too short: " ~ to!string(def.plain));
-        return join([stagingDirectory, def.plain.hash], "/");
+        import std.path : pathSplitter, buildNormalizedPath;
+
+        enforce(def.type == UpstreamType.Plain || def.type == UpstreamType.Git,
+                "UpstreamCache: only plain and git types are supported");
+
+        final switch (def.type)
+        {
+        case UpstreamType.Plain:
+            enforce(def.plain.hash.length >= 5,
+                    "UpstreamCache: Hash too short: " ~ to!string(def.plain));
+            return join([stagingDirectory, def.plain.hash], "/");
+        case UpstreamType.Git:
+            return join([stagingDirectory, "git",
+                    normalizedUriPath(def.uri)], "/");
+        }
     }
 
     /**
@@ -117,14 +261,31 @@ public final class UpstreamCache
      */
     const(string) finalPath(in UpstreamDefinition def) @trusted
     {
-        enforce(def.type == UpstreamType.Plain, "UpstreamCache: git not yet supported");
-        enforce(def.plain.hash.length >= 5,
-                "UpstreamCache: Hash too short: " ~ to!string(def.plain));
+        import std.path;
+        import std.algorithm.searching : startsWith;
 
-        return join([
-            plainDirectory, def.plain.hash[0 .. 5], def.plain.hash[5 .. $],
-            def.plain.hash
-        ], "/");
+        enforce(def.type == UpstreamType.Plain || def.type == UpstreamType.Git,
+                "UpstreamCache: only plain and git types are supported");
+
+        final switch (def.type)
+        {
+        case UpstreamType.Plain:
+            enforce(def.plain.hash.length >= 5,
+                    "UpstreamCache: Hash too short: " ~ to!string(def.plain));
+
+            return join([
+                plainDirectory, def.plain.hash[0 .. 5], def.plain.hash[5 .. $],
+                def.plain.hash
+            ], "/");
+        case UpstreamType.Git:
+            string path = join([gitDirectory, normalizedUriPath(def.uri)], "/");
+
+            /* A very simple check to prevent path escaping */
+            enforce(!path.asRelativePath(gitDirectory).startsWith(".."),
+                    "Path escaping in Git URI may be possible");
+
+            return path;
+        }
     }
 
 private:
@@ -148,4 +309,74 @@ private:
      * Plain downloads
      */
     static immutable(string) plainDirectory = join([rootDirectory, "fetched"], "/");
+
+    /**
+     * Converts and normalizes a URI (in our use case, an HTTP(S) Git remote
+     * url) to a valid path.
+     */
+    string normalizedUriPath(string uri) @safe pure
+    {
+        import std.uri;
+        import std.array;
+        import std.path : pathSplitter;
+
+        auto len = uriLength(uri);
+        enforce(len > -1, "Upstream is not a valid HTTP Git URI");
+
+        /* In case someone enters a evil url that may destroy the upstream
+         * caches, we only use the substring that is verified to be an
+         * URI
+         */
+        auto splitted = pathSplitter(uri).array();
+        return join(splitted[1 .. $], "/");
+    }
+
+    @safe pure unittest
+    {
+        assert(equals(normalizedUriPath("https://github.com/serpent-os/moss.git"),
+                "github.com/serpent-os/moss.git"));
+    }
+
+    /**
+     * Copies the contents of directory inDir to the destination directory
+     * outDir.
+     *
+     * Hopefully in the future, we can move this to IOUtil in moss-core. It's
+     * currently put here because I don't want to pollute IOUtil with high-level
+     * code.
+     */
+    void copyDir(string inDir, string outDir)
+    {
+        import std.file;
+        import std.path;
+        import std.typecons : Yes;
+
+        if (!exists(outDir))
+        {
+            mkdir(outDir);
+        }
+        else
+        {
+            enforce(outDir.isDir, format!"Destination path %s is not a folder."(outDir));
+        }
+
+        foreach (entry; dirEntries(inDir, SpanMode.shallow, false))
+        {
+            auto fileName = baseName(entry.name);
+            auto destName = buildPath(outDir, fileName);
+            if (entry.isDir())
+            {
+                copyDir(entry.name, destName);
+            }
+            else if (entry.isSymlink) /* Safer to handle symlinks manually */
+            {
+                symlink(readLink(entry.name), destName);
+            }
+            else /* File */
+            {
+                copy(entry.name, destName, Yes.preserveAttributes);
+            }
+        }
+    }
+
 }
