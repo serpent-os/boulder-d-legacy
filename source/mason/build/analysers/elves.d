@@ -69,8 +69,8 @@ public void copyElfDebug(scope Analyser analyser, ref FileInfo fileInfo)
 
     /* Execute, TODO: Fix environment */
     auto ret = executeCommand(command, [
-            "--only-keep-debug", fileInfo.fullPath, debugInfoPath
-            ], null);
+        "--only-keep-debug", fileInfo.fullPath, debugInfoPath
+    ], null);
     auto code = ret.match!((err) {
         error(format!"debuginfo failure: %s"(err.toString));
         return -1;
@@ -85,8 +85,8 @@ public void copyElfDebug(scope Analyser analyser, ref FileInfo fileInfo)
     /* GNU debuglink. */
     auto commandLink = useLLVM ? "/usr/bin/llvm-objcopy" : "/usr/bin/objcopy";
     auto linkRet = executeCommand(commandLink, [
-            "--add-gnu-debuglink", debugInfoPath, fileInfo.fullPath
-            ], null);
+        "--add-gnu-debuglink", debugInfoPath, fileInfo.fullPath
+    ], null);
     code = linkRet.match!((err) {
         error(format!"debuginfo:link failure: %s"(err.toString));
         return -1;
@@ -121,7 +121,7 @@ public void stripElfFiles(scope Builder instance, ref FileInfo fileInfo)
     auto ret = executeCommand(command, isExecutable
             ? [fileInfo.fullPath] : [
                 "-g", "--strip-unneeded", fileInfo.fullPath
-            ], null);
+    ], null);
     auto code = ret.match!((err) {
         error(format!"strip failure: %s"(err.toString));
         return -1;

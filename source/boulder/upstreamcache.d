@@ -252,7 +252,7 @@ public final class UpstreamCache
             return join([stagingDirectory, def.plain.hash], "/");
         case UpstreamType.Git:
             return join([stagingDirectory, "git",
-                    normalizedUriPath(def.uri)], "/");
+                normalizedUriPath(def.uri)], "/");
         }
     }
 
