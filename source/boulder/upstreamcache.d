@@ -314,7 +314,7 @@ private:
      * Converts and normalizes a URI (in our use case, an HTTP(S) Git remote
      * url) to a valid path.
      */
-    string normalizedUriPath(string uri) @safe pure
+    static string normalizedUriPath(string uri) @safe pure
     {
         import std.uri;
         import std.array;
@@ -333,8 +333,9 @@ private:
 
     @safe pure unittest
     {
-        assert(equals(normalizedUriPath("https://github.com/serpent-os/moss.git"),
-                "github.com/serpent-os/moss.git"));
+
+        assert(normalizedUriPath(
+                "https://github.com/serpent-os/moss.git") == "github.com/serpent-os/moss.git");
     }
 
     /**
