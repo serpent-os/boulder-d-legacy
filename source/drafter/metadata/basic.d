@@ -23,7 +23,7 @@ import std.path : baseName, dirName;
 /**
  * Standard/basic version detection
  */
-private static auto reBasicVersion = ctRegex!(
+private static auto reBasicVersion = regex(
         r"^([a-zA-Z0-9-]+)-([a-zA-Z0-9._-]+)\.(zip|tar|sh|bin\.*)");
 
 private static enum BasicIndex : int

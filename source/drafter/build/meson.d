@@ -25,12 +25,12 @@ import std.mmfile;
 /**
  * Used for dependency matching ignoring the version specifier
  */
-static immutable reMesonDependency = ctRegex!r"dependency\s?\(\s?'\s?([A-Za-z0-9+-_]+)";
+static immutable reMesonDependency = regex(r"dependency\s?\(\s?'\s?([A-Za-z0-9+-_]+)");
 
 /**
  * Handle the find_program() call to map to binary() providers
  */
-static immutable reMesonProgram = ctRegex!r"find_program\s?\(\s?'\s?([A-Za-z0-9+-_]+)";
+static immutable reMesonProgram = regex(r"find_program\s?\(\s?'\s?([A-Za-z0-9+-_]+)");
 
 /**
  * Discover meson projects

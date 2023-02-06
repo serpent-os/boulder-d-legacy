@@ -27,7 +27,7 @@ import std.mmfile;
  * Ugly as all living fuck but lets us discover pkgconfig dependencies
  * in configure.ac files using group index 2.
  */
-static immutable reConfigurePkgconfig = ctRegex!(
+static immutable reConfigurePkgconfig = regex(
         r"PKG_CHECK_MODULES\s?\(\s?\[([A-Za-z_]+)\s?\]\s?,\s?\[\s?(\s?[A-Za-z0-9\-_+]+)\s?]");
 
 /**

@@ -23,7 +23,7 @@ import std.string : format;
 /**
  * Github automatically generated downloads
  */
-auto reGithubAutomatic = ctRegex!(
+auto reGithubAutomatic = regex(
         r"\w+\:\/\/github\.com\/([A-Za-z0-9-_]+)\/([A-Za-z0-9-_]+)\/archive\/refs\/tags\/([A-Za-z0-9.-_]+)\.(tar|zip)");
 
 /**
@@ -39,7 +39,7 @@ private static enum GithubIndex : int
 /**
  * Manually uploaded files on GitHub
  */
-auto reGithubManual = ctRegex!(
+auto reGithubManual = regex(
         r"\w+\:\/\/github\.com\/([A-Za-z0-9-_]+)\/([A-Za-z0-9-_]+)\/releases\/download\/([A-Za-z0-9-_.]+)\/.*");
 
 /**
