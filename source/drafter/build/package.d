@@ -84,9 +84,8 @@ public enum BuildType : string
 }
 
 /**
- * Any BuildPattern implementation must have the
- * following members to be valid. For lightweight
- * usage we actually use structs not class implementations.
+ * Standard approach to garner the relevant build steps when templating
+ * a build recipe.
  */
 public interface Build
 {
