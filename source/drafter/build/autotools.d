@@ -18,7 +18,7 @@ module drafter.build.autotools;
 import std.regex;
 import moss.deps.analysis;
 import drafter : Drafter;
-import drafter.build : BuildType;
+import drafter.build : BuildType, Build;
 import std.path : baseName;
 import std.algorithm : canFind;
 import std.mmfile;
@@ -88,8 +88,10 @@ static private AnalysisReturn scanAutotools(scope Analyser an, ref FileInfo inpa
 public static AnalysisChain autotoolsChain = AnalysisChain("autotools",
         [&acceptAutotools, &scanAutotools], 10);
 
-public struct AutotoolsBuild
+public final class AutotoolsBuild : Build
 {
+
+override:
     string setup()
     {
         return "%configure";

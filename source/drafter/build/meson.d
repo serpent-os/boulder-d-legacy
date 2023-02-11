@@ -17,7 +17,7 @@ module drafter.build.meson;
 import std.regex;
 import moss.deps.analysis;
 import drafter : Drafter;
-import drafter.build : BuildType;
+import drafter.build : BuildType, Build;
 import std.path : baseName;
 import std.algorithm : canFind;
 import std.mmfile;
@@ -104,8 +104,10 @@ public static AnalysisChain mesonChain = AnalysisChain("meson", [
 /**
  * Build instructions
  */
-public struct MesonBuild
+public final class MesonBuild : Build
 {
+override:
+
     string setup()
     {
         return "%meson";

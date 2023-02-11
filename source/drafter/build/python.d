@@ -16,7 +16,7 @@
 module drafter.build.python;
 import moss.deps.analysis;
 import drafter : Drafter;
-import drafter.build : BuildType;
+import drafter.build : BuildType, Build;
 import std.path : baseName;
 
 /**
@@ -52,8 +52,10 @@ public static AnalysisChain pythonChain = AnalysisChain("python", [
 /**
  * Python PEP517 Build (pyproject.toml/setup.cfg)
  */
-public struct Pythonpep517Build
+public final class Pythonpep517Build : Build
 {
+override:
+
     string setup()
     {
         return null;
@@ -78,8 +80,10 @@ public struct Pythonpep517Build
 /**
  * Python Setuptools Build (setup.py)
  */
-public struct PythonsetuptoolsBuild
+public final class PythonsetuptoolsBuild : Build
 {
+override:
+
     string setup()
     {
         return null;

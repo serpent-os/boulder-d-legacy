@@ -18,7 +18,7 @@ module drafter.build.cmake;
 import moss.deps.analysis;
 import std.path : baseName;
 import drafter : Drafter;
-import drafter.build : BuildType;
+import drafter.build : BuildType, Build;
 
 /**
  * Is this cmake??
@@ -55,8 +55,10 @@ public static AnalysisChain cmakeChain = AnalysisChain("cmake", [&acceptCMake], 
 /**
  * Handle emission of cmake builds
  */
-public struct CmakeBuild
+public final class CmakeBuild : Build
 {
+override:
+
     string setup()
     {
         return "%cmake";

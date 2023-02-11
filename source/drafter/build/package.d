@@ -22,7 +22,6 @@ public import drafter.build.python;
 
 import std.traits : EnumMembers;
 import std.string : capitalize;
-import std.experimental.typecons : wrap;
 
 public Build buildTypeToHelper(BuildType type)
 {
@@ -41,8 +40,8 @@ public Build buildTypeToHelper(BuildType type)
             else
             {
                 /* Return class based instantiation */
-                mixin("auto helper = " ~ member.capitalize ~ "Build();");
-                return helper.wrap!Build;
+                mixin("auto helper = new " ~ member.capitalize ~ "Build();");
+                return helper;
             }
         }
     }
