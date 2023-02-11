@@ -131,7 +131,7 @@ public enum StageReturn
 /**
  * Each execution function for a stage must explicitly match our type
  */
-public alias StageFunction = StageReturn function(scope StageContext context);
+public alias StageFunction = StageReturn function(StageContext context);
 
 /**
  * A Stage is just an element to control the flow of execution in the
@@ -147,5 +147,5 @@ public struct Stage
     /**
      * The runnable method
      */
-    immutable(StageFunction) functor;
+    StageFunction functor;
 }
