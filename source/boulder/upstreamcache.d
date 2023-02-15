@@ -29,6 +29,11 @@ public import moss.format.source.upstream_definition;
 import std.sumtype : tryMatch;
 
 /**
+ * Base of all directories
+ */
+public static immutable(string) SharedRootUpstreamsCache = "/var/cache/boulder/upstreams";
+
+/**
  * The UpstreamCache provides persistent paths and
  * deduplication facilities to permit retention of
  * hash-indexed downloads across multiple builds.
@@ -50,7 +55,8 @@ public final class UpstreamCache
     void constructDirs()
     {
         auto paths = [
-            rootDirectory, stagingDirectory, gitDirectory, plainDirectory
+            SharedRootUpstreamsCache, stagingDirectory, gitDirectory,
+            plainDirectory
         ];
         foreach (p; paths)
         {
@@ -66,7 +72,7 @@ public final class UpstreamCache
         return finalPath(def).exists;
     }
 
-    /** 
+    /**
      *  Promote from staging to real. This is where Git sources fetch their
      *  submodules.
      */
@@ -142,7 +148,7 @@ public final class UpstreamCache
     /**
      * Reset the non-bare Git repository in def's **final path** to the
      * requested ref.
-     * 
+     *
      * Note that its submodules will also be fetched and checked out to their
      * corresponding ref.
      *
@@ -175,7 +181,7 @@ public final class UpstreamCache
      * Given an UpstreamDefinition and a Git ref, check if the ref is present in
      * the upstream source's mirror clone in the **staging directory**. Always
      * returns false if the source's staging directory doesn't exist.
-     * 
+     *
      * Note that it does not actually verify that ref exists as a commit. It
      * only verifies that there is an object in the database corresponding to
      * the SHA1 provided. However, it's enough for our purposes, since
@@ -289,26 +295,26 @@ public final class UpstreamCache
     }
 
 private:
-
-    /**
-     * Base of all directories
-     */
-    static immutable(string) rootDirectory = "/var/cache/boulder/upstreams";
-
     /**
      * Staging downloads that might be wonky.
      */
-    static immutable(string) stagingDirectory = join([rootDirectory, "staging"], "/");
+    static immutable(string) stagingDirectory = join([
+        SharedRootUpstreamsCache, "staging"
+    ], "/");
 
     /**
      * Git clones
      */
-    static immutable(string) gitDirectory = join([rootDirectory, "git"], "/");
+    static immutable(string) gitDirectory = join([
+        SharedRootUpstreamsCache, "git"
+    ], "/");
 
     /**
      * Plain downloads
      */
-    static immutable(string) plainDirectory = join([rootDirectory, "fetched"], "/");
+    static immutable(string) plainDirectory = join([
+        SharedRootUpstreamsCache, "fetched"
+    ], "/");
 
     /**
      * Converts and normalizes a URI (in our use case, an HTTP(S) Git remote
@@ -379,5 +385,4 @@ private:
             }
         }
     }
-
 }

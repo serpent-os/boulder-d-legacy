@@ -22,6 +22,22 @@ import std.array : join;
 
 immutable static private auto SharedRootBase = "/var/cache/boulder";
 
+immutable static public auto SharedRootArtefactsCache = join([
+    SharedRootBase, "artefacts"
+], "/");
+immutable static public auto SharedRootBuildCache = join([
+    SharedRootBase, "build"
+], "/");
+immutable static public auto SharedRootCcacheCache = join([
+    SharedRootBase, "ccache"
+], "/");
+immutable static public auto SharedRootPkgCacheCache = join([
+    SharedRootBase, "pkgCache"
+], "/");
+immutable static public auto SharedRootRootCache = join([
+    SharedRootBase, "root"
+], "/");
+
 package struct BuildPaths
 {
     /**
@@ -71,17 +87,17 @@ public final class BuildJob
         auto subpath = format!"%s-%s-%s"(_recipe.source.name,
                 _recipe.source.versionIdentifier, _recipe.source.release);
         /* Output */
-        _hostPaths.artefacts = join([SharedRootBase, "artefacts", subpath], "/");
+        _hostPaths.artefacts = join([SharedRootArtefactsCache, subpath], "/");
         /* Where to build */
-        _hostPaths.buildRoot = join([SharedRootBase, "build", subpath], "/");
+        _hostPaths.buildRoot = join([SharedRootBuildCache, subpath], "/");
         /* Where to cache */
-        _hostPaths.compilerCache = join([SharedRootBase, "ccache"], "/");
+        _hostPaths.compilerCache = join([SharedRootCcacheCache], "/");
         /* Where to save binaries */
-        _hostPaths.pkgCache = join([SharedRootBase, "pkgCache"], "/");
+        _hostPaths.pkgCache = join([SharedRootPkgCacheCache], "/");
         /* Where is the recipe..? */
         _hostPaths.recipe = path.dirName.absolutePath.buildNormalizedPath;
         /* And where is the rootfs? */
-        _hostPaths.rootfs = join([SharedRootBase, "root", subpath], "/");
+        _hostPaths.rootfs = join([SharedRootRootCache, subpath], "/");
         /* Unconfined recipe tree? */
         _unconfinedRecipe = join([SharedRootBase, "recipe", subpath], "/");
     }
@@ -150,7 +166,7 @@ public final class BuildJob
         ], "/");
     }
 
-    /** 
+    /**
      * Extra deps
      */
     @property void extraDeps(string[] deps) @safe
