@@ -28,5 +28,7 @@
 			"path": "../moss-fetcher"
 		}
 	},
-	"dflags": ["-J", "data"]
+	"stringImportPaths": [
+		"data"
+	]
 }
