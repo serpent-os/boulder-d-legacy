@@ -8,6 +8,9 @@
 	"version": "0.0.0",
 	"name": "boulder",
 	"targetPath": "bin",
+	"toolchainRequirements": {
+		"ldc": ">=1.31.0"
+	},
 	"dependencies": {
 		"moss-config": {
 			"path": "../moss-config"
