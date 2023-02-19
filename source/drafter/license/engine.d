@@ -73,7 +73,7 @@ static private string sanitizeLicense(in string path)
  */
 static private AnalysisReturn scanLicenseFile(scope Analyser an, ref FileInfo fi)
 {
-    if (fi.type != FileType.Regular)
+    if (fi.type != FileType.Regular || fi.stat.st_size < 1)
     {
         return AnalysisReturn.NextHandler;
     }
