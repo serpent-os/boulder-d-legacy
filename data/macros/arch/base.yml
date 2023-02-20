@@ -53,8 +53,11 @@ actions              :
             set -x
             TERM="dumb"; export TERM
             CFLAGS="%(cflags)"; export CFLAGS
+            CGO_CFLAGS="%(cflags)"; export CGO_CFLAGS
             CXXFLAGS="%(cxxflags)"; export CXXFLAGS
+            CGO_CXXFLAGS="%(cxxflags)"; export CGO_CXXFLAGS
             LDFLAGS="%(ldflags)"; export LDFLAGS
+            CGO_LDFLAGS="%(ldflags)"; export CGO_LDFLAGS
             CC="%(cc)"; export CC
             CXX="%(cxx)"; export CXX
             CPP="%(cpp)"; export CPP
