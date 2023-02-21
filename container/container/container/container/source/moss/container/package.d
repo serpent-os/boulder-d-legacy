@@ -42,9 +42,8 @@ public final class Container
             Mount("proc", context.joinPath("/proc"), "proc",
                     MountFlags.NoSuid | MountFlags.NoDev | MountFlags.NoExec
                     | MountFlags.RelativeAccessTime),
-            Mount("sysfs", context.joinPath("/sys"), "sysfs",
-                    MountFlags.NoSuid | MountFlags.NoDev | MountFlags.NoExec
-                    | MountFlags.RelativeAccessTime),
+            Mount("/sys", context.joinPath("/sys"), "",
+                    MountFlags.Bind | MountFlags.Rec),
             Mount("tmpfs", context.joinPath("/tmp"), "tmpfs",
                     MountFlags.NoSuid | MountFlags.NoDev),
 
