@@ -289,7 +289,7 @@ public final class Controller : StageContext
             foreach_reverse (ref m; mountPoints)
             {
                 trace(format!"Unmounting %s"(m));
-                m.unmountFlags = UnmountFlags.Force | UnmountFlags.Detach;
+                m.unmountFlags = UnmountFlags.Detach;
                 auto err = m.unmount();
                 if (!err.isNull())
                 {
