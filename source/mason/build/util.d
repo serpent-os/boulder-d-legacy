@@ -17,7 +17,8 @@ module mason.build.util;
 
 public import std.sumtype;
 import core.exception : RangeError;
-import std.process : Config, ProcessException, spawnProcess, wait;
+import core.sys.posix.signal : signal, SIGINT;
+import std.process : Config, kill, ProcessException, spawnProcess, wait;
 import std.stdio : stderr, stdin, stdout;
 import std.string : format;
 
@@ -51,7 +52,7 @@ public struct ExecutionError
 public alias ExecutionResult = SumType!(int, ExecutionError);
 
 /**
- * Execute the command and return the result. 
+ * Execute the command and return the result.
  */
 public ExecutionResult executeCommand(in string command, in string[] args,
         in string[string] environment, in string workingDir = ".")
@@ -65,6 +66,12 @@ public ExecutionResult executeCommand(in string command, in string[] args,
     try
     {
         statusCode = wait(id);
+        /* Catch SIGINT and only kill the child process */
+        signal(SIGINT, &sigIntHandler);
+        if (sigInt == true)
+        {
+            kill(id, SIGINT);
+        }
     }
     catch (RangeError ex)
     {
@@ -77,3 +84,15 @@ public ExecutionResult executeCommand(in string command, in string[] args,
     }
     return ExecutionResult(statusCode);
 }
+
+/**
+ * Sets sigInt to true if the signal recieved is 130 (SIGINT)
+ * Params: signal
+ */
+extern (C) void sigIntHandler(int sig) nothrow @nogc @system
+{
+    sigInt = true;
+}
+
+private:
+    bool sigInt = false;
