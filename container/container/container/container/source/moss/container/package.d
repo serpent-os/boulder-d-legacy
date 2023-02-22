@@ -43,7 +43,7 @@ public final class Container
                     MountFlags.NoSuid | MountFlags.NoDev | MountFlags.NoExec
                     | MountFlags.RelativeAccessTime),
             Mount("/sys", context.joinPath("/sys"), "",
-                    MountFlags.Bind | MountFlags.Rec),
+                    MountFlags.Bind | MountFlags.Rec | MountFlags.ReadOnly),
             Mount("", context.joinPath("/tmp"), "tmpfs",
                     MountFlags.NoSuid | MountFlags.NoDev)
         ];
