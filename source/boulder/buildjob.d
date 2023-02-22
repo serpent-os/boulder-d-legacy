@@ -34,9 +34,7 @@ immutable static public auto SharedRootCcacheCache = join([
 immutable static public auto SharedRootPkgCacheCache = join([
     SharedRootBase, "pkgCache"
 ], "/");
-immutable static public auto SharedRootRootCache = join([
-    SharedRootBase, "root"
-], "/");
+immutable static public auto SharedRootRootCache = join([SharedRootBase, "root"], "/");
 
 package struct BuildPaths
 {

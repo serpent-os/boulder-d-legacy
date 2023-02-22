@@ -95,4 +95,4 @@ extern (C) void sigIntHandler(int sig) nothrow @nogc @system
 }
 
 private:
-    bool sigInt = false;
+bool sigInt = false;
