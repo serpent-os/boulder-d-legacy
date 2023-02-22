@@ -88,11 +88,12 @@ public struct BuildControlCommand
             return ExitStatus.Failure;
         }
 
+        ExitStatus res;
         foreach (recipe; argv)
         {
-            controller.build(recipe);
+            res = controller.build(recipe);
         }
-        return ExitStatus.Success;
+        return res;
     }
 
     /** Select an alternative output location than the current working directory */

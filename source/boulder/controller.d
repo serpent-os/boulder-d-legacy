@@ -21,6 +21,7 @@ module boulder.controller;
 
 import boulder.buildjob;
 import boulder.stages;
+import moss.core : ExitStatus;
 import moss.core.mounts;
 import moss.core.util : computeSHA256;
 import moss.fetcher;
@@ -138,7 +139,7 @@ public final class Controller : StageContext
         return _architecture;
     }
 
-    /** 
+    /**
      * Confinement status
      *
      * Returns: false if the CLI has `-u` passed as a flag
@@ -196,7 +197,7 @@ public final class Controller : StageContext
     /**
      * Begin the build process for a specific recipe
      */
-    void build(in string filename)
+    ExitStatus build(in string filename)
     {
         auto fi = File(filename, "r");
         trace(format!"%s: Parsing recipe file %s"(__FUNCTION__, filename));
@@ -300,6 +301,7 @@ public final class Controller : StageContext
 
         int stageIndex = 0;
         int nStages = cast(int) boulderStages.length;
+        StageReturn result = StageReturn.Failure;
 
         build_loop: while (true)
         {
@@ -313,7 +315,6 @@ public final class Controller : StageContext
             enforce(stage.functor !is null);
 
             trace(format!"Stage begin: %s"(stage.name));
-            StageReturn result = StageReturn.Failure;
             try
             {
                 result = stage.functor(this);
@@ -345,6 +346,11 @@ public final class Controller : StageContext
                 break;
             }
         }
+        if (result == StageReturn.Failure)
+        {
+            return ExitStatus.Failure;
+        }
+        return ExitStatus.Success;
     }
 
     /**
