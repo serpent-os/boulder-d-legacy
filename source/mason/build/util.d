@@ -17,7 +17,7 @@ module mason.build.util;
 
 public import std.sumtype;
 import core.exception : RangeError;
-import core.sys.posix.signal : signal, SIGINT;
+import core.sys.posix.signal : sigaction, sigaction_t, sigemptyset, SIGINT;
 import std.process : Config, kill, ProcessException, spawnProcess, wait;
 import std.stdio : stderr, stdin, stdout;
 import std.string : format;
@@ -63,11 +63,17 @@ public ExecutionResult executeCommand(in string command, in string[] args,
     int statusCode = -1;
     auto id = spawnProcess(command ~ args, stdin, stdout, stderr, environment, config, workingDir);
 
+    /* Initalize sigaction_t with our sigIntHandler */
+    sigaction_t newSA;
+    newSA.sa_handler = &sigIntHandler;
+    newSA.sa_flags = 0;
+    sigemptyset(&newSA.sa_mask);
+
     try
     {
         statusCode = wait(id);
         /* Catch SIGINT and only kill the child process */
-        signal(SIGINT, &sigIntHandler);
+        sigaction(SIGINT, &newSA, null);
         if (sigInt == true)
         {
             kill(id, SIGINT);
