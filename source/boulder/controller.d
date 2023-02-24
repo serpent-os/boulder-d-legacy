@@ -350,7 +350,7 @@ public final class Controller : StageContext
     /**
      * Add mounts to track list to unmount them
      */
-    void addMount(in Mount mount) @safe nothrow
+    void addMount(ref Mount mount) @safe nothrow
     {
         mountPoints ~= mount;
     }
