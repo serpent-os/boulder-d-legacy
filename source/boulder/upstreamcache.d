@@ -354,8 +354,10 @@ private:
      */
     void copyDir(string inDir, string outDir)
     {
+        import std.array : array;
         import std.file;
         import std.path;
+        import std.parallelism : parallel;
         import std.typecons : Yes;
 
         if (!exists(outDir))
@@ -367,7 +369,7 @@ private:
             enforce(outDir.isDir, format!"Destination path %s is not a folder."(outDir));
         }
 
-        foreach (entry; dirEntries(inDir, SpanMode.shallow, false))
+        foreach (entry; parallel(dirEntries(inDir, SpanMode.shallow, false).array))
         {
             auto fileName = baseName(entry.name);
             auto destName = buildPath(outDir, fileName);
