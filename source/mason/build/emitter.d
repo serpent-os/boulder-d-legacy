@@ -69,8 +69,13 @@ public class BuildEmitter
     void emit(const(string) outputDirectory, Analyser analyser) @system
     {
         import std.algorithm : each;
+        import std.parallelism : parallel;
 
-        packages.values.each!((p) => emitPackage(outputDirectory, p, analyser));
+        foreach(p; packages.values.parallel)
+        {
+            emitPackage(outputDirectory, p, analyser);
+        }
+
         binaryManifest.write();
         jsonManifest.write();
     }
