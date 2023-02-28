@@ -145,29 +145,48 @@ public struct DeleteCacheCommand
 }
 
 /**
- * Deletes all files in a directory
+ * Deletes all files in a directory in parallel, this is quicker than rmdirRecurse.
  * Params:
  *      path = directory to remove
- * Returns: ExitStatus.Success on success, ExitStatus.Failure on failure
+ * Returns: ExitStatus.Success, ExitStatus.Failure
  */
 auto deleteDir(in string path) @trusted
 {
-    import std.file : dirEntries, exists, FileException, remove, SpanMode;
+    import std.file : attrIsDir, DirEntry, dirEntries, exists, FileException, remove, rmdir, SpanMode;
+    import std.parallelism : parallel;
 
-    /* Whether we failed to remove some files in the dir */
+    /* Whether we failed to remove some files */
     bool failed;
+
+    DirEntry[] dirs;
+    DirEntry[] files;
 
     try
     {
-        foreach (string name; dirEntries(path, SpanMode.depth))
+        foreach (name; dirEntries(path, SpanMode.depth, false))
         {
-            trace(format!"Removing: %s"(name));
-            remove(name);
+            if (!attrIsDir(name.linkAttributes))
+            {
+                files ~= name;
+            }
+            else
+            {
+                dirs ~= name;
+            }
+        }
+        foreach (file; parallel(files))
+        {
+            remove(file);
+        }
+        /* Dirs are already sorted depth first :) */
+        foreach (dir; dirs)
+        {
+            rmdir(dir);
         }
     }
     catch (FileException e)
     {
-        warning(format!"Caught a FileException when deleting directory %s, reason: %s"(path, e));
+        warning(format!"Issue deleting %s, reason: %s"(path, e));
         failed = true;
     }
     if (failed == true)
