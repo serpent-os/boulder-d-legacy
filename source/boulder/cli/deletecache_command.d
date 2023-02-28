@@ -187,7 +187,7 @@ auto getSizeDir(in string path) @trusted
 {
     import core.atomic : atomicOp;
     import std.array : array;
-    import std.file : dirEntries, FileException, getSize, isFile, SpanMode;
+    import std.file : attrIsFile, dirEntries, FileException, getSize, SpanMode;
     import std.parallelism : parallel;
 
     /* Use a global var and increment it with an atomicOp to
@@ -198,7 +198,7 @@ auto getSizeDir(in string path) @trusted
     {
         foreach (name; parallel(dirEntries(path, SpanMode.breadth, false).array))
         {
-            if (name.isFile)
+            if (attrIsFile(name.linkAttributes))
             {
                 atomicOp!"+="(totalSize, getSize(name));
             }
