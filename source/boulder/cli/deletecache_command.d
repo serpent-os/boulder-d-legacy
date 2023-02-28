@@ -185,11 +185,14 @@ auto deleteDir(in string path) @trusted
  */
 auto getSizeDir(in string path) @trusted
 {
+    import core.atomic : atomicOp;
     import std.array : array;
     import std.file : dirEntries, FileException, getSize, isFile, SpanMode;
     import std.parallelism : parallel;
 
-    double totalSize = 0;
+    /* Use a global var and increment it with an atomicOp to
+       ensure an consistent result due to parallel stat */
+    shared ulong totalSize;
 
     try
     {
@@ -197,7 +200,7 @@ auto getSizeDir(in string path) @trusted
         {
             if (name.isFile)
             {
-                totalSize += getSize(name);
+                atomicOp!"+="(totalSize, getSize(name));
             }
         }
     }
@@ -207,5 +210,8 @@ auto getSizeDir(in string path) @trusted
         trace(format!"Caught a FileException within %s, reason: %s"(path, e));
     }
 
-    return totalSize;
+    /* Return a thread local var */
+    immutable double returnSize = totalSize;
+
+    return returnSize;
 }
