@@ -331,10 +331,10 @@ private:
             AnalysisChain("default", [&includeFile], 0),
         ];
 
-        boulderChains.each!((const c) => {
+        boulderChains.each!((const c) {
             auto chain = cast(AnalysisChain) c;
             analyser.addChain(chain);
-        }());
+        });
     }
 
     /**
