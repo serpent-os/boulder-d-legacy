@@ -44,8 +44,7 @@ final class BuildManifestBinary : BuildManifest
         this.arch = architecture;
     }
 
-    override void recordPackage(scope Package* pkg, scope AnalysisBucket bucket,
-            scope LayoutPayload lp) @safe
+    override void recordPackage(scope Package* pkg, AnalysisBucket bucket, LayoutPayload lp) @safe
     {
         /* Same metadata as .stone */
         auto met = generateMetadata(bucket, pkg, false);

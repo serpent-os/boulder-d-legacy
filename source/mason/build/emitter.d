@@ -215,7 +215,7 @@ private:
     /**
      * Handle per-pkg emission
      */
-    void emitManifest(scope Package* pkg, scope AnalysisBucket bucket, scope LayoutPayload lp) @safe
+    void emitManifest(scope Package* pkg, AnalysisBucket bucket, LayoutPayload lp) @safe
     {
         if (pkg.pd.name.endsWith("-dbginfo"))
         {

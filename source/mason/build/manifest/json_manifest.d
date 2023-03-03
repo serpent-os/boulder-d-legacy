@@ -69,8 +69,7 @@ final class BuildManifestJSON : BuildManifest
         fp.write("\n");
     }
 
-    override void recordPackage(scope Package* pkg, scope AnalysisBucket bucket,
-            scope LayoutPayload lp) @safe
+    override void recordPackage(scope Package* pkg, AnalysisBucket bucket, LayoutPayload lp) @safe
     {
         JSONValue node;
         node["name"] = pkg.pd.name;

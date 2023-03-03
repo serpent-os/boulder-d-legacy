@@ -128,8 +128,7 @@ public class BuildManifest
     /**
      * Record details from the package.
      */
-    abstract void recordPackage(scope Package* pkg, scope AnalysisBucket bucket,
-            scope LayoutPayload lp) @safe;
+    abstract void recordPackage(scope Package* pkg, AnalysisBucket bucket, LayoutPayload lp) @safe;
 
     pure @property final const(string) fileName() const @safe @nogc nothrow
     {
