@@ -44,12 +44,12 @@ public final class Container
                     | MountFlags.RelativeAccessTime),
             Mount("/sys", context.joinPath("/sys"), "",
                     MountFlags.Bind | MountFlags.Rec | MountFlags.ReadOnly),
-            Mount("", context.joinPath("/tmp"), "tmpfs",
-                    MountFlags.NoSuid | MountFlags.NoDev)
+            Mount("", context.joinPath("/tmp"), "tmpfs", MountFlags.NoSuid | MountFlags.NoDev)
         ];
 
         /* /dev points */
-        auto dev = Mount("", context.joinPath("/dev"), "tmpfs", MountFlags.NoSuid | MountFlags.NoExec);
+        auto dev = Mount("", context.joinPath("/dev"), "tmpfs",
+                MountFlags.NoSuid | MountFlags.NoExec);
         dev.setData("mode=777".toStringz());
         mountPoints ~= [
             dev,
@@ -170,7 +170,8 @@ private:
             Mount("/dev/zero", context.joinPath("/dev/zero"), "", MountFlags.Bind),
             Mount("/dev/full", context.joinPath("/dev/full"), "", MountFlags.Bind),
             Mount("/dev/random", context.joinPath("/dev/random"), "", MountFlags.Bind),
-            Mount("/dev/urandom", context.joinPath("/dev/urandom"), "", MountFlags.Bind),
+            Mount("/dev/urandom", context.joinPath("/dev/urandom"), "",
+                    MountFlags.Bind),
             Mount("/dev/tty", context.joinPath("/dev/tty"), "", MountFlags.Bind),
         ];
 
