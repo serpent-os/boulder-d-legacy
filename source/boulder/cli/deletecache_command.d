@@ -152,7 +152,8 @@ public struct DeleteCacheCommand
  */
 auto deleteDir(in string path) @trusted
 {
-    import std.file : attrIsDir, DirEntry, dirEntries, exists, FileException, remove, rmdir, SpanMode;
+    import std.file : attrIsDir, DirEntry, dirEntries, exists, FileException,
+        remove, rmdir, SpanMode;
     import std.parallelism : parallel;
 
     /* Whether we failed to remove some files */

@@ -71,7 +71,7 @@ public class BuildEmitter
         import std.algorithm : each;
         import std.parallelism : parallel;
 
-        foreach(p; packages.values.parallel)
+        foreach (p; packages.values.parallel)
         {
             emitPackage(outputDirectory, p, analyser);
         }
