@@ -109,7 +109,7 @@ public interface StageContext
     /**
      * Add a mounted mointpoint in order to manually unmount later
      */
-    void addMount(ref Mount mount) @safe nothrow;
+    void addMount(in Mount mount) @safe nothrow;
 }
 
 /**
