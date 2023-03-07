@@ -15,35 +15,22 @@ endif
 pkgconf = import('pkgconfig')
 
 # Pre-configure moss-vendor
-moss_vendor = subproject('moss-vendor',
-    default_options: [
-        'with_elf=true',
-        'with_lmdb=false',
-        'with_xxhash=true',
-        'with_yaml=true',
-        'with_zstd=true',
-    ],
-)
+libmoss = subproject('libmoss')
 
 # Grab moss-config
-moss_config = subproject('moss-config')
-link_libmoss_config = moss_config.get_variable('link_libmoss_config')
+link_libmoss_config = libmoss.get_variable('link_libmoss_config')
 
 # Grab moss-core
-moss_core = subproject('moss-core')
-link_libmoss_core = moss_core.get_variable('link_libmoss_core')
+link_libmoss_core = libmoss.get_variable('link_libmoss_core')
 
 # Grab moss-deps
-moss_deps = subproject('moss-deps')
-link_libmoss_deps = moss_deps.get_variable('link_libmoss_deps')
+link_libmoss_deps = libmoss.get_variable('link_libmoss_deps')
 
 # Grab moss-fetcher
-moss_fetcher = subproject('moss-fetcher')
-link_libmoss_fetcher = moss_fetcher.get_variable('link_libmoss_fetcher')
+link_libmoss_fetcher = libmoss.get_variable('link_libmoss_fetcher')
 
 # Grab moss-format
-moss_format = subproject('moss-format')
-link_libmoss_format = moss_format.get_variable('link_libmoss_format')
+link_libmoss_format = libmoss.get_variable('link_libmoss_format')
 
 boulder_data_dir = [
     include_directories('data'),
