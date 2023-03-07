@@ -9,8 +9,8 @@
        "name": "moss-container",
        "targetType": "executable",
         "dependencies": {
-                "moss-core": {
-                        "path": "../moss-core"
+                "libmoss": {
+                        "path": "../libmoss"
                 }
         }
 

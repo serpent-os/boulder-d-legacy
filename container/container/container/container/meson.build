@@ -9,7 +9,14 @@ project(
 
 
 # Right now we'll only build against a local moss-core checkout
-moss_core = subproject('moss-core')
+moss_core = subproject('libmoss',
+	default_options: [
+		'with-config=false',
+		'with-db=false',
+		'with-deps=false',
+		'with-fetcher=false',
+		'with-format=false'
+	])
 link_libmoss_core = moss_core.get_variable('link_libmoss_core')
 
 # We use the same includes for everything..
