@@ -14,7 +14,7 @@ endif
 
 pkgconf = import('pkgconfig')
 
-# Pre-configure moss-vendor
+# libmoss with all the options
 libmoss = subproject('libmoss',
 	default_options: [
 		'default_library=static',
