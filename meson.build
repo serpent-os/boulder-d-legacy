@@ -15,7 +15,12 @@ endif
 pkgconf = import('pkgconfig')
 
 # Pre-configure moss-vendor
-libmoss = subproject('libmoss')
+libmoss = subproject('libmoss',
+	default_options: [
+		'default_library=static',
+	],
+	version: '>=1.1.0'
+)
 
 # Grab moss-config
 link_libmoss_config = libmoss.get_variable('link_libmoss_config')
