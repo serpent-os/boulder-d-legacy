@@ -33,9 +33,9 @@ import std.experimental.logger;
 import std.file : exists, rmdirRecurse, thisExePath;
 import std.format : format;
 import std.parallelism : totalCPUs;
-import std.path : absolutePath, baseName, buildNormalizedPath, buildNormalizedPath, dirName;
+import std.path : absolutePath, baseName, buildNormalizedPath, dirName;
 import std.range : empty, take;
-import std.string : startsWith, split;
+import std.string : split, startsWith, stripLeft;
 
 /**
  * This is the main entry point for all build commands which will be dispatched
@@ -52,7 +52,7 @@ public final class Controller : StageContext
      *      confinement = Enable confined builds
      */
     this(string outputDir, string architecture, bool confinement, string profile,
-            bool compilerCache, string configDir = null)
+            bool compilerCache, string configPrefix = null)
     {
         this._architecture = architecture;
         this._confinement = confinement;
@@ -66,17 +66,21 @@ public final class Controller : StageContext
 
         _outputDirectory = outputDir.absolutePath;
 
-        /* Init config */
-        auto config = new ProfileConfiguration();
-        if (configDir is null || configDir.empty)
+        /* Init config using relative path to the prefix where this boulder lives */
+        string relativePrefix = stripLeft(binDir ~ "/..", "/");
+        trace(format!"Using profile search path relative prefix: %s"(relativePrefix));
+        auto config = new ProfileConfiguration(relativePrefix);
+        if (configPrefix is null || configPrefix.empty)
         {
-            configDir = "/";
+            configPrefix = "/";
         }
         else
         {
-            warning(format!"Using non-standard configuration directory: %s"(configDir));
+            warning(format!"Using non-standard configuration prefix: %s"(configPrefix));
         }
-        config.load(configDir);
+        config.load(configPrefix);
+        //It can be convenient to introspect the generated moss-config search paths
+        //trace(format!"Using SearchPath[]: %s"(config.paths()));
 
         auto p = config.sections.find!((c) => c.id == _profile);
         enforce(!p.empty, "No build profiles available");
