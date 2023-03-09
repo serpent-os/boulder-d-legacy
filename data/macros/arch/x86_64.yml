@@ -8,6 +8,7 @@ definitions:
     - cc             : "%(compiler_c)"
     - cxx            : "%(compiler_cxx)"
     - cpp            : "%(compiler_cpp)"
+    - d              : "%(compiler_d)"
     - march          : x86-64-v2
     - mtune          : ivybridge
 
@@ -17,3 +18,4 @@ flags:
     - architecture:
         c         : "-march=x86-64-v2 -mtune=ivybridge"
         cxx       : "-march=x86-64-v2 -mtune=ivybridge"
+        d         : "-mcpu=x86-64-v2"

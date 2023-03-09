@@ -299,6 +299,7 @@ public:
             sbuilder.addDefinition("compiler_cpp", "clang -E -");
             sbuilder.addDefinition("compiler_objcpp", "clang -E -");
             sbuilder.addDefinition("compiler_objcxxcpp", "clang++ -E");
+            sbuilder.addDefinition("compiler_d", "ldc2");
             sbuilder.addDefinition("compiler_ar", "llvm-ar");
             sbuilder.addDefinition("compiler_ld", "ld.lld");
             sbuilder.addDefinition("compiler_objcopy", "llvm-objcopy");
@@ -316,6 +317,7 @@ public:
             sbuilder.addDefinition("compiler_cpp", "gcc -E");
             sbuilder.addDefinition("compiler_objcpp", "gcc -E");
             sbuilder.addDefinition("compiler_objcxxcpp", "g++ -E");
+            sbuilder.addDefinition("compiler_d", "ldc2"); /* FIXME: GDC */
             sbuilder.addDefinition("compiler_ar", "gcc-ar");
             sbuilder.addDefinition("compiler_ld", "ld.bfd");
             sbuilder.addDefinition("compiler_objcopy", "objcopy");
@@ -418,10 +420,12 @@ private:
         auto flagset = sbuilder.buildFlags();
         auto cflags = fixupFlags(flagset.map!((f) => f.cflags(toolchain)));
         auto cxxflags = fixupFlags(flagset.map!((f) => f.cxxflags(toolchain)));
+        auto dflags = fixupFlags(flagset.map!((f) => f.dflags(toolchain)));
         auto ldflags = fixupFlags(flagset.map!((f) => f.ldflags(toolchain)));
 
         sbuilder.addDefinition("cflags", cflags);
         sbuilder.addDefinition("cxxflags", cxxflags);
+        sbuilder.addDefinition("dflags", dflags);
         sbuilder.addDefinition("ldflags", ldflags);
     }
 
