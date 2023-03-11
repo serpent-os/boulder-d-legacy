@@ -17,7 +17,8 @@ module mason.build.analysers.pkgconfig;
 
 import std.algorithm : canFind;
 import std.experimental.logger;
-import std.path : dirName, baseName;
+import std.path : dirName, baseName, buildPath;
+import std.file : exists;
 import std.string : endsWith, format;
 public import moss.deps.analysis;
 
@@ -62,6 +63,8 @@ public AnalysisReturn handlePkgconfigFiles(scope Analyser analyser, ref FileInfo
 
     string[string] env;
     env["LC_ALL"] = "C";
+    env["PKG_CONFIG_PATH"] = emul32 ? "/usr/lib32/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig"
+        : "/usr/lib/pkgconfig:/usr/share/pkgconfig";
     auto ret = execute(cmd, env);
 
     if (ret.status != 0)
@@ -73,7 +76,10 @@ public AnalysisReturn handlePkgconfigFiles(scope Analyser analyser, ref FileInfo
     auto deps = ret.output.splitLines().map!((l) => l.split[0]);
     foreach (d; deps)
     {
-        auto dep = Dependency(d, DependencyType.PkgconfigName);
+        /* Does this depend on an *installed* .pc? */
+        immutable emul32Path = "/usr".buildPath("lib32", "pkgconfig", format!"%s.pc"(d));
+        auto dep = Dependency(d, emul32 && emul32Path.exists
+                ? DependencyType.Pkgconfig32Name : DependencyType.PkgconfigName);
         analyser.bucket(fileInfo).addDependency(dep);
     }
     return AnalysisReturn.NextHandler;
