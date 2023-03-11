@@ -131,7 +131,7 @@ public final class UpstreamCache
                  * checked that the ref already existed in final path.
                  */
                 debug enforce(!refExists(def, refID),
-                    "Repo shouldn't contain the ref according to branching");
+                        "Repo shouldn't contain the ref according to branching");
 
                 trace(format!"Ref %s doesn't exist in the repository clone in final path. Fetching new refs from local upstream in staging path"(
                         refID));
