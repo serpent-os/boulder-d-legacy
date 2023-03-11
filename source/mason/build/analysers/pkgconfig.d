@@ -44,7 +44,12 @@ public AnalysisReturn acceptPkgconfigFiles(scope Analyser analyser, ref FileInfo
 public AnalysisReturn handlePkgconfigFiles(scope Analyser analyser, ref FileInfo fileInfo)
 {
     auto providerName = fileInfo.path.baseName()[0 .. $ - 3];
-    auto prov = Provider(providerName, ProviderType.PkgconfigName);
+
+    /* emul32 becomes pkgconfig32() */
+    immutable emul32 = fileInfo.path.canFind("/lib32/");
+
+    auto prov = Provider(providerName, emul32 ? ProviderType.Pkgconfig32Name
+            : ProviderType.PkgconfigName);
     analyser.bucket(fileInfo).addProvider(prov);
 
     string[] cmd = [
@@ -64,6 +69,7 @@ public AnalysisReturn handlePkgconfigFiles(scope Analyser analyser, ref FileInfo
         error(format!"Failed to run pkg-config: %s"(ret.output));
         return AnalysisReturn.NextFunction;
     }
+
     auto deps = ret.output.splitLines().map!((l) => l.split[0]);
     foreach (d; deps)
     {
