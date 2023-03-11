@@ -106,6 +106,8 @@ public final class UpstreamCache
              * the desired ref. Then, fetch submodules recursively.
              */
 
+            string refID = (() @trusted => def.git.refID)();
+
             string[string] env;
             string workdir = fp;
             if (!fp.exists)
@@ -121,11 +123,16 @@ public final class UpstreamCache
                         format!"Failed to clone git source from staging path %s to final path %s"(st,
                             fp));
             }
-
-            string refID = (() @trusted => def.git.refID)();
-
-            if (!refExists(def, refID))
+            else
             {
+                /* 
+                 * Logically this should always be false. We would've called
+                 * resetToRef in fetch-upstream already and skipped promoting if we
+                 * checked that the ref already existed in final path.
+                 */
+                debug enforce(!refExists(def, refID),
+                    "Repo shouldn't contain the ref according to branching");
+
                 trace(format!"Ref %s doesn't exist in the repository clone in final path. Fetching new refs from local upstream in staging path"(
                         refID));
 
@@ -179,8 +186,8 @@ public final class UpstreamCache
 
     /**
      * Given an UpstreamDefinition and a Git ref, check if the ref is present in
-     * the upstream source's mirror clone in the **staging directory**. Always
-     * returns false if the source's staging directory doesn't exist.
+     * the upstream source's mirror clone in the **final path**. Always
+     * returns false if the source's final path doesn't exist.
      *
      * Note that it does not actually verify that ref exists as a commit. It
      * only verifies that there is an object in the database corresponding to
@@ -194,15 +201,15 @@ public final class UpstreamCache
 
         import std.process;
 
-        auto st = stagingPath(def);
+        auto fp = finalPath(def);
 
-        if (!st.exists)
+        if (!fp.exists)
         {
             return false;
         }
 
         string[string] env;
-        auto verify = spawnProcess(["git", "cat-file", "-e", refID,], env, Config.none, st,);
+        auto verify = spawnProcess(["git", "cat-file", "-e", refID,], env, Config.none, fp,);
         return verify.wait() == 0;
     }
 
