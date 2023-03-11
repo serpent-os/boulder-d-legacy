@@ -77,8 +77,9 @@ public AnalysisReturn handlePkgconfigFiles(scope Analyser analyser, ref FileInfo
     foreach (d; deps)
     {
         /* Does this depend on an *installed* .pc? */
-        immutable emul32Path = "/usr".buildPath("lib32", "pkgconfig", format!"%s.pc"(d));
-        auto dep = Dependency(d, emul32 && emul32Path.exists
+        immutable emul32Path = "usr".buildPath("lib32", "pkgconfig", format!"%s.pc"(d));
+        immutable localPath = fileInfo.fullPath.dirName.buildPath(format!"%s.pc"(d));
+        auto dep = Dependency(d, emul32 && (localPath.exists || emul32Path.exists)
                 ? DependencyType.Pkgconfig32Name : DependencyType.PkgconfigName);
         analyser.bucket(fileInfo).addDependency(dep);
     }
