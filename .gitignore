@@ -2,3 +2,5 @@
 /.dub
 dub.selections.json
 /*.stone
+/manifest.*.bin
+/manifest.*.jsonc
