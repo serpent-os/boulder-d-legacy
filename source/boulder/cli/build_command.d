@@ -82,6 +82,12 @@ public struct BuildControlCommand
             return ExitStatus.Failure;
         }
 
+        if (argv.length > 1)
+        {
+            error(format!"Unexpected number of arguments, got %s. Expected one recipe file."(argv.length));
+            return ExitStatus.Failure;
+        }
+
         /* When no recipes are specified, build stone.yml recipe in current directory if it exists */
         if (argv == null && "stone.yml".exists)
         {
@@ -90,10 +96,7 @@ public struct BuildControlCommand
         }
         else
         {
-            foreach (recipe; argv)
-            {
-                res = controller.build(recipe);
-            }
+            res = controller.build(argv[0]);
         }
         return res;
     }
