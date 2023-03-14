@@ -54,6 +54,7 @@ public struct BuildControlCommand
     {
         immutable useDebug = this.findAncestor!BoulderCLI.debugMode;
         globalLogLevel = useDebug ? LogLevel.trace : LogLevel.info;
+        ExitStatus res;
 
         immutable profile = this.findAncestor!BoulderCLI.profile;
         immutable configDir = this.findAncestor!BoulderCLI.configDir;
@@ -74,13 +75,6 @@ public struct BuildControlCommand
         auto controller = new Controller(outputDirectory, architecture,
                 !unconfined, profile, compilerCache, configDir);
 
-        /* When no recipes are specified, build stone.yml recipe in current directory if it exists */
-        if (argv == null && "stone.yml".exists)
-        {
-            trace("No recipe specified, building stone.yml recipe found in current directory");
-            controller.build("stone.yml");
-        }
-
         /* Require a recipe to continue */
         if (argv == null && !"stone.yml".exists)
         {
@@ -88,10 +82,18 @@ public struct BuildControlCommand
             return ExitStatus.Failure;
         }
 
-        ExitStatus res;
-        foreach (recipe; argv)
+        /* When no recipes are specified, build stone.yml recipe in current directory if it exists */
+        if (argv == null && "stone.yml".exists)
         {
-            res = controller.build(recipe);
+            trace("No recipe specified, building stone.yml recipe found in current directory");
+            res = controller.build("stone.yml");
+        }
+        else
+        {
+            foreach (recipe; argv)
+            {
+                res = controller.build(recipe);
+            }
         }
         return res;
     }
