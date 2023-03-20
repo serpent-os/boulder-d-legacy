@@ -33,9 +33,9 @@ import std.experimental.logger;
 import std.file : exists, rmdirRecurse, thisExePath;
 import std.format : format;
 import std.parallelism : totalCPUs;
-import std.path : absolutePath, baseName, buildNormalizedPath, buildNormalizedPath, dirName;
+import std.path : absolutePath, baseName, buildNormalizedPath, dirName;
 import std.range : empty, take;
-import std.string : startsWith, split;
+import std.string : split, startsWith, stripLeft, stripRight;
 
 /**
  * This is the main entry point for all build commands which will be dispatched
@@ -52,7 +52,7 @@ public final class Controller : StageContext
      *      confinement = Enable confined builds
      */
     this(string outputDir, string architecture, bool confinement, string profile,
-            bool compilerCache, string configDir = null)
+            bool compilerCache, string configRootPrefix = null)
     {
         this._architecture = architecture;
         this._confinement = confinement;
@@ -63,20 +63,37 @@ public final class Controller : StageContext
         auto binDir = thisExePath.dirName;
         _mossBinary = binDir.buildNormalizedPath("moss").absolutePath;
         _containerBinary = binDir.buildNormalizedPath("moss-container").absolutePath;
+        trace(format!"Using binDir: '%s'"(binDir));
 
         _outputDirectory = outputDir.absolutePath;
 
-        /* Init config */
-        auto config = new ProfileConfiguration();
-        if (configDir is null || configDir.empty)
+        /* Location of vendor supplied configuration files inside a configRootPrefix */
+        string vendorPrefix;
+
+        /* We need to construct a sane vendorPrefix */
+        if (configRootPrefix is null || configRootPrefix.empty)
         {
-            configDir = "/";
+            /* The default is to use the relativePrefix from the path of the boulder binary as vendorPrefix */
+            configRootPrefix = "/";
+            vendorPrefix = stripLeft(binDir ~ "/..", "/");
+            trace(format!"Using standard configuration root prefix: '%s'"(configRootPrefix));
+            trace(format!"Using relative configuration search path vendorPrefix: '%s'"(vendorPrefix));
         }
         else
         {
-            warning(format!"Using non-standard configuration directory: %s"(configDir));
+            /* If a configRootPrefix has been specified, default to "/usr" as vendorPrefix inside it */
+            configRootPrefix = stripRight(configRootPrefix, "/");
+            vendorPrefix = "/usr";
+            warning(format!"Using non-standard configuration root prefix: '%s'"(configRootPrefix));
+            trace(format!"Using absolute configuration search path vendorPrefix: '%s'"(vendorPrefix));
         }
-        config.load(configDir);
+
+        /* Init config using approparite vendorPrefix */
+        auto config = new ProfileConfiguration(vendorPrefix);
+        config.load(configRootPrefix);
+
+        /* It can be convenient to introspect the generated moss-config search paths */
+        //trace(format!"Using config.paths SearchPath[]: %s"(config.paths()));
 
         auto p = config.sections.find!((c) => c.id == _profile);
         enforce(!p.empty, "No build profiles available");
