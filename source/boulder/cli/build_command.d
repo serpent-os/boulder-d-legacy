@@ -84,7 +84,8 @@ public struct BuildControlCommand
 
         if (argv.length > 1)
         {
-            error(format!"Unexpected number of arguments, got %s. Expected one recipe file."(argv.length));
+            error(format!"Unexpected number of arguments, got %s. Expected one recipe file."(
+                    argv.length));
             return ExitStatus.Failure;
         }
 
