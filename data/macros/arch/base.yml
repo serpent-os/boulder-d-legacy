@@ -42,6 +42,7 @@ definitions:
     - strip          : "%(compiler_strip)"
     - path           : "%(compiler_path)"
     - ccachedir      : "%(compiler_cache)"
+    - pkgconfigpath  : "%(libdir)/pkgconfig:/usr/share/pkgconfig"
 
 actions              :
 
@@ -52,6 +53,7 @@ actions              :
             set -e
             set -x
             TERM="dumb"; export TERM
+            PKG_CONFIG_PATH="%(pkgconfigpath)"; export PKG_CONFIG_PATH
             CFLAGS="%(cflags)"; export CFLAGS
             CGO_CFLAGS="%(cflags)"; export CGO_CFLAGS
             CXXFLAGS="%(cxxflags)"; export CXXFLAGS
