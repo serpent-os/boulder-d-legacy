@@ -33,7 +33,11 @@ definitions:
     # Must be set for CC/CXX/CPP to work
     - cc             : "%(compiler_c)"
     - cxx            : "%(compiler_cxx)"
+    - objc           : "%(compiler_objc)"
+    - objcxx         : "%(compiler_objcxx)"
     - cpp            : "%(compiler_cpp)"
+    - objcpp         : "%(compiler_objcpp)"
+    - objcxxcpp      : "%(compiler_objcxxcpp)"
     - ar             : "%(compiler_ar)"
     - ld             : "%(compiler_ld)"
     - objcopy        : "%(compiler_objcopy)"
@@ -62,7 +66,11 @@ actions              :
             CGO_LDFLAGS="%(ldflags)"; export CGO_LDFLAGS
             CC="%(cc)"; export CC
             CXX="%(cxx)"; export CXX
+            OBJC="%(objc)"; export OBJC
+            OBJCXX="%(objcxx)"; export OBJCXX
             CPP="%(cpp)"; export CPP
+            OBJCPP="%(objcpp)"; export OBJCPP
+            OBJCXXCPP="%(objcxxcpp)"; export OBJCXXCPP
             AR="%(ar)"; export AR
             LD="%(ld)"; export LD
             OBJCOPY="%(objcopy)"; export OBJCOPY
