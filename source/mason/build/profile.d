@@ -294,7 +294,11 @@ public:
         {
             sbuilder.addDefinition("compiler_c", "clang");
             sbuilder.addDefinition("compiler_cxx", "clang++");
-            sbuilder.addDefinition("compiler_cpp", "clang-cpp");
+            sbuilder.addDefinition("compiler_objc", "clang");
+            sbuilder.addDefinition("compiler_objcxx", "clang++");
+            sbuilder.addDefinition("compiler_cpp", "clang -E");
+            sbuilder.addDefinition("compiler_objcpp", "clang -E");
+            sbuilder.addDefinition("compiler_objcxxcpp", "clang++ -E");
             sbuilder.addDefinition("compiler_ar", "llvm-ar");
             sbuilder.addDefinition("compiler_ld", "ld.lld");
             sbuilder.addDefinition("compiler_objcopy", "llvm-objcopy");
@@ -307,7 +311,11 @@ public:
         {
             sbuilder.addDefinition("compiler_c", "gcc");
             sbuilder.addDefinition("compiler_cxx", "g++");
+            sbuilder.addDefinition("compiler_objc", "gcc");
+            sbuilder.addDefinition("compiler_objcxx", "g++");
             sbuilder.addDefinition("compiler_cpp", "gcc -E");
+            sbuilder.addDefinition("compiler_objcpp", "gcc -E");
+            sbuilder.addDefinition("compiler_objcxxcpp", "g++ -E");
             sbuilder.addDefinition("compiler_ar", "gcc-ar");
             sbuilder.addDefinition("compiler_ld", "ld.bfd");
             sbuilder.addDefinition("compiler_objcopy", "objcopy");
