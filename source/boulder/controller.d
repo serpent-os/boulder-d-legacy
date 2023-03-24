@@ -313,6 +313,47 @@ public final class Controller : StageContext
     }
 
     /**
+     * Chroot into a recipe's build environment
+     * Params:
+     *      filename = recipe to parse in order to setup the chroot
+     * Returns: ExitStatus.{Success,Failure}
+     */
+    ExitStatus chroot(in string filename)
+    {
+        parseRecipe(filename);
+
+        /* Create the build environment from scratch if it doesn't already exist */
+        immutable buildEnv = _job.hostPaths.rootfs;
+        if (!buildEnv.exists)
+        {
+            info("Build environment doesn't exist, creating from scratch...");
+            chrootStages = [
+                &stageCreateRoot, &stageFetchUpstreams, &stageConfigureRoot,
+                &stagePopulateRoot, &stageShareUpstreams, &stageChrootPackage,
+            ];
+        }
+
+        /* Always ensure these useful packages are available in the chroot */
+        string[] upstreamDeps;
+        upstreamDeps ~= [
+            "binary(git)",
+            "binary(nano)",
+            "binary(vim)"
+        ];
+        upstreamDeps ~= _job.extraDeps;
+        upstreamDeps.sort();
+        _job.extraDeps = () @trusted { return upstreamDeps.uniq.array(); }();
+
+        /* Run all the chroot stages */
+        auto res = iterateStages(chrootStages);
+        if (res == StageReturn.Failure)
+        {
+            return ExitStatus.Failure;
+        }
+        return ExitStatus.Success;
+    }
+
+    /**
      * Iterate over build stages
      * Params:
      *      stages = Array of build stages to iterate over
