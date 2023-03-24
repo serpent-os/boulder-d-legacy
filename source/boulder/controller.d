@@ -303,25 +303,26 @@ public final class Controller : StageContext
         upstreamDeps.sort();
         _job.extraDeps = () @trusted { return upstreamDeps.uniq.array(); }();
 
-        scope (exit)
+        /* Run all the build stages */
+        immutable res = iterateStages(boulderStages);
+        if (res == StageReturn.Failure)
         {
-            /* Unmount anything mounted on both error and normal exit */
-            foreach_reverse (ref m; mountPoints)
-            {
-                trace(format!"Unmounting %s"(m));
-                m.unmountFlags = UnmountFlags.Force | UnmountFlags.Detach;
-                auto err = m.unmount();
-                if (!err.isNull())
-                {
-                    error(format!"Unmount failure: %s (%s)"(m.target, err.get.toString));
-                }
-            }
+            return ExitStatus.Failure;
         }
+        return ExitStatus.Success;
+    }
 
-        int stageIndex = 0;
-        int nStages = cast(int) boulderStages.length;
+    /**
+     * Iterate over build stages
+     * Params:
+     *      stages = Array of build stages to iterate over
+     * Returns: StageReturn
+     */
+    StageReturn iterateStages(in immutable(Stage)*[] stages)
+    {
+        int stageIndex;
+        int nStages = cast(int) stages.length;
         StageReturn result = StageReturn.Failure;
-
         build_loop: while (true)
         {
             /* Dun dun dun */
@@ -330,7 +331,7 @@ public final class Controller : StageContext
                 break build_loop;
             }
 
-            auto stage = boulderStages[stageIndex];
+            auto stage = stages[stageIndex];
             enforce(stage.functor !is null);
 
             trace(format!"Stage begin: %s"(stage.name));
@@ -365,11 +366,21 @@ public final class Controller : StageContext
                 break;
             }
         }
-        if (result == StageReturn.Failure)
+        scope (exit)
         {
-            return ExitStatus.Failure;
+            /* Unmount anything mounted on both error and normal exit */
+            foreach_reverse (ref m; mountPoints)
+            {
+                trace(format!"Unmounting %s"(m));
+                m.unmountFlags = UnmountFlags.Force | UnmountFlags.Detach;
+                auto err = m.unmount();
+                if (!err.isNull())
+                {
+                    error(format!"Unmount failure: %s (%s)"(m.target, err.get.toString));
+                }
+            }
         }
-        return ExitStatus.Success;
+        return result;
     }
 
     /**
