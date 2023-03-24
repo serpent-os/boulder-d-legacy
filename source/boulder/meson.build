@@ -2,10 +2,11 @@
 
 boulder_sources = [
     'cli/package.d',
+    'cli/build_command.d',
+    'cli/chroot_command.d',
     'cli/deletecache_command.d',
     'cli/new_command.d',
     'cli/version_command.d',
-    'cli/build_command.d',
     'buildjob.d',
     'controller.d',
     'upstreamcache.d',
