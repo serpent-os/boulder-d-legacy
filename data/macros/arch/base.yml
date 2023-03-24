@@ -497,10 +497,7 @@ flags               :
 
     # Toggle relr (ON)
     - relr:
-        gnu:
-            ld        : "-Wl,-z,pack-relative-relocs"
-        llvm:
-            ld        : "-Wl,--pack-dyn-relocs=relr"
+        ld        : "-Wl,-z,pack-relative-relocs"
 
 # Template packages
 packages          :
