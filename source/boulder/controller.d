@@ -195,9 +195,12 @@ public final class Controller : StageContext
     }
 
     /**
-     * Begin the build process for a specific recipe
+     * Parse a given build recipe
+     * Params:
+     *   filename = recipe to parse
+     *  Returns: _job, the BuildJob for the recipe
      */
-    ExitStatus build(in string filename)
+    auto parseRecipe(in string filename)
     {
         auto fi = File(filename, "r");
         trace(format!"%s: Parsing recipe file %s"(__FUNCTION__, filename));
@@ -205,6 +208,23 @@ public final class Controller : StageContext
         recipe.parse();
         trace(format!"%s: Constructing BuildJob from parsed recipe %s"(__FUNCTION__, filename));
         _job = new BuildJob(recipe, filename);
+
+        scope (exit)
+        {
+            fi.close();
+        }
+
+        return _job;
+    }
+
+    /**
+     * Begin the build process for a specific recipe
+     * Params:
+     *      filename = filename of recipe to build
+     */
+    ExitStatus build(in string filename)
+    {
+        parseRecipe(filename);
 
         /* For now only extrapolate from rootBuild. */
         import mason.build.context : buildContext;
@@ -285,7 +305,6 @@ public final class Controller : StageContext
 
         scope (exit)
         {
-            fi.close();
             /* Unmount anything mounted on both error and normal exit */
             foreach_reverse (ref m; mountPoints)
             {
