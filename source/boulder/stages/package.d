@@ -20,6 +20,7 @@ public import moss.core.mounts;
 public import boulder.buildjob : BuildJob;
 public import boulder.upstreamcache;
 public import boulder.stages.build_package;
+public import boulder.stages.chroot_package;
 public import boulder.stages.clean_root;
 public import boulder.stages.create_root;
 public import boulder.stages.configure_root;
@@ -41,6 +42,13 @@ static auto buildStages = [
     &stageCleanRoot, &stageCreateRoot, &stageFetchUpstreams, &stageConfigureRoot,
     &stagePopulateRoot, &stageShareUpstreams, &stageBuildPackage,
     &stageSyncArtefacts,
+];
+
+/**
+ * Default stages to chroot into a target
+ */
+static auto chrootStages = [
+    &stageCreateRoot, &stageChrootPackage
 ];
 
 /**
