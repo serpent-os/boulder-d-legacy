@@ -322,15 +322,12 @@ public final class Controller : StageContext
     {
         parseRecipe(filename);
 
-        /* Create the build environment from scratch if it doesn't already exist */
+        /* Check for valid build environment */
         immutable buildEnv = _job.hostPaths.rootfs;
         if (!buildEnv.exists)
         {
-            info("Build environment doesn't exist, creating from scratch...");
-            chrootStages = [
-                &stageCreateRoot, &stageFetchUpstreams, &stageConfigureRoot,
-                &stagePopulateRoot, &stageShareUpstreams, &stageChrootPackage,
-            ];
+            error("No build environment found. Try building the package first.");
+            return ExitStatus.Failure;
         }
 
         /* Always ensure these useful packages are available in the chroot */
