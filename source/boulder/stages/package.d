@@ -35,15 +35,15 @@ public import moss.core.fetchcontext;
 import core.sys.posix.stdlib : uid_t;
 
 /**
- * Default boulder stages
+ * Default stages to build a package
  */
-static auto boulderStages = [
+static auto buildStages = [
     &stageCleanRoot, &stageCreateRoot, &stageFetchUpstreams, &stageConfigureRoot,
     &stagePopulateRoot, &stageShareUpstreams, &stageBuildPackage,
     &stageSyncArtefacts,
 ];
 
-/** 
+/**
  * The StageContext (i.e. BoulderController) exposes some useful properties
  * to facilitate integration.
  */

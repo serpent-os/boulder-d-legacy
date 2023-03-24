@@ -304,7 +304,7 @@ public final class Controller : StageContext
         _job.extraDeps = () @trusted { return upstreamDeps.uniq.array(); }();
 
         /* Run all the build stages */
-        immutable res = iterateStages(boulderStages);
+        immutable res = iterateStages(buildStages);
         if (res == StageReturn.Failure)
         {
             return ExitStatus.Failure;
