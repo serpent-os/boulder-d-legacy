@@ -10,6 +10,7 @@ boulder_sources = [
     'controller.d',
     'upstreamcache.d',
     'stages/build_package.d',
+    'stages/chroot_package.d',
     'stages/clean_root.d',
     'stages/create_root.d',
     'stages/configure_root.d',
