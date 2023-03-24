@@ -17,6 +17,7 @@ module boulder.cli;
 
 public import moss.core.cli;
 public import boulder.cli.build_command;
+public import boulder.cli.chroot_command;
 public import boulder.cli.deletecache_command;
 public import boulder.cli.new_command;
 public import boulder.cli.version_command;
