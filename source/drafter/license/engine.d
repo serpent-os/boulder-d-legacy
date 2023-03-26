@@ -31,6 +31,7 @@ import std.path : baseName, dirName;
 import std.range : take, chunks, zip, lockstep, Take, empty, front, enumerate;
 import std.string : startsWith, toLower, endsWith, format;
 import std.uni : byCodePoint, isAlphaNum;
+import std.utf : UTFException;
 
 /**
  * Minimum confidence level is 88%
@@ -87,7 +88,22 @@ static private AnalysisReturn scanLicenseFile(scope Analyser an, ref FileInfo fi
     static bool isTraditionalLicense(in string licensePath)
     {
         immutable auto bn = licensePath.baseName.toLower;
-        return bn.startsWith("copying") || bn.startsWith("license") || bn.startsWith("licence");
+        bool isLicenseCandidate = false;
+        isLicenseCandidate = bn.startsWith("copying") || bn.startsWith("license") || bn.startsWith("licence");
+        /* we only want to check for non-candidate-ness if they're candidates in the first place */
+        if (isLicenseCandidate)
+        {
+            /* we've seen a crash when attempting to parse a .cab file whose name started with 'copying' */
+            // dfmt off
+            isLicenseCandidate = ! (
+                bn.endsWith(".cab") ||
+                bn.endsWith(".gz")  ||
+                bn.endsWith(".tar") ||
+                bn.endsWith(".zst")
+            );
+            // dfmt on
+        }
+        return isLicenseCandidate;
     }
 
     /**
@@ -105,7 +121,16 @@ static private AnalysisReturn scanLicenseFile(scope Analyser an, ref FileInfo fi
         return AnalysisReturn.NextHandler;
     }
 
-    string text = sanitizeLicense(fi.fullPath);
+    string text;
+    /* be extra careful (and helpful!) in the face of license candidate false positives */
+    try
+    {
+        text = sanitizeLicense(fi.fullPath);
+    }
+    catch (UTFException e)
+    {
+        error(format!"Failed to parse license candidate '%s'"(fi.fullPath));
+    }
     if (text.length < MinimumScanThreshold)
     {
         return AnalysisReturn.NextHandler;
@@ -117,11 +142,11 @@ static private AnalysisReturn scanLicenseFile(scope Analyser an, ref FileInfo fi
     detectedLicenses.multiSort!("a.confidence > b.confidence", "a.id > b.id");
     if (detectedLicenses.empty)
     {
-        warningf("Unknown license for: %s", fi.path);
+        warning(format!"Unknown license for: %s"(fi.path));
         return AnalysisReturn.NextHandler;
     }
     auto top = detectedLicenses.front;
-    tracef("[LICENSE] %s: %s (Confidence: %.2f)", fi.path, top.id, top.confidence);
+    trace(format!"[LICENSE] %s: %s (Confidence: %.2f)"(fi.path, top.id, top.confidence));
     dr.insertLicense(top.id);
     return AnalysisReturn.IncludeFile;
 }
