@@ -39,38 +39,51 @@ static private StageReturn fetchUpstreams(scope StageContext context)
 
     foreach (u; upstreams)
     {
-        /**
-         * For Git upstreams, check if it contains the requested ref. If yes, we
-         * can skip the download.
-         *
-         * Note that `moss-fetcher` will run
-         * `git fetch` to fetch new commits if it detects that the
-         * upstream has been previously cloned, so we don't need to fetch new
-         * commits here by ourselves if the requested ref doesn't exist and
-         * can simply leave that to `moss-fetcher`.
-         */
         if (u.type == UpstreamType.Git)
         {
+            /**
+             * For Git upstreams, check if it contains the requested ref. If yes, we
+             * can skip the download.
+             *
+             * Note that `moss-fetcher` will run
+             * `git fetch` to fetch new commits if it detects that the
+             * upstream has been previously cloned, so we don't need to fetch new
+             * commits here by ourselves if the requested ref doesn't exist and
+             * can simply leave that to `moss-fetcher`.
+             */
             string refID = (() @trusted => u.git.refID)();
+
             if (uc.refExists(u, refID))
             {
                 uc.resetToRef(u, refID);
-                continue;
+            }
+            else
+            {
+                auto path = u.git.staging
+                    ? context.upstreamCache.stagingPath(u) : context.upstreamCache.finalPath(u);
+                auto fetchType = u.git.staging ? FetchType.GitRepositoryMirror
+                    : FetchType.GitRepository;
+                auto fetch = Fetchable(u.uri, path, 0, fetchType, null);
+                context.fetcher.enqueue(fetch);
             }
         }
-        /**
-         * For plain upstreams, no point downloading it again if it's already
-         * there
-         */
-        else if (uc.contains(u))
+        else
         {
-            info(format!"Skipped download: %s"(u.uri));
-            continue;
+            /**
+             * For plain upstreams, no point downloading it again if it's already
+             * there
+             */
+            if (uc.contains(u))
+            {
+                info(format!"Skipped download: %s"(u.uri));
+            }
+            else
+            {
+                auto spath = context.upstreamCache.stagingPath(u);
+                auto fetch = Fetchable(u.uri, spath, 0, FetchType.RegularFile, null);
+                context.fetcher.enqueue(fetch);
+            }
         }
-        auto spath = context.upstreamCache.stagingPath(u);
-        auto fetch = Fetchable(u.uri, spath, 0, u.type == UpstreamType.Plain
-                ? FetchType.RegularFile : FetchType.GitRepository, null);
-        context.fetcher.enqueue(fetch);
     }
 
     /* Run all fetches */

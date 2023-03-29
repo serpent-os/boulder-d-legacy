@@ -86,7 +86,11 @@ public final class UpstreamCache
         auto st = stagingPath(def);
         auto fp = finalPath(def);
 
-        enforce(st.exists, format!"UpstreamCache.promote(): %s does not exist"(st));
+        if (def.type == UpstreamType.Plain || (() @trusted => def.git.staging)())
+        {
+            enforce(st.exists,
+                    format!"UpstreamCache.promote(): staging path %s does not exist"(st));
+        }
 
         auto dirn = fp.dirName;
         if (!dirn.exists)
@@ -126,11 +130,12 @@ public final class UpstreamCache
             else
             {
                 /* 
-                 * Logically this should always be false. We would've called
-                 * resetToRef in fetch-upstream already and skipped promoting if we
-                 * checked that the ref already existed in final path.
+                 * If we enabled staging, logically this should always be false.
+                 * We would've called resetToRef in fetch-upstream already and
+                 * skipped promoting if we checked that the ref already existed
+                 * in final path.
                  */
-                debug enforce(!refExists(def, refID),
+                debug enforce(!(() @trusted => def.git.staging)() || !refExists(def, refID),
                         "Repo shouldn't contain the ref according to branching");
 
                 trace(format!"Ref %s doesn't exist in the repository clone in final path. Fetching new refs from local upstream in staging path"(
@@ -186,8 +191,8 @@ public final class UpstreamCache
 
     /**
      * Given an UpstreamDefinition and a Git ref, check if the ref is present in
-     * the upstream source's mirror clone in the **final path**. Always
-     * returns false if the source's final path doesn't exist.
+     * the upstream source's clone in the **final path**. Always returns false
+     * if the source's final path doesn't exist.
      *
      * Note that it does not actually verify that ref exists as a commit. It
      * only verifies that there is an object in the database corresponding to
@@ -265,7 +270,7 @@ public final class UpstreamCache
             return join([stagingDirectory, def.plain.hash], "/");
         case UpstreamType.Git:
             return join([stagingDirectory, "git",
-                normalizedUriPath(def.uri)], "/");
+                    normalizedUriPath(def.uri)], "/");
         }
     }
 
