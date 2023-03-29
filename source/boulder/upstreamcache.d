@@ -86,7 +86,7 @@ public final class UpstreamCache
         auto st = stagingPath(def);
         auto fp = finalPath(def);
 
-        if (def.type == UpstreamType.Plain || (() @trusted => def.git.staging)())
+        if (def.type == UpstreamType.Plain || (()@trusted => def.git.staging)())
         {
             enforce(st.exists,
                     format!"UpstreamCache.promote(): staging path %s does not exist"(st));
@@ -135,8 +135,8 @@ public final class UpstreamCache
                  * skipped promoting if we checked that the ref already existed
                  * in final path.
                  */
-                debug enforce(!(() @trusted => def.git.staging)() || !refExists(def, refID),
-                        "Repo shouldn't contain the ref according to branching");
+                debug enforce(!(() @trusted => def.git.staging)() || !refExists(def,
+                        refID), "Repo shouldn't contain the ref according to branching");
 
                 trace(format!"Ref %s doesn't exist in the repository clone in final path. Fetching new refs from local upstream in staging path"(
                         refID));
@@ -270,7 +270,7 @@ public final class UpstreamCache
             return join([stagingDirectory, def.plain.hash], "/");
         case UpstreamType.Git:
             return join([stagingDirectory, "git",
-                    normalizedUriPath(def.uri)], "/");
+                normalizedUriPath(def.uri)], "/");
         }
     }
 

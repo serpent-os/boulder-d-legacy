@@ -89,7 +89,8 @@ static private AnalysisReturn scanLicenseFile(scope Analyser an, ref FileInfo fi
     {
         immutable auto bn = licensePath.baseName.toLower;
         bool isLicenseCandidate = false;
-        isLicenseCandidate = bn.startsWith("copying") || bn.startsWith("license") || bn.startsWith("licence");
+        isLicenseCandidate = bn.startsWith("copying")
+            || bn.startsWith("license") || bn.startsWith("licence");
         /* we only want to check for non-candidate-ness if they're candidates in the first place */
         if (isLicenseCandidate)
         {
