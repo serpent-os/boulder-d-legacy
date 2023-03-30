@@ -113,7 +113,7 @@ private:
         try
         {
             auto pid = spawnProcess(finalArgs, stdin, stdout, stderr,
-                    context.environment, config, "/");
+                    context.environment, config, context.workDir);
             return wait(pid);
         }
         catch (ProcessException px)

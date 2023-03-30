@@ -99,22 +99,6 @@ public final class Context
     }
 
     /**
-     * Return the working directory used for the process
-     */
-    pure @property const(string) workDir() @safe @nogc nothrow const
-    {
-        return cast(const(string)) workDir;
-    }
-
-    /**
-     * Set the working directory in which to execute the process
-     */
-    pure @property void workDir(in string newDir) @safe @nogc nothrow
-    {
-        _workDir = newDir;
-    }
-
-    /**
      * Safely join the path onto the rootfs tree
      */
     auto joinPath(in string target) @safe
@@ -158,6 +142,11 @@ public final class Context
      */
     string[string] environment;
 
+    /**
+     * Current working directory
+     */
+    string workDir;
+
 package:
 
     /**
@@ -189,7 +178,6 @@ private:
     string _rootfs = null;
     FakerootBinary _fakerootBinary = FakerootBinary.None;
     bool _fakeroot = false;
-    string _workDir = ".";
     uid_t _effectiveUID;
     bool _networking;
 }

@@ -61,6 +61,10 @@ public struct ContainerCLI
     @Option("d", "directory", "Directory to find a root filesystem")
     string rootfsDir = null;
 
+    /** Immediately start at this directory in the container (cwd) */
+    @Option("workdir", null, "Start at this working directory in the container (Default: /)")
+    string cwd = "/";
+
     /** Toggle fakeroot use */
     @Option("f", "fakeroot", "Enable fakeroot integration")
     bool fakeroot = false;
@@ -134,7 +138,7 @@ public struct ContainerCLI
         /* Setup rootfs - ensure we're running as root too */
         context.rootfs = rootfsDir;
         context.fakeroot = fakeroot;
-        context.workDir = "/";
+        context.workDir = cwd;
         context.environment = environment;
         context.effectiveUID = uid;
         context.networking = networking;
