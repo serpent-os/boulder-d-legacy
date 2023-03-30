@@ -48,7 +48,7 @@ static auto buildStages = [
  * Default stages to chroot into a target
  */
 static auto chrootStages = [
-    &stageCreateRoot, &stageChrootPackage
+    &stageCreateRoot, &stagePopulateRoot, &stageChrootPackage
 ];
 
 /**
