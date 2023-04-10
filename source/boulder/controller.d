@@ -393,7 +393,14 @@ private:
         }
 
         /* Promote the source now */
-        upstreamCache.promote(ud);
+        try
+        {
+            upstreamCache.promote(ud);
+        }
+        catch (Exception e)
+        {
+            onFetchFail(f, format!"Failed to promote source, reason: %s"(e.msg));
+        }
     }
 
     /**
