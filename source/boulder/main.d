@@ -20,6 +20,7 @@
 module main;
 
 import boulder.cli;
+import core.sys.posix.unistd;
 import mason.cli;
 import moss.core.logger;
 import std.path : baseName;
@@ -52,7 +53,14 @@ int masonMain(string[] args)
 
 int main(string[] args)
 {
-    configureLogger(ColorLoggerFlags.Color | ColorLoggerFlags.Timestamps);
+    if (isatty(0) && isatty(1))
+    {
+        configureLogger(ColorLoggerFlags.Color | ColorLoggerFlags.Timestamps);
+    }
+    else
+    {
+        configureLogger(ColorLoggerFlags.Timestamps);
+    }
 
     auto programName = args[0].baseName;
     switch (programName)
