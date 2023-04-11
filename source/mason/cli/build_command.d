@@ -16,6 +16,7 @@
 module mason.cli.build_command;
 
 public import moss.core.cli;
+import core.sys.posix.unistd;
 import mason.build.context;
 import mason.build.controller;
 import mason.cli : MasonCLI;
@@ -53,7 +54,14 @@ public struct BuildCommand
     @CommandEntry() int run(ref string[] argv)
     {
         /* configureLogger resets the globalLogLevel to LogLevel.info */
-        configureLogger(ColorLoggerFlags.Color | ColorLoggerFlags.Timestamps);
+        if (isatty(0) && isatty(1))
+        {
+            configureLogger(ColorLoggerFlags.Color | ColorLoggerFlags.Timestamps);
+        }
+        else
+        {
+            configureLogger(ColorLoggerFlags.Timestamps);
+        }
 
         immutable useDebug = this.findAncestor!MasonCLI.debugMode;
         globalLogLevel = useDebug ? LogLevel.trace : LogLevel.info;
