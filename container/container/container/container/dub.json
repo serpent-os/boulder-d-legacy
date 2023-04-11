@@ -12,6 +12,6 @@
                 "libmoss": {
                         "path": "../libmoss"
                 }
-        }
-
+        },
+        "libs": ["subid"]
 }

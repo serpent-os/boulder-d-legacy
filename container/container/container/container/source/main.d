@@ -20,16 +20,18 @@ import core.sys.linux.sched;
 import core.sys.posix.sys.stat : umask;
 import core.sys.posix.sys.wait;
 import core.sys.posix.unistd : fork, geteuid, isatty;
-import moss.container;
-import moss.container.context;
-import moss.core.mounts;
-import moss.core.cli;
-import moss.core.logger;
 import std.conv : octal;
 import std.exception : enforce;
 import std.file : exists, isDir;
 import std.stdio : stderr, stdout;
 import std.string : empty, format;
+
+import moss.container;
+import moss.container.context;
+import moss.container.process;
+import moss.core.cli;
+import moss.core.logger;
+import moss.core.mounts;
 
 /**
  * The BoulderCLI type holds some global configuration bits
@@ -78,8 +80,8 @@ public struct ContainerCLI
     string[string] environment;
 
     /** UID to use */
-    @Option("u", "uid", "Effective UID to drop to (default: nobody)")
-    uid_t uid = 65_534;
+    @Option("root", null, "Set whether the user inside the container is root")
+    root = false;
 
     /** Toggle displaying program version */
     @Option("version", null, "Show program version and exit")
@@ -129,25 +131,18 @@ public struct ContainerCLI
             stderr.writefln!"The directory specified does not exist: %s"(rootfsDir);
         }
 
-        if (geteuid() != 0)
-        {
-            stderr.writeln("You must run moss-container as root");
-            return 1;
-        }
-
         /* Setup rootfs - ensure we're running as root too */
         context.rootfs = rootfsDir;
         context.fakeroot = fakeroot;
         context.workDir = cwd;
         context.environment = environment;
-        context.effectiveUID = uid;
         context.networking = networking;
         if (!("PATH" in context.environment))
         {
             context.environment["PATH"] = "/usr/bin:/bin";
         }
 
-        return enterNamespace(args);
+        return runContainer(args);
     }
 
     /**
@@ -161,81 +156,35 @@ public struct ContainerCLI
      */
     int runContainer(ref string[] args)
     {
+        auto mounts = defaultDirMounts();
+        foreach (source, target; bindMountsRO)
+        {
+            mounts ~= Mount.bindRO(source, context.joinPath(target));
+        }
+        foreach (source, target; bindMountsRW)
+        {
+            mounts ~= Mount.bindRW(source, context.joinPath(target));
+        }
+        auto links = defaultSymlinks();
+        auto nodes = defaultNodeMounts();
         string[] commandLine = args;
         if (commandLine.length < 1)
         {
             commandLine = ["/bin/bash", "--login"];
         }
-
         string programName = commandLine[0];
         string[] programArgs = commandLine[0].length > 0 ? commandLine[1 .. $] : null;
+        auto proc = Process(programName, programArgs);
 
-        auto c = new Container();
-        c.add(Process(programName, programArgs));
+        auto cont = Container();
+        cont.setDirMounts(mounts);
+        cont.setSymlinks(links);
+        cont.setNodeMounts(nodes);
+        cont.withNetworking(networking);
+        cont.withRootPrivileges(root);
+        cont.setProcesses([proc]);
 
-        /* Work the RO bindmounts in */
-        foreach (source, target; bindMountsRO)
-        {
-            c.add(Mount.bindRO(source, context.joinPath(target)));
-        }
-        /* Likewise for RW mounts */
-        foreach (source, target; bindMountsRW)
-        {
-            c.add(Mount.bindRW(source, context.joinPath(target)));
-        }
-        return c.run();
-    }
-
-    /**
-     * Detach from current namespace
-     *
-     * Detach the main process from the namespace and create a new one for
-     * ourselves.
-     *
-     * Throws: Exception on `unshare()` failure
-     */
-    void detachNamespace()
-    {
-        auto flags = CLONE_NEWNS | CLONE_NEWPID | CLONE_NEWIPC;
-        if (!networking)
-        {
-            flags |= CLONE_NEWNET | CLONE_NEWUTS;
-        }
-
-        auto ret = unshare(flags);
-        enforce(ret == 0, "Failed to detach namespace");
-    }
-
-    /**
-     * Enter the namespace. Will fork() and execute runContainer()
-     *
-     * Params:
-     *      args = Command line arguments for the process
-     * Throws: Exception on `waitpid`/`fork` failure
-     * Returns: Exit code of the primary containerised process
-     */
-    int enterNamespace(ref string[] args)
-    {
-        detachNamespace();
-
-        auto childPid = fork();
-        int status;
-        int ret;
-
-        /* Run child process */
-        if (childPid == 0)
-        {
-            _Exit(runContainer(args));
-        }
-
-        do
-        {
-            ret = waitpid(childPid, &status, WUNTRACED | WCONTINUED);
-            enforce(ret >= 0);
-        }
-        while (!WIFEXITED(status) && !WIFSIGNALED(status));
-
-        return WEXITSTATUS(status);
+        return cont.run();
     }
 }
 

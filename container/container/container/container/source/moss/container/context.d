@@ -106,27 +106,6 @@ public final class Context
         return join([rootfs, target.startsWith("/") ? target[1 .. $]: target], "/");
     }
 
-    /**
-     * Effective UID
-     *
-     * Params:
-     *      uid = UID for all proceses spawned
-     */
-    pure @property void effectiveUID(in uid_t uid) @safe @nogc nothrow
-    {
-        _effectiveUID = uid;
-    }
-
-    /**
-     * Effective UID
-     *
-     * Returns: the effective uid set for all processes
-     */
-    pure @property uid_t effectiveUID() @safe @nogc nothrow
-    {
-        return _effectiveUID;
-    }
-
     pure @property void networking(bool b) @safe @nogc nothrow
     {
         _networking = b;

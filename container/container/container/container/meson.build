@@ -24,12 +24,18 @@ global_includes = [
 	include_directories('source')
 ]
 
+dep_subid = dependency('subid', required: false)
+if not dep_subid.found()
+	# Unfortunately libsubid doesn't ship a .pc file as of April 2023.
+	cc = meson.get_compiler('c')
+    dep_subid = cc.find_library('subid', has_headers: ['shadow' / 'subid.h'], required: true)
+endif
+
 libcontainer_sources = [
 	'source/moss/container/fakeroot.d',
 	'source/moss/container/context.d',
 	'source/moss/container/package.d',
 	'source/moss/container/process.d',
-	'source/moss/container/device.d',
 ]
 
 libcontainer = static_library('moss-container',
@@ -53,6 +59,7 @@ if not meson.is_subproject()
 	]
 
 	container_deps = [
+		dep_subid,
 		link_libcontainer,
 	]
 

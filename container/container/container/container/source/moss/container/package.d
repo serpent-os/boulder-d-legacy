@@ -1,115 +1,231 @@
-/*
- * SPDX-FileCopyrightText: Copyright © 2020-2023 Serpent OS Developers
- *
- * SPDX-License-Identifier: Zlib
- */
-
-/**
- * Container encapsulation
- *
- * This module contains the [Container][Container] class which is used as
- * a main entry point for container workloads.
- *
- * Authors: Copyright © 2020-2023 Serpent OS Developers
- * License: Zlib
- */
 module moss.container;
 
-public import moss.container.device;
-public import moss.core.mounts;
-public import moss.container.process;
-import moss.container.context;
-import std.exception : enforce;
+import core.stdc.stdio;
+import core.stdc.stdlib;
+import core.sys.linux.sched;
+import core.sys.posix.sys.wait;
+import core.sys.posix.unistd : geteuid, getegid;
+import std.conv;
+import std.exception;
 import std.experimental.logger;
-import std.file : exists, remove, symlink, mkdirRecurse, copy;
-import std.process;
+import std.file : copy, exists, mkdirRecurse, remove, rmdir, symlink, write;
+import std.format;
 import std.path : dirName;
-import std.stdio : stderr, stdin, stdout;
-import std.string : empty, format, toStringz;
+import std.process : Pipe, environment, pipe, spawnProcess, wait;
+import std.string : toStringz;
+import std.typecons;
 
-/**
- * A Container is used for the purpose of isolating newly launched processes.
- */
-public final class Container
+import moss.core.mounts;
+import moss.container.context;
+import moss.container.process;
+
+Mount[] defaultDirMounts()
 {
-    /**
-     * Create a new container
-     */
-    this()
-    {
-        /* Default mount points */
-        mountPoints = [
-            Mount("proc", context.joinPath("/proc"), "proc",
-                    MountFlags.NoSuid | MountFlags.NoDev | MountFlags.NoExec
-                    | MountFlags.RelativeAccessTime),
-            Mount("sysfs", context.joinPath("/sys"), "sysfs",
-                    MountFlags.NoSuid | MountFlags.NoDev | MountFlags.NoExec
-                    | MountFlags.RelativeAccessTime),
-            Mount("tmpfs", context.joinPath("/tmp"), "tmpfs",
-                    MountFlags.NoSuid | MountFlags.NoDev),
+    auto dev = Mount("", context.joinPath("/dev"), "tmpfs", MS.NONE,
+        mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NOEXEC).nullable, MNT.DETACH);
+    dev.setData("mode=777".toStringz());
 
-            /* /dev points */
-            Mount("tmpfs", context.joinPath("/dev"), "tmpfs",
-                    MountFlags.NoSuid | MountFlags.NoExec),
-            Mount("tmpfs", context.joinPath("/dev/shm"), "tmpfs",
-                    MountFlags.NoSuid | MountFlags.NoDev),
-            Mount("devpts", context.joinPath("/dev/pts"), "devpts",
-                    MountFlags.NoSuid | MountFlags.NoExec | MountFlags.RelativeAccessTime),
-        ];
+    return [
+        Mount("", context.joinPath("/proc"), "proc", MS.NONE,
+            mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NODEV | MOUNT_ATTR.NOEXEC | MOUNT_ATTR
+                .RELATIME).nullable),
+        Mount("/sys", context.joinPath("/sys"), "", MS.BIND | MS.REC,
+            mount_attr(MOUNT_ATTR.RDONLY, cast(MOUNT_ATTR) 0, MS.SLAVE).nullable, MNT.DETACH),
+        Mount("", context.joinPath("/tmp"), "tmpfs", MS.NONE,
+            mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NODEV).nullable),
+        dev,
+        Mount("", context.joinPath("/dev/shm"), "tmpfs", MS.NONE,
+            mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NODEV).nullable),
+        Mount("", context.joinPath("/dev/pts"), "devpts", MS.NONE,
+            mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NOEXEC | MOUNT_ATTR.RELATIME).nullable),
+    ];
+}
+
+string[string] defaultSymlinks()
+{
+    return [
+        "/proc/self/fd": context.joinPath("/dev/fd"),
+        "/proc/self/fd/0": context.joinPath("/dev/stdin"),
+        "/proc/self/fd/1": context.joinPath("/dev/stdout"),
+        "/proc/self/fd/2": context.joinPath("/dev/stderr"),
+        "pts/ptmx": context.joinPath("/dev/ptmx"),
+    ];
+}
+
+Mount[] defaultNodeMounts()
+{
+    return [
+        Mount("/dev/null", context.joinPath("/dev/null"), "", MS.BIND),
+        Mount("/dev/zero", context.joinPath("/dev/zero"), "", MS.BIND),
+        Mount("/dev/full", context.joinPath("/dev/full"), "", MS.BIND),
+        Mount("/dev/random", context.joinPath("/dev/random"), "", MS.BIND),
+        Mount("/dev/urandom", context.joinPath("/dev/urandom"), "",
+            MS.BIND),
+        Mount("/dev/tty", context.joinPath("/dev/tty"), "", MS.BIND),
+    ];
+}
+
+struct IDMap
+{
+    int inner;
+    int outer;
+    int length;
+
+    string toString() const pure @safe
+    {
+        return format!"%s %s %s"(this.inner, this.outer, this.length);
+    }
+}
+
+struct ChildArguments
+{
+    Container container;
+    Pipe waitingPipe;
+    int ugid; /* UID and GID are equal. */
+}
+
+struct Container
+{
+    void setDirMounts(Mount[] mounts)
+    {
+        this.dirMounts = mounts;
     }
 
-    /**
-     * Add a process to this container
-     */
-    void add(Process p) @safe
+    void setSymlinks(string[string] links)
     {
-        processes ~= p;
+        this.symlinks = links;
     }
 
-    /**
-     * Add a mountpoint to the system
-     */
-    void add(Mount p) @safe
+    void setNodeMounts(Mount[] mounts)
     {
-        mountPoints ~= p;
+        this.nodeMounts = mounts;
     }
 
-    /**
-     * Run the associated args (cmdline) with various settings in place
-     */
-    int run() @system
+    void setProcesses(Process[] processes)
     {
-        import std.algorithm : remove;
+        this.processes = processes;
+    }
 
-        scope (exit)
+    void withNetworking(bool withNet)
+    {
+        this.withNet = withNet;
+    }
+
+    void withRootPrivileges(bool root)
+    {
+        this.withRoot = root;
+    }
+
+    int run()
+    {
+        auto flags = CLONE_NEWNS | CLONE_NEWPID | CLONE_NEWIPC | CLONE_NEWUSER;
+        if (!this.withNet)
         {
-            downMounts();
+            flags |= CLONE_NEWNET | CLONE_NEWUTS;
         }
 
-        /* Setup mounts */
-        foreach (ref m; mountPoints)
+        auto waitingPipe = pipe();
+        auto args = ChildArguments(
+            this,
+            waitingPipe,
+            this.withRoot ? privilegedUGID : regularUGID,
+        );
+
+        immutable auto stackSize = 1024 * 1024;
+        auto stack = malloc(stackSize);
+        scope (exit)
+        {
+            free(stack);
+        }
+        auto StackTop = stack + stackSize;
+        auto pid = clone(&runContainerized, StackTop, flags | SIGCHLD, &args);
+        assert(pid>0, "clone did not clone...");
+
+        this.mapHostUser(pid);
+        waitingPipe.writeEnd.close();
+
+        int status;
+        const auto ret = waitpid(pid, &status, 0);
+        enforce(ret >= 0);
+        return WEXITSTATUS(status);
+    }
+
+private:
+    extern (C) static int runContainerized(void* arg)
+    {
+        auto args = cast(ChildArguments*) arg;
+
+        args.waitingPipe.writeEnd.close();
+        bool[1] stop;
+        args.waitingPipe.readEnd.rawRead(stop);
+
+        if (stop[0])
+        {
+            return 0;
+        }
+
+        args.container.mount();
+        scope (exit)
+        {
+            args.container.unmount();
+        }
+        foreach (ref p; args.container.processes)
+        {
+            p.setUID(args.ugid);
+            p.setGID(args.ugid);
+            const auto ret = p.run();
+            if (ret < 0)
+            {
+                return ret;
+                // TODO log error. Or maybe the called should do that?
+            }
+        }
+        return 0;
+    }
+
+    void mapHostUser(int pid)
+    {
+        auto uids = [IDMap(privilegedUGID, geteuid(), 1)];
+        auto gids = [IDMap(privilegedUGID, getegid(), 1)];
+        if (!this.withRoot)
+        {
+            auto sub = subID();
+            sub[0].inner = regularUGID;
+            uids ~= sub[0];
+            sub[1].inner = regularUGID;
+            gids ~= sub[1];
+        }
+        mapUser(pid, uids, gids);
+    }
+
+    int mount()
+    {
+        foreach (m; this.dirMounts)
         {
             m.target.mkdirRecurse();
             auto err = m.mount();
             if (!err.isNull)
             {
                 error(format!"Failed to activate mountpoint: %s, %s"(m.target, err.get.toString));
-                /* Remove the mountpoint now */
-                mountPoints = mountPoints.remove!((m2) => m.target == m2.target);
                 return 1;
             }
         }
-
-        configureDevfs();
-
-        /* Inspect now the environment is ready */
-        if (!context.inspectRoot())
+        foreach (source, target; this.symlinks)
         {
-            return 1;
+            symlink(source, target);
         }
-
+        foreach (ref m; this.nodeMounts)
+        {
+            write(m.target, null);
+            auto err = m.mount();
+            if (!err.isNull)
+            {
+                error(format!"Failed to activate mountpoint: %s, %s"(m.target, err.get.toString));
+                return 1;
+            }
+        }
         immutable targetResolve = context.joinPath("etc/resolv.conf");
-        if (context.networking && "/etc/resolv.conf".exists && !(targetResolve.exists))
+        if (this.withNet && "/etc/resolv.conf".exists && !(targetResolve.exists))
         {
             immutable targetDir = targetResolve.dirName;
             if (!targetDir.exists)
@@ -119,79 +235,109 @@ public final class Container
             info("Installing /etc/resolv.conf for networking");
             "/etc/resolv.conf".copy(targetResolve);
         }
-
-        auto ret = 0;
-        /* TODO: Handle exit code for more processes */
-        foreach (p; processes)
-        {
-            ret = p.run();
-        }
-
-        return ret;
+        return 0;
     }
 
-private:
-
-    void downMounts()
+    void unmount() const
     {
-        foreach_reverse (ref m; mountPoints)
+        foreach_reverse (ref m; this.nodeMounts)
         {
-            m.unmountFlags = UnmountFlags.Force | UnmountFlags.Detach;
             auto err = m.unmount();
             if (!err.isNull())
             {
                 error(format!"Failed to bring down mountpoint: %s, %s"(m, err.get.toString));
+                continue;
             }
+            remove(m.target);
         }
-    }
-
-    /**
-     * Configure the /dev tree to be valid
-     */
-    void configureDevfs()
-    {
-
-        auto symlinkSources = [
-            "/proc/self/fd", "/proc/self/fd/0", "/proc/self/fd/1",
-            "/proc/self/fd/2", "pts/ptmx"
-        ];
-
-        auto symlinkTargets = [
-            "/dev/fd", "/dev/stdin", "/dev/stdout", "/dev/stderr", "/dev/ptmx"
-        ];
-
-        static DeviceNode[] nodes = [
-            DeviceNode("/dev/null", S_IFCHR | octal!666, mkdev(1, 3)),
-            DeviceNode("/dev/zero", S_IFCHR | octal!666, mkdev(1, 5)),
-            DeviceNode("/dev/full", S_IFCHR | octal!666, mkdev(1, 7)),
-            DeviceNode("/dev/random", S_IFCHR | octal!666, mkdev(1, 8)),
-            DeviceNode("/dev/urandom", S_IFCHR | octal!666, mkdev(1, 9)),
-            DeviceNode("/dev/tty", S_IFCHR | octal!666, mkdev(5, 0)),
-        ];
-
-        /* Link sources to targets */
-        foreach (i; 0 .. symlinkSources.length)
+        foreach (source, target; this.symlinks)
         {
-            auto source = symlinkSources[i];
-            auto target = context.joinPath(symlinkTargets[i]);
-
-            /* Remove old target */
-            if (target.exists)
+            remove(target);
+        }
+        foreach_reverse (ref m; this.dirMounts)
+        {
+            auto err = m.unmount();
+            if (!err.isNull())
             {
-                target.remove();
+                error(format!"Failed to bring down mountpoint: %s, %s"(m, err.get.toString));
+                continue;
             }
-
-            /* Link source to target */
-            symlink(source, target);
-        }
-
-        /* Create our nodes */
-        foreach (ref n; nodes)
-        {
-            n.create();
+            rmdir(m.target);
         }
     }
+
+    immutable int privilegedUGID = 0;
+    immutable int regularUGID = 1;
+
+    Mount[] dirMounts;
+    string[string] symlinks;
+    Mount[] nodeMounts;
+    bool withNet;
+    bool withRoot;
 
     Process[] processes;
-    Mount[] mountPoints;
+}
+
+int mapUser(int pid, IDMap[] uids, IDMap[] gids)
+{
+    /* We could write the uid_map and gid_map files ourselves
+     * if we wanted to run containerized processes only as root.
+     * But since we want to be able to drop privileges by setting
+     * a different UID and GID, we require *two* associations.
+     * This is impossible without CAP_SETUID capability. `newuidmap`
+     * has it, so we'll use it.
+     * See https://man7.org/linux/man-pages/man7/user_namespaces.7.html
+     * at chapter "Defining user and group ID mappings: writing to uid_map and gid_map".
+     */
+
+    const auto pidString = to!string(pid);
+    string[] mapsToArgs(IDMap[] maps)
+    {
+        string[] args;
+        foreach (ref map; maps){
+            args ~= [to!string(map.inner), to!string(map.outer), to!string(map.length)];
+        }
+        return args;
+    }
+
+    int status;
+    status = spawnProcess("newuidmap" ~ (pidString ~ mapsToArgs(uids))).wait();
+    if (status < 0)
+    {
+        return status;
+    }
+    status = spawnProcess("newgidmap" ~ (pidString ~ mapsToArgs(gids))).wait();
+
+    return status;
+}
+
+extern (C)
+{
+    bool subid_init(const char* progname, FILE* logfd);
+    struct subid_range
+    {
+        ulong start;
+        ulong count;
+    }
+
+    int subid_get_uid_ranges(const char* owner, subid_range** ranges);
+    int subid_get_gid_ranges(const char* owner, subid_range** ranges);
+}
+
+Tuple!(IDMap, IDMap) subID()
+{
+    auto user = environment.get("USER");
+    assert(user != "", "USER environment variable is not defined");
+
+    /* There may be multiple rages. We just need one, so consider the first. */
+    subid_range* uid;
+    subid_range* gid;
+    int ret;
+    subid_init(null, null);
+    ret = subid_get_uid_ranges(user.toStringz(), &uid);
+    assert(ret > 0, "Failed to get UID range, or no ranges available");
+    ret = subid_get_gid_ranges(user.toStringz(), &gid);
+    assert(ret > 0, "Failed to get GID range, or no ranges available");
+
+    return tuple(IDMap(0, cast(int)uid.start, cast(int)uid.count), IDMap(0, cast(int)gid.start, cast(int)gid.count));
 }
