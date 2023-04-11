@@ -19,7 +19,7 @@ import core.stdc.stdlib : _Exit;
 import core.sys.linux.sched;
 import core.sys.posix.sys.stat : umask;
 import core.sys.posix.sys.wait;
-import core.sys.posix.unistd : fork, geteuid;
+import core.sys.posix.unistd : fork, geteuid, isatty;
 import moss.container;
 import moss.container.context;
 import moss.core.mounts;
@@ -94,7 +94,14 @@ public struct ContainerCLI
     @CommandEntry() int run(ref string[] args)
     {
         /// FIXME: make configurable (-d is currently used for destination)
-        configureLogger(ColorLoggerFlags.Color | ColorLoggerFlags.Timestamps);
+        if (isatty(0) && isatty(1))
+        {
+            configureLogger(ColorLoggerFlags.Color | ColorLoggerFlags.Timestamps);
+        }
+        else
+        {
+            configureLogger(ColorLoggerFlags.Timestamps);
+        }
         globalLogLevel = LogLevel.trace;
 
         umask(octal!22);
