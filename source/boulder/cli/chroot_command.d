@@ -85,7 +85,7 @@ public struct ChrootCommand
         immutable recipe = argv.length > 0 ? argv[0] : "stone.yml";
         if (!recipe.exists)
         {
-            error(format!"Cannot find recipe to chroot into build location: %s"(recipe));
+            error(format!"Recipe not found: %s"(recipe));
             return ExitStatus.Failure;
         }
 

@@ -326,7 +326,7 @@ public final class Controller : StageContext
         immutable buildEnv = _job.hostPaths.rootfs;
         if (!buildEnv.exists)
         {
-            error("No build environment found. Try building the package first.");
+            error("No build environment found. Try building the package recipe first.");
             return ExitStatus.Failure;
         }
 
