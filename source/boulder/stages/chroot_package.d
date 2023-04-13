@@ -7,7 +7,7 @@
 /**
  * boulder.stages.chroot_package
  *
- * Implements chroot'ing into a package
+ * Implements chrooting into a package recipe build environment
  *
  * Authors: Copyright © 2020-2023 Serpent OS Developers
  * License: Zlib
