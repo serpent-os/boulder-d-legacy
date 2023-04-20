@@ -17,7 +17,6 @@ module boulder.cli.chroot_command;
 
 import boulder.cli : BoulderCLI;
 import boulder.controller;
-import core.sys.posix.unistd : geteuid;
 import mason.build.context : buildContext;
 import mason.build.util : executeCommand;
 import moss.core : ExitStatus;
@@ -62,13 +61,6 @@ public struct ChrootCommand
         if (argv.length > 1)
         {
             warning("Unexpected number of arguments declared. For help, run boulder chroot -h");
-            return ExitStatus.Failure;
-        }
-
-        /* Ensure root permissions */
-        if (geteuid() != 0)
-        {
-            error("boulder must be run with root privileges.");
             return ExitStatus.Failure;
         }
 

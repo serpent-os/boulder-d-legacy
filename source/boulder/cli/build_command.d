@@ -17,7 +17,6 @@ module boulder.cli.build_command;
 
 import boulder.cli : BoulderCLI;
 import boulder.controller;
-import core.sys.posix.unistd : geteuid;
 import moss.core;
 import std.experimental.logger;
 import std.file : exists;
@@ -62,13 +61,6 @@ public struct BuildControlCommand
         if (!outputDirectory.exists)
         {
             error(format!"Output directory does not exist: %s"(outputDirectory));
-            return ExitStatus.Failure;
-        }
-
-        /* Ensure root permissions */
-        if (geteuid() != 0)
-        {
-            error("boulder must be run with root privileges.");
             return ExitStatus.Failure;
         }
 

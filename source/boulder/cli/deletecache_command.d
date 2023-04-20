@@ -20,7 +20,6 @@ import boulder.buildjob : SharedRootArtefactsCache, SharedRootBuildCache,
     SharedRootCcacheCache, SharedRootPkgCacheCache, SharedRootRootCache;
 import boulder.cli : BoulderCLI;
 import boulder.upstreamcache : SharedRootUpstreamsCache;
-import core.sys.posix.unistd : geteuid;
 import moss.core : ExitStatus;
 import moss.core.sizing : formattedSize;
 import std.format : format;
@@ -52,13 +51,6 @@ public struct DeleteCacheCommand
         {
             warning(
                     "Unexcepted number of arguments specified. For help, run boulder delete-cache -h");
-            return ExitStatus.Failure;
-        }
-
-        /* Ensure root permissions */
-        if (geteuid() != 0 && sizes == false)
-        {
-            error("boulder must be run with root privileges.");
             return ExitStatus.Failure;
         }
 

@@ -17,7 +17,6 @@ module boulder.cli.new_command;
 
 public import moss.core.cli;
 import boulder.cli : BoulderCLI;
-import core.sys.posix.unistd : geteuid;
 import drafter;
 import moss.core;
 import std.algorithm : each;
