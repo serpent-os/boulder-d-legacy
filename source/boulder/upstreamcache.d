@@ -17,21 +17,27 @@
 
 module boulder.upstreamcache;
 
-import moss.core.ioutil;
+import std.array : join;
+import std.conv : to;
 import std.exception : enforce;
 import std.experimental.logger;
-import std.conv : to;
-import std.path : dirName, pathSplitter;
 import std.file : exists, mkdirRecurse, rename;
+import std.path : dirName, pathSplitter;
+import std.process : environment;
 import std.string : format;
-import std.array : join;
-public import moss.format.source.upstream_definition;
 import std.sumtype : tryMatch;
+public import moss.format.source.upstream_definition;
+
+import moss.core.ioutil;
 
 /**
  * Base of all directories
  */
-public static immutable(string) SharedRootUpstreamsCache = "/var/cache/boulder/upstreams";
+public string sharedRootUpstreamsCache()
+{
+    auto cacheDir = environment.get("XDG_CACHE_HOME", environment.get("HOME") ~ "/.cache");
+    return cacheDir ~ "/boulder/upstreams";
+}
 
 /**
  * The UpstreamCache provides persistent paths and
@@ -55,8 +61,8 @@ public final class UpstreamCache
     void constructDirs()
     {
         auto paths = [
-            SharedRootUpstreamsCache, stagingDirectory, gitDirectory,
-            plainDirectory
+            sharedRootUpstreamsCache(), stagingDirectory(), gitDirectory(),
+            plainDirectory()
         ];
         foreach (p; paths)
         {
@@ -81,7 +87,7 @@ public final class UpstreamCache
         import std.process;
 
         enforce(def.type == UpstreamType.Plain || def.type == UpstreamType.Git,
-                "UpstreamCache: only plain and git types are supported");
+            "UpstreamCache: only plain and git types are supported");
 
         auto st = stagingPath(def);
         auto fp = finalPath(def);
@@ -89,7 +95,7 @@ public final class UpstreamCache
         if (def.type == UpstreamType.Plain || (()@trusted => def.git.staging)())
         {
             enforce(st.exists,
-                    format!"UpstreamCache.promote(): staging path %s does not exist"(st));
+                format!"UpstreamCache.promote(): staging path %s does not exist"(st));
         }
 
         auto dirn = fp.dirName;
@@ -124,8 +130,8 @@ public final class UpstreamCache
                 auto clone = spawnProcess(cmd, env, Config.none);
                 int exitCode = clone.wait();
                 enforce(exitCode == 0,
-                        format!"Failed to clone git source from staging path %s to final path %s"(st,
-                            fp));
+                    format!"Failed to clone git source from staging path %s to final path %s"(st,
+                        fp));
             }
             else
             {
@@ -144,11 +150,11 @@ public final class UpstreamCache
                 auto fetch = spawnProcess(["git", "fetch",], env, Config.none, workdir);
                 int exitCode = fetch.wait();
                 enforce(exitCode == 0,
-                        format!"Failed to fetch more refs from local upstream in staging path %s to final path %s"(st,
-                            fp));
+                    format!"Failed to fetch more refs from local upstream in staging path %s to final path %s"(st,
+                        fp));
                 enforce(refExists(def, refID),
-                        format!"Ref %s still doesn't exist in the repository clone in final path %s"(fp,
-                            refID));
+                    format!"Ref %s still doesn't exist in the repository clone in final path %s"(fp,
+                        refID));
             }
 
             resetToRef(def, refID);
@@ -171,7 +177,7 @@ public final class UpstreamCache
         import std.process;
 
         enforce(def.type == UpstreamType.Git,
-                "UpstreamCache.resetToRef: only supports Git upstreams!");
+            "UpstreamCache.resetToRef: only supports Git upstreams!");
 
         string[string] env;
         string workdir = finalPath(def);
@@ -202,7 +208,7 @@ public final class UpstreamCache
     bool refExists(in UpstreamDefinition def, in string refID) @safe
     {
         enforce(def.type == UpstreamType.Git,
-                "UpstreamCache.refExists: Only Git upstreams can query ref existence");
+            "UpstreamCache.refExists: Only Git upstreams can query ref existence");
 
         import std.process;
 
@@ -224,7 +230,7 @@ public final class UpstreamCache
     void share(in UpstreamDefinition def, in string destPath) ///FIXME: @safe
     {
         enforce(def.type == UpstreamType.Plain || def.type == UpstreamType.Git,
-                "UpstreamCache: only plain and git types are supported");
+            "UpstreamCache: only plain and git types are supported");
 
         auto fp = finalPath(def);
 
@@ -260,17 +266,17 @@ public final class UpstreamCache
         import std.path : pathSplitter, buildNormalizedPath;
 
         enforce(def.type == UpstreamType.Plain || def.type == UpstreamType.Git,
-                "UpstreamCache: only plain and git types are supported");
+            "UpstreamCache: only plain and git types are supported");
 
         final switch (def.type)
         {
         case UpstreamType.Plain:
             enforce(def.plain.hash.length >= 5,
-                    "UpstreamCache: Hash too short: " ~ to!string(def.plain));
-            return join([stagingDirectory, def.plain.hash], "/");
+                "UpstreamCache: Hash too short: " ~ to!string(def.plain));
+            return join([stagingDirectory(), def.plain.hash], "/");
         case UpstreamType.Git:
-            return join([stagingDirectory, "git",
-                normalizedUriPath(def.uri)], "/");
+            return join([stagingDirectory(), "git",
+                    normalizedUriPath(def.uri)], "/");
         }
     }
 
@@ -283,24 +289,24 @@ public final class UpstreamCache
         import std.algorithm.searching : startsWith;
 
         enforce(def.type == UpstreamType.Plain || def.type == UpstreamType.Git,
-                "UpstreamCache: only plain and git types are supported");
+            "UpstreamCache: only plain and git types are supported");
 
         final switch (def.type)
         {
         case UpstreamType.Plain:
             enforce(def.plain.hash.length >= 5,
-                    "UpstreamCache: Hash too short: " ~ to!string(def.plain));
+                "UpstreamCache: Hash too short: " ~ to!string(def.plain));
 
             return join([
-                plainDirectory, def.plain.hash[0 .. 5], def.plain.hash[5 .. $],
+                plainDirectory(), def.plain.hash[0 .. 5], def.plain.hash[5 .. $],
                 def.plain.hash
             ], "/");
         case UpstreamType.Git:
-            string path = join([gitDirectory, normalizedUriPath(def.uri)], "/");
+            string path = join([gitDirectory(), normalizedUriPath(def.uri)], "/");
 
             /* A very simple check to prevent path escaping */
-            enforce(!path.asRelativePath(gitDirectory).startsWith(".."),
-                    "Path escaping in Git URI may be possible");
+            enforce(!path.asRelativePath(gitDirectory()).startsWith(".."),
+                "Path escaping in Git URI may be possible");
 
             return path;
         }
@@ -310,23 +316,26 @@ private:
     /**
      * Staging downloads that might be wonky.
      */
-    static immutable(string) stagingDirectory = join([
-        SharedRootUpstreamsCache, "staging"
-    ], "/");
+    string stagingDirectory()
+    {
+        return join([sharedRootUpstreamsCache(), "staging"], "/");
+    }
 
     /**
      * Git clones
      */
-    static immutable(string) gitDirectory = join([
-        SharedRootUpstreamsCache, "git"
-    ], "/");
+    string gitDirectory()
+    {
+        return join([sharedRootUpstreamsCache(), "git",], "/");
+    }
 
     /**
      * Plain downloads
      */
-    static immutable(string) plainDirectory = join([
-        SharedRootUpstreamsCache, "fetched"
-    ], "/");
+    string plainDirectory()
+    {
+        return join([sharedRootUpstreamsCache(), "fetched"], "/");
+    }
 
     /**
      * Converts and normalizes a URI (in our use case, an HTTP(S) Git remote

@@ -16,10 +16,10 @@
 module boulder.cli.deletecache_command;
 
 public import moss.core.cli;
-import boulder.buildjob : SharedRootArtefactsCache, SharedRootBuildCache,
-    SharedRootCcacheCache, SharedRootPkgCacheCache, SharedRootRootCache;
+import boulder.buildjob : sharedRootArtefactsCache, sharedRootBuildCache,
+    sharedRootCcacheCache, sharedRootPkgCacheCache, sharedRootRootCache;
 import boulder.cli : BoulderCLI;
-import boulder.upstreamcache : SharedRootUpstreamsCache;
+import boulder.upstreamcache : sharedRootUpstreamsCache;
 import moss.core : ExitStatus;
 import moss.core.sizing : formattedSize;
 import std.format : format;
@@ -58,9 +58,9 @@ public struct DeleteCacheCommand
         if (sizes == true)
         {
             string[] cachePaths = [
-                SharedRootArtefactsCache, SharedRootBuildCache,
-                SharedRootCcacheCache, SharedRootPkgCacheCache,
-                SharedRootRootCache, SharedRootUpstreamsCache,
+                sharedRootArtefactsCache(), sharedRootBuildCache(),
+                sharedRootCcacheCache(), sharedRootPkgCacheCache(),
+                sharedRootRootCache(), sharedRootUpstreamsCache(),
             ];
             double totalSize = 0;
             foreach (string path; cachePaths)
@@ -74,7 +74,7 @@ public struct DeleteCacheCommand
         }
 
         /* Figure out what paths we're nuking */
-        string[] nukeCachePaths = [SharedRootRootCache];
+        string[] nukeCachePaths = [sharedRootRootCache()];
         if (deleteAll == true)
         {
             delArtefacts = true;
@@ -84,15 +84,15 @@ public struct DeleteCacheCommand
             delUpstreams = true;
         }
         if (delArtefacts == true)
-            nukeCachePaths ~= SharedRootArtefactsCache;
+            nukeCachePaths ~= sharedRootArtefactsCache();
         if (delBuild == true)
-            nukeCachePaths ~= SharedRootBuildCache;
+            nukeCachePaths ~= sharedRootBuildCache();
         if (delCcache == true)
-            nukeCachePaths ~= SharedRootCcacheCache;
+            nukeCachePaths ~= sharedRootCcacheCache();
         if (delPkgCache == true)
-            nukeCachePaths ~= SharedRootPkgCacheCache;
+            nukeCachePaths ~= sharedRootPkgCacheCache();
         if (delUpstreams == true)
-            nukeCachePaths ~= SharedRootUpstreamsCache;
+            nukeCachePaths ~= sharedRootUpstreamsCache();
 
         /* Nuke the paths */
         double totalSize = 0;

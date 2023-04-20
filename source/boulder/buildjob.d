@@ -15,26 +15,43 @@
 
 module boulder.buildjob;
 
-import moss.format.source.spec;
-import std.path : baseName, dirName, absolutePath, buildNormalizedPath;
-import std.string : format, startsWith;
 import std.array : join;
+import std.path : baseName, dirName, absolutePath, buildNormalizedPath;
+import std.process : environment;
+import std.string : format, startsWith;
 
-immutable static private auto SharedRootBase = "/var/cache/boulder";
+import moss.format.source.spec;
 
-immutable static public auto SharedRootArtefactsCache = join([
-    SharedRootBase, "artefacts"
-], "/");
-immutable static public auto SharedRootBuildCache = join([
-    SharedRootBase, "build"
-], "/");
-immutable static public auto SharedRootCcacheCache = join([
-    SharedRootBase, "ccache"
-], "/");
-immutable static public auto SharedRootPkgCacheCache = join([
-    SharedRootBase, "pkgCache"
-], "/");
-immutable static public auto SharedRootRootCache = join([SharedRootBase, "root"], "/");
+private string sharedRootBase()
+{
+    auto cacheDir = environment.get("XDG_CACHE_HOME", environment.get("HOME") ~ "/.cache");
+    return cacheDir ~ "/boulder";
+}
+
+public string sharedRootArtefactsCache()
+{
+    return join([sharedRootBase(), "artefacts"], "/");
+}
+
+public string sharedRootBuildCache()
+{
+    return join([sharedRootBase(), "build"], "/");
+}
+
+public string sharedRootCcacheCache()
+{
+    return join([sharedRootBase(), "ccache"], "/");
+}
+
+public string sharedRootPkgCacheCache()
+{
+    return join([sharedRootBase(), "pkgCache"], "/");
+}
+
+public string sharedRootRootCache()
+{
+    return join([sharedRootBase(), "root"], "/");
+}
 
 package struct BuildPaths
 {
@@ -83,21 +100,21 @@ public final class BuildJob
         _name = path.baseName;
 
         auto subpath = format!"%s-%s-%s"(_recipe.source.name,
-                _recipe.source.versionIdentifier, _recipe.source.release);
+            _recipe.source.versionIdentifier, _recipe.source.release);
         /* Output */
-        _hostPaths.artefacts = join([SharedRootArtefactsCache, subpath], "/");
+        _hostPaths.artefacts = join([sharedRootArtefactsCache(), subpath], "/");
         /* Where to build */
-        _hostPaths.buildRoot = join([SharedRootBuildCache, subpath], "/");
+        _hostPaths.buildRoot = join([sharedRootBuildCache(), subpath], "/");
         /* Where to cache */
-        _hostPaths.compilerCache = join([SharedRootCcacheCache], "/");
+        _hostPaths.compilerCache = join([sharedRootCcacheCache()], "/");
         /* Where to save binaries */
-        _hostPaths.pkgCache = join([SharedRootPkgCacheCache], "/");
+        _hostPaths.pkgCache = join([sharedRootPkgCacheCache()], "/");
         /* Where is the recipe..? */
         _hostPaths.recipe = path.dirName.absolutePath.buildNormalizedPath;
         /* And where is the rootfs? */
-        _hostPaths.rootfs = join([SharedRootRootCache, subpath], "/");
+        _hostPaths.rootfs = join([sharedRootRootCache(), subpath], "/");
         /* Unconfined recipe tree? */
-        _unconfinedRecipe = join([SharedRootBase, "recipe", subpath], "/");
+        _unconfinedRecipe = join([sharedRootBase(), "recipe", subpath], "/");
     }
 
     /**
@@ -139,7 +156,7 @@ public final class BuildJob
     @property ref immutable(BuildPaths) guestPaths() @safe @nogc nothrow const
     {
         static BuildPaths p = BuildPaths("/mason/artefacts", "/mason/recipe",
-                "/mason/ccache", "/mason/build", "/.moss/cache", "/");
+            "/mason/ccache", "/mason/build", "/.moss/cache", "/");
 
         return cast(immutable(BuildPaths)) p;
     }
