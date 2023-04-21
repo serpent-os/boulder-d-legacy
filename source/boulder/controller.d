@@ -332,11 +332,7 @@ public final class Controller : StageContext
 
         /* Always ensure these useful packages are available in the chroot */
         string[] upstreamDeps;
-        upstreamDeps ~= [
-            "binary(git)",
-            "binary(nano)",
-            "binary(vim)"
-        ];
+        upstreamDeps ~= ["binary(git)", "binary(nano)", "binary(vim)"];
         upstreamDeps ~= _job.extraDeps;
         upstreamDeps.sort();
         _job.extraDeps = () @trusted { return upstreamDeps.uniq.array(); }();

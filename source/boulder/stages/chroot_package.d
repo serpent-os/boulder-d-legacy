@@ -64,8 +64,7 @@ static public StageReturn chrootPackage(scope StageContext context)
                 context.job.guestPaths.compilerCache),
         /* recipe tree */
         "--bind-ro",
-        format!"%s=%s"(context.job.hostPaths.recipe,
-                context.job.guestPaths.recipe),
+        format!"%s=%s"(context.job.hostPaths.recipe, context.job.guestPaths.recipe),
         /* Start at working directory */
         "--workdir", context.job.guestPaths.buildRoot,
         /* Set the user to use */
