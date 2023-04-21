@@ -16,7 +16,6 @@
 module boulder.environment;
 
 import std.format : format;
-import std.range;
 
 /** Boulder version */
 const VERSION = "@VERSION@";
@@ -31,7 +30,7 @@ const GIT_VERSION = "@GIT_VERSION@";
  */
 string fullVersion()
 {
-    immutable git = GIT_VERSION.empty ? "" : format!" (%s)"(GIT_VERSION);
+    immutable git = GIT_VERSION == " " ? "" : format!" (%s)"(GIT_VERSION);
 
     return format!"%s%s"(VERSION, git);
 }
