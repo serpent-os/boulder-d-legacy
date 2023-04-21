@@ -1,23 +1,5 @@
 # Build the main executable.
 
-conf_data = configuration_data()
-conf_data.set('VERSION', meson.project_version())
-conf_data.set('GIT_VERSION', '@GIT_VERSION@')
-
-environment = configure_file(
-    input : 'environment.d',
-    output : 'environment.d.tmp',
-    configuration : conf_data,
-)
-
-environment = vcs_tag(
-    command: ['git', 'describe', '--tags', '--always', '--dirty', '--abbrev=9'],
-    input: environment,
-    output: 'environment.d',
-    replace_string: '@GIT_VERSION@',
-    fallback: ' ',
-)
-
 boulder_sources = [
     'cli/package.d',
     'cli/build_command.d',
@@ -27,6 +9,7 @@ boulder_sources = [
     'cli/version_command.d',
     'buildjob.d',
     'controller.d',
+    'environment.d',
     'upstreamcache.d',
     'stages/build_package.d',
     'stages/chroot_package.d',
@@ -39,7 +22,6 @@ boulder_sources = [
     'stages/sync_artefacts.d',
     'stages/package.d',
     'main.d',
-    environment,
 ]
 
 boulder_includes = [
@@ -63,6 +45,9 @@ boulder = executable(
 	dependencies: boulder_deps,
 	include_directories: boulder_includes,
 	link_args: ['--link-defaultlib-shared=false'],
+	d_import_dirs: [
+		boulder_data_dir,
+	]
 )
 
 # Ensure mason works
