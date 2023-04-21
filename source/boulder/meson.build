@@ -15,7 +15,7 @@ environment = vcs_tag(
     input: environment,
     output: 'environment.d',
     replace_string: '@GIT_VERSION@',
-    fallback: '',
+    fallback: ' ',
 )
 
 boulder_sources = [
