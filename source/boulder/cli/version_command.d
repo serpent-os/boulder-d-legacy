@@ -16,6 +16,7 @@
 module boulder.cli.version_command;
 
 public import moss.core.cli;
+import boulder.environment : fullVersion;
 import moss.core;
 import std.format : format;
 
@@ -38,7 +39,7 @@ public struct VersionCommand
     {
         import std.stdio : writefln, writeln;
 
-        writeln(format!"boulder, version %s"(moss.core.Version));
+        writeln(format!"boulder, version %s"(fullVersion()));
         writeln("\nCopyright © 2020-2023 Serpent OS Developers");
         writeln("Available under the terms of the Zlib license");
         return ExitStatus.Success;
