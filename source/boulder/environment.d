@@ -15,12 +15,16 @@
 
 module boulder.environment;
 
+import std.algorithm.iteration : map;
+import std.algorithm.searching : find;
+import std.array : back;
 import std.format : format;
+import std.string : stripRight, splitLines, split, replace;
 
 /** Boulder version */
-const VERSION = "@VERSION@";
-/** Git version */
-const GIT_VERSION = "@GIT_VERSION@";
+static immutable VERSION = getenv("VERSION");
+/** Git hash */
+static immutable GIT_HASH = getenv("GIT_HASH");
 
 /** 
  * Returns the full formatted version string including 
@@ -30,7 +34,16 @@ const GIT_VERSION = "@GIT_VERSION@";
  */
 string fullVersion()
 {
-    immutable git = GIT_VERSION == " " ? "" : format!" (%s)"(GIT_VERSION);
+    immutable git = GIT_HASH == "" ? "" : format!" (%s)"(GIT_HASH);
 
     return format!"%s%s"(VERSION, git);
+}
+
+private static string getenv(string key)
+{
+    static immutable environment = import("environment").stripRight;
+
+    return splitLines(environment).map!(l => l.split('='))
+        .find!(l => l[0] == key)
+        .front[1];
 }

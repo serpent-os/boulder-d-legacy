@@ -2,3 +2,4 @@
 /.dub
 dub.selections.json
 /*.stone
+/data/environment

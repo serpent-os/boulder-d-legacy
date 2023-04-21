@@ -18,5 +18,13 @@
 	},
 	"stringImportPaths": [
 		"data"
-	]
+	],
+	"preBuildCommands": [
+		"cp data/environment.in data/environment",
+		"sed -i 's/@VERSION@/'$DUB_PACKAGE_VERSION'/g' data/environment",
+		"sed -i 's/@GIT_HASH@/'`git describe --tags --always --dirty --abbrev=9 2>/dev/null || echo ''`'/g' data/environment",
+	],
+	"postBuildCommands": [
+		"rm data/environment 2>/dev/null || true"
+	],
 }
