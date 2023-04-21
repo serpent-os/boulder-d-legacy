@@ -49,9 +49,6 @@ static private StageReturn buildPackageConfined(scope StageContext context)
 {
     import core.sys.posix.pwd : getpwnam, passwd;
 
-    passwd* p = getpwnam("nobody");
-    immutable nobodyUser = p is null ? 65_534 : p.pw_uid;
-
     string[string] environ;
     environ["PATH"] = "/usr/bin:/usr/sbin";
     string[] archCommand = null;
@@ -77,8 +74,6 @@ static private StageReturn buildPackageConfined(scope StageContext context)
         "--bind-ro",
         format!"%s=%s"(context.job.hostPaths.recipe,
                 context.job.guestPaths.recipe),
-        /* Set the user to use */
-        format!"--uid=%s"(nobodyUser),
         /* Enable colours */
         "-s", "TERM=xterm-256color",
         /* Set HOME for the packages that need it */
