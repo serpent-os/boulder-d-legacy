@@ -22,15 +22,15 @@ import moss.container.process;
 Mount[] defaultDirMounts()
 {
     auto dev = Mount("", context.joinPath("/dev"), "tmpfs", MS.NONE,
-        mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NOEXEC).nullable, MNT.DETACH);
-    dev.setData("mode=777".toStringz());
+        mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NOEXEC).nullable);
+    dev.setData("mode=1777".toStringz());
 
     return [
         Mount("", context.joinPath("/proc"), "proc", MS.NONE,
             mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NODEV | MOUNT_ATTR.NOEXEC | MOUNT_ATTR
                 .RELATIME).nullable),
         Mount("/sys", context.joinPath("/sys"), "", MS.BIND | MS.REC,
-            mount_attr(MOUNT_ATTR.RDONLY, cast(MOUNT_ATTR) 0, MS.SLAVE).nullable, MNT.DETACH),
+            mount_attr(MOUNT_ATTR.RDONLY).nullable, MNT.DETACH),
         Mount("", context.joinPath("/tmp"), "tmpfs", MS.NONE,
             mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NODEV).nullable),
         dev,
