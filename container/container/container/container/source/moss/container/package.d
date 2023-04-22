@@ -139,7 +139,7 @@ struct Container
         }
         auto StackTop = stack + stackSize;
         auto pid = clone(&runContainerized, StackTop, flags | SIGCHLD, &args);
-        assert(pid>0, "clone did not clone...");
+        assert(pid > 0, "clone did not clone...");
 
         this.mapHostUser(pid);
         waitingPipe.writeEnd.close();
@@ -224,25 +224,31 @@ private:
                 return 1;
             }
         }
-        immutable targetResolve = context.joinPath("etc/resolv.conf");
-        if (this.withNet && "/etc/resolv.conf".exists && !(targetResolve.exists))
+        if (this.withNet && !this.resolvConf.target.exists)
         {
-            immutable targetDir = targetResolve.dirName;
-            if (!targetDir.exists)
-            {
-                targetDir.mkdirRecurse();
-            }
             info("Installing /etc/resolv.conf for networking");
-            "/etc/resolv.conf".copy(targetResolve);
+            write(this.resolvConf.target, null);
+            auto err = this.resolvConf.mount();
+            if (!err.isNull)
+            {
+                error(format!"Failed to activate mountpoint: %s, %s"(this.resolvConf.target, err
+                        .get.toString));
+                return 1;
+            }
         }
         return 0;
     }
 
     void unmount() const
     {
+        auto err = this.resolvConf.unmount();
+        if (err.isNull)
+        {
+            remove(this.resolvConf.target);
+        }
         foreach_reverse (ref m; this.nodeMounts)
         {
-            auto err = m.unmount();
+            err = m.unmount();
             if (!err.isNull())
             {
                 error(format!"Failed to bring down mountpoint: %s, %s"(m, err.get.toString));
@@ -256,7 +262,7 @@ private:
         }
         foreach_reverse (ref m; this.dirMounts)
         {
-            auto err = m.unmount();
+            err = m.unmount();
             if (!err.isNull())
             {
                 error(format!"Failed to bring down mountpoint: %s, %s"(m, err.get.toString));
@@ -264,6 +270,17 @@ private:
             }
             rmdir(m.target);
         }
+    }
+
+    static @property Mount resolvConf()
+    {
+        return Mount(
+            "/etc/resolv.conf",
+            context.joinPath(
+                "/etc/resolv.conf"),
+            "",
+            MS.BIND,
+            mount_attr(MOUNT_ATTR.RDONLY).nullable);
     }
 
     immutable int privilegedUGID = 0;
@@ -294,8 +311,11 @@ int mapUser(int pid, IDMap[] uids, IDMap[] gids)
     string[] mapsToArgs(IDMap[] maps)
     {
         string[] args;
-        foreach (ref map; maps){
-            args ~= [to!string(map.inner), to!string(map.outer), to!string(map.length)];
+        foreach (ref map; maps)
+        {
+            args ~= [
+                to!string(map.inner), to!string(map.outer), to!string(map.length)
+            ];
         }
         return args;
     }
@@ -339,5 +359,6 @@ Tuple!(IDMap, IDMap) subID()
     ret = subid_get_gid_ranges(user.toStringz(), &gid);
     assert(ret > 0, "Failed to get GID range, or no ranges available");
 
-    return tuple(IDMap(0, cast(int)uid.start, cast(int)uid.count), IDMap(0, cast(int)gid.start, cast(int)gid.count));
+    return tuple(IDMap(0, cast(int) uid.start, cast(int) uid.count), IDMap(0, cast(int) gid.start, cast(
+            int) gid.count));
 }
