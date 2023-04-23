@@ -13,7 +13,7 @@ definitions:
     - infodir        : "%(datadir)/info"
     - mandir         : "%(datadir)/man"
     - docdir         : "%(datadir)/doc"
-    - vendordir      : "%(datadir)/defaults/etc"
+    - vendordir      : "%(datadir)/defaults"
     - completionsdir : "%(datadir)/bash-completion/completions"
     - tmpfilesdir    : "%(prefix)/lib/tmpfiles.d"
     - sysusersdir    : "%(prefix)/lib/sysusers.d"
