@@ -86,17 +86,18 @@ actions              :
             cd "%(workdir)" && echo "The work directory %%(workdir) is ${PWD}"
 
 defaultTuningGroups :
+    - asneeded
+    - avxwidth
     - base
+    - bindnow
     - debug
     - fortify
-    - optimize
-    - avxwidth
+    - frame-pointer
     - harden
-    - asneeded
-    - bindnow
     - icf
-    - symbolic
+    - optimize
     - relr
+    - symbolic
 
 tuning              :
     # A set of groups we can toggle from the "tune" key
@@ -287,12 +288,12 @@ flags               :
         ld        : "-Wl,-O2,--gc-sections"
 
     - omit-frame-pointer:
-        c         : "-fomit-frame-pointer"
-        cxx       : "-fomit-frame-pointer"
+        c         : "-fomit-frame-pointer -momit-leaf-frame-pointer"
+        cxx       : "-fomit-frame-pointer -momit-leaf-frame-pointer"
 
     - no-omit-frame-pointer:
-        c         : "-fno-omit-frame-pointer"
-        cxx       : "-fno-omit-frame-pointer"
+        c         : "-fno-omit-frame-pointer -mno-omit-leaf-frame-pointer"
+        cxx       : "-fno-omit-frame-pointer -mno-omit-leaf-frame-pointer"
 
     # Toggle bindnow (ON)
     - bindnow:
