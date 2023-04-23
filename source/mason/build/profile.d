@@ -296,8 +296,8 @@ public:
             sbuilder.addDefinition("compiler_cxx", "clang++");
             sbuilder.addDefinition("compiler_objc", "clang");
             sbuilder.addDefinition("compiler_objcxx", "clang++");
-            sbuilder.addDefinition("compiler_cpp", "clang -E");
-            sbuilder.addDefinition("compiler_objcpp", "clang -E");
+            sbuilder.addDefinition("compiler_cpp", "clang -E -");
+            sbuilder.addDefinition("compiler_objcpp", "clang -E -");
             sbuilder.addDefinition("compiler_objcxxcpp", "clang++ -E");
             sbuilder.addDefinition("compiler_ar", "llvm-ar");
             sbuilder.addDefinition("compiler_ld", "ld.lld");
