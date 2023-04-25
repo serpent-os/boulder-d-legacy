@@ -65,40 +65,11 @@ Mount[] defaultNodeMounts()
     ];
 }
 
-struct IDMap
-{
-    int inner;
-    int outer;
-    int length;
-
-    string toString() const pure @safe
-    {
-        return format!"%s %s %s"(this.inner, this.outer, this.length);
-    }
-}
-
-struct ChildArguments
-{
-    Container container;
-    Pipe waitingPipe;
-    int ugid; /* UID and GID are equal. */
-}
-
 struct Container
 {
-    void setDirMounts(Mount[] mounts)
+    void setFilesystem(Filesystem fs)
     {
-        this.dirMounts = mounts;
-    }
-
-    void setSymlinks(string[string] links)
-    {
-        this.symlinks = links;
-    }
-
-    void setNodeMounts(Mount[] mounts)
-    {
-        this.nodeMounts = mounts;
+        this.fs = fs;
     }
 
     void setProcesses(Process[] processes)
@@ -199,7 +170,7 @@ private:
 
     int mount()
     {
-        foreach (m; this.dirMounts)
+        foreach (m; this.fs.baseDirs)
         {
             m.target.mkdirRecurse();
             auto err = m.mount();
@@ -209,11 +180,11 @@ private:
                 return 1;
             }
         }
-        foreach (source, target; this.symlinks)
+        foreach (source, target; this.fs.baseSymlinks)
         {
             symlink(source, target);
         }
-        foreach (ref m; this.nodeMounts)
+        foreach (ref m; this.fs.baseFiles)
         {
             write(m.target, null);
             auto err = m.mount();
@@ -245,7 +216,7 @@ private:
         {
             remove(this.resolvConf.target);
         }
-        foreach_reverse (ref m; this.nodeMounts)
+        foreach_reverse (ref m; this.fs.baseFiles)
         {
             err = m.unmount();
             if (!err.isNull())
@@ -255,11 +226,11 @@ private:
             }
             remove(m.target);
         }
-        foreach (source, target; this.symlinks)
+        foreach (source, target; this.fs.baseSymlinks)
         {
             remove(target);
         }
-        foreach_reverse (ref m; this.dirMounts)
+        foreach_reverse (ref m; this.fs.baseDirs)
         {
             err = m.unmount();
             if (!err.isNull())
@@ -285,16 +256,42 @@ private:
     immutable int privilegedUGID = 0;
     immutable int regularUGID = 1;
 
-    Mount[] dirMounts;
-    string[string] symlinks;
-    Mount[] nodeMounts;
+    Filesystem fs;
     bool withNet;
     bool withRoot;
 
     Process[] processes;
 }
 
-int mapUser(int pid, IDMap[] uids, IDMap[] gids)
+struct Filesystem
+{
+    Mount[] baseDirs;
+    string[string] baseSymlinks;
+    Mount[] baseFiles;
+
+    Mount[] extraMounts;
+}
+
+private struct IDMap
+{
+    int inner;
+    int outer;
+    int length;
+
+    string toString() const pure @safe
+    {
+        return format!"%s %s %s"(this.inner, this.outer, this.length);
+    }
+}
+
+private struct ChildArguments
+{
+    Container container;
+    Pipe waitingPipe;
+    int ugid; /* UID and GID are equal. */
+}
+
+private int mapUser(int pid, IDMap[] uids, IDMap[] gids)
 {
     /* We could write the uid_map and gid_map files ourselves
      * if we wanted to run containerized processes only as root.
@@ -330,7 +327,7 @@ int mapUser(int pid, IDMap[] uids, IDMap[] gids)
     return status;
 }
 
-extern (C)
+private extern (C)
 {
     bool subid_init(const char* progname, FILE* logfd);
     struct subid_range
@@ -343,7 +340,7 @@ extern (C)
     int subid_get_gid_ranges(const char* owner, subid_range** ranges);
 }
 
-Tuple!(IDMap, IDMap) subID()
+private Tuple!(IDMap, IDMap) subID()
 {
     auto user = environment.get("USER");
     assert(user != "", "USER environment variable is not defined");

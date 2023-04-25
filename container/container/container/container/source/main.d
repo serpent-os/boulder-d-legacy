@@ -156,17 +156,16 @@ public struct ContainerCLI
      */
     int runContainer(ref string[] args)
     {
-        auto mounts = defaultDirMounts();
+        auto fs = Filesystem(defaultDirMounts(), defaultSymlinks(), defaultNodeMounts());
         foreach (source, target; bindMountsRO)
         {
-            mounts ~= Mount.bindRO(source, context.joinPath(target));
+            fs.extraMounts ~= Mount.bindRO(source, context.joinPath(target));
         }
         foreach (source, target; bindMountsRW)
         {
-            mounts ~= Mount.bindRW(source, context.joinPath(target));
+            fs.extraMounts ~= Mount.bindRW(source, context.joinPath(target));
         }
-        auto links = defaultSymlinks();
-        auto nodes = defaultNodeMounts();
+
         string[] commandLine = args;
         if (commandLine.length < 1)
         {
@@ -177,9 +176,7 @@ public struct ContainerCLI
         auto proc = Process(programName, programArgs);
 
         auto cont = Container();
-        cont.setDirMounts(mounts);
-        cont.setSymlinks(links);
-        cont.setNodeMounts(nodes);
+        cont.setFilesystem(fs);
         cont.withNetworking(networking);
         cont.withRootPrivileges(root);
         cont.setProcesses([proc]);
