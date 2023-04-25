@@ -187,14 +187,13 @@ private:
     {
         auto uids = [IDMap(privilegedUGID, geteuid(), 1)];
         auto gids = [IDMap(privilegedUGID, getegid(), 1)];
-        if (!this.withRoot)
-        {
-            auto sub = subID();
-            sub[0].inner = regularUGID;
-            uids ~= sub[0];
-            sub[1].inner = regularUGID;
-            gids ~= sub[1];
-        }
+
+        auto sub = subID();
+        sub[0].inner = regularUGID;
+        uids ~= sub[0];
+        sub[1].inner = regularUGID;
+        gids ~= sub[1];
+
         mapUser(pid, uids, gids);
     }
 
