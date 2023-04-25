@@ -8,7 +8,7 @@ import core.sys.posix.unistd : geteuid, getegid;
 import std.conv;
 import std.exception;
 import std.experimental.logger;
-import std.file : copy, exists, mkdirRecurse, remove, rmdir, symlink, write;
+import std.file : SpanMode, copy, dirEntries, exists, mkdirRecurse, remove, rmdir, symlink, write;
 import std.format;
 import std.path : dirName;
 import std.process : Pipe, environment, pipe, spawnProcess, wait;
@@ -99,7 +99,6 @@ struct Container
         auto args = ChildArguments(
             this,
             waitingPipe,
-            this.withRoot ? privilegedUGID : regularUGID,
         );
 
         immutable auto stackSize = 1024 * 1024;
@@ -142,8 +141,11 @@ private:
         }
         foreach (ref p; args.container.processes)
         {
-            p.setUID(args.ugid);
-            p.setGID(args.ugid);
+            auto ugid = args.container.withRoot ?
+                args.container.privilegedUGID
+                : args.container.regularUGID;
+            p.setUID(ugid);
+            p.setGID(ugid);
             const auto ret = p.run();
             if (ret < 0)
             {
@@ -172,12 +174,10 @@ private:
     {
         foreach (m; this.fs.baseDirs)
         {
-            m.target.mkdirRecurse();
-            auto err = m.mount();
-            if (!err.isNull)
+            auto ret = moss.container.mount(m, true);
+            if (ret < 0)
             {
-                error(format!"Failed to activate mountpoint: %s, %s"(m.target, err.get.toString));
-                return 1;
+                return ret;
             }
         }
         foreach (source, target; this.fs.baseSymlinks)
@@ -186,24 +186,28 @@ private:
         }
         foreach (ref m; this.fs.baseFiles)
         {
-            write(m.target, null);
-            auto err = m.mount();
-            if (!err.isNull)
+            auto ret = moss.container.mount(m, false);
+            if (ret < 0)
             {
-                error(format!"Failed to activate mountpoint: %s, %s"(m.target, err.get.toString));
-                return 1;
+                return ret;
             }
         }
         if (this.withNet && !this.resolvConf.target.exists)
         {
             info("Installing /etc/resolv.conf for networking");
-            write(this.resolvConf.target, null);
-            auto err = this.resolvConf.mount();
-            if (!err.isNull)
+            auto m = this.resolvConf();
+            auto ret = moss.container.mount(m, false);
+            if (ret < 0)
             {
-                error(format!"Failed to activate mountpoint: %s, %s"(this.resolvConf.target, err
-                        .get.toString));
-                return 1;
+                return ret;
+            }
+        }
+        foreach (ref m; this.fs.extraMounts)
+        {
+            auto ret = moss.container.mount(m, true);
+            if (ret < 0)
+            {
+                return ret;
             }
         }
         return 0;
@@ -211,20 +215,18 @@ private:
 
     void unmount() const
     {
-        auto err = this.resolvConf.unmount();
+        foreach_reverse (ref m; this.fs.extraMounts)
+        {
+            moss.container.unmount(m, true);
+        }
+        const auto err = this.resolvConf.unmount();
         if (err.isNull)
         {
             remove(this.resolvConf.target);
         }
         foreach_reverse (ref m; this.fs.baseFiles)
         {
-            err = m.unmount();
-            if (!err.isNull())
-            {
-                error(format!"Failed to bring down mountpoint: %s, %s"(m, err.get.toString));
-                continue;
-            }
-            remove(m.target);
+            moss.container.unmount(m, false);
         }
         foreach (source, target; this.fs.baseSymlinks)
         {
@@ -232,13 +234,7 @@ private:
         }
         foreach_reverse (ref m; this.fs.baseDirs)
         {
-            err = m.unmount();
-            if (!err.isNull())
-            {
-                error(format!"Failed to bring down mountpoint: %s, %s"(m, err.get.toString));
-                continue;
-            }
-            rmdir(m.target);
+            moss.container.unmount(m, true);
         }
     }
 
@@ -288,7 +284,44 @@ private struct ChildArguments
 {
     Container container;
     Pipe waitingPipe;
-    int ugid; /* UID and GID are equal. */
+}
+
+private int mount(ref Mount m, bool isDir)
+{
+    if (isDir)
+    {
+        m.target.mkdirRecurse();
+    }
+    else
+    {
+        write(m.target, null);
+    }
+    auto err = m.mount();
+    if (!err.isNull)
+    {
+        error(format!"Failed to activate mountpoint: %s, %s"(m.target, err.get.toString));
+        return 1;
+    }
+    return 0;
+}
+
+private int unmount(const ref Mount m, bool isDir)
+{
+    auto err = m.unmount();
+    if (!err.isNull())
+    {
+        error(format!"Failed to bring down mountpoint: %s, %s"(m, err.get.toString));
+        return -1;
+    }
+    if (isDir)
+    {
+        rmdir(m.target);
+    }
+    else
+    {
+        remove(m.target);
+    }
+    return 0;
 }
 
 private int mapUser(int pid, IDMap[] uids, IDMap[] gids)
