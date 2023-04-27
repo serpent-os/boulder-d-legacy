@@ -2,18 +2,22 @@ module moss.container;
 
 import core.stdc.stdio;
 import core.stdc.stdlib;
+import core.sys.posix.fcntl;
 import core.sys.linux.sched;
 import core.sys.posix.sys.wait;
-import core.sys.posix.unistd : geteuid, getegid;
+import core.sys.posix.unistd : close, geteuid, getegid, write;
 import std.conv;
 import std.exception;
 import std.experimental.logger;
-import std.file : SpanMode, copy, dirEntries, exists, mkdirRecurse, remove, rmdir, symlink, write;
+import std.file : SpanMode,
+    copy, dirEntries, exists, mkdirRecurse,
+    remove, rmdir, symlink, fileWrite = write;
 import std.format;
 import std.path : dirName;
 import std.process : Pipe, environment, pipe, spawnProcess, wait;
-import std.string : toStringz;
+import std.string : toStringz, fromStringz;
 import std.typecons;
+static import core.sys.posix.unistd;
 
 import moss.core.mounts;
 import moss.container.context;
@@ -139,13 +143,14 @@ private:
         {
             args.container.unmount();
         }
+
+        if (!args.container.withRoot)
+        {
+            dropPrivileges(1000, 1000);
+        }
+
         foreach (ref p; args.container.processes)
         {
-            auto ugid = args.container.withRoot ?
-                args.container.privilegedUGID
-                : args.container.regularUGID;
-            p.setUID(ugid);
-            p.setGID(ugid);
             const auto ret = p.run();
             if (ret < 0)
             {
@@ -294,7 +299,7 @@ private int mount(ref Mount m, bool isDir)
     }
     else
     {
-        write(m.target, null);
+        fileWrite(m.target, null);
     }
     auto err = m.mount();
     if (!err.isNull)
@@ -390,4 +395,27 @@ private Tuple!(IDMap, IDMap) subID()
 
     return tuple(IDMap(0, cast(int) uid.start, cast(int) uid.count), IDMap(0, cast(int) gid.start, cast(
             int) gid.count));
+}
+
+private void dropPrivileges(int outerUID, int outerGID)
+{
+    unshare(CLONE_NEWUSER);
+
+    Tuple!(string, string)[] mapping = [
+        tuple("/proc/self/uid_map", format!"%s 0 1"(outerUID)),
+        tuple("/proc/self/setgroups", "deny"),
+        tuple("/proc/self/gid_map", format!"%s 0 1"(outerGID)),
+    ];
+
+    foreach (ref entry; mapping)
+    {
+        auto fd = open(entry[0].toStringz(), O_WRONLY);
+        assert(fd > 0, format!"Failed to open %s"(entry[0]));
+        scope (exit)
+        {
+            close(fd);
+        }
+        const auto ret = write(fd, entry[1].ptr, entry[1].length);
+        assert(ret > 0, format!"Failed to write into %s"(entry[0]));
+    }
 }
