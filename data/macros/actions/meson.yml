@@ -4,7 +4,7 @@ actions:
     - meson:
         command: |
             test -e ./meson.build || ( echo "%%meson: The ./meson.build script could not be found" ; exit 1 )
-            CFLAGS="${CFLAGS}" CXXFLAGS="${CXXFLAGS}" LDFLAGS="${LDFLAGS}" meson %(options_meson)
+            CFLAGS="${CFLAGS}" CXXFLAGS="${CXXFLAGS}" LDFLAGS="${LDFLAGS}" meson setup %(options_meson)
         dependencies:
             - meson
 
@@ -12,23 +12,23 @@ actions:
     - meson_unity:
         command: |
             test -e ./meson.build || ( echo "%%meson: The ./meson.build script could not be found" ; exit 1 )
-            CFLAGS="${CFLAGS}" CXXFLAGS="${CXXFLAGS}" LDFLAGS="${LDFLAGS}" meson --unity on %(options_meson)
+            CFLAGS="${CFLAGS}" CXXFLAGS="${CXXFLAGS}" LDFLAGS="${LDFLAGS}" meson setup --unity on %(options_meson)
         dependencies:
             - meson
 
     # Build the meson project
     - meson_build:
         command: |
-            ninja -v -j "%(jobs)" -C "%(builddir)"
+            meson compile -v -j "%(jobs)" -C "%(builddir)"
         dependencies:
-            - ninja
+            - meson
 
     # Install results of the build to the destination directory
     - meson_install:
         command: |
-            DESTDIR="%(installroot)" ninja install -v -j "%(jobs)" -C "%(builddir)"
+            DESTDIR="%(installroot)" meson install --no-rebuild -v -j "%(jobs)" -C "%(builddir)"
         dependencies:
-            - ninja
+            - meson
 
 definitions:
 
