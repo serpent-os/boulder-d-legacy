@@ -2,7 +2,7 @@ module moss.container.filesystem;
 
 import std.experimental.logger;
 import std.format;
-import std.file : exists, mkdirRecurse, remove, rmdir, symlink, write;
+import std.file : chdir, exists, mkdirRecurse, remove, rmdir, symlink, write;
 import std.string : toStringz;
 
 import moss.core.mounts;
@@ -52,10 +52,15 @@ struct Filesystem
 
     int mountBase()
     {
+        auto rootfs = this.rootfsMount();
+        auto ret = moss.container.filesystem.mount(rootfs, "", true);
+        if (ret < 0)
+        {
+            return ret;
+        }
         foreach (m; this.baseDirs)
         {
-
-            auto ret = moss.container.filesystem.mount(m, this.fakeRootPath, true);
+            ret = moss.container.filesystem.mount(m, this.fakeRootPath, true);
             if (ret < 0)
             {
                 return ret;
@@ -67,7 +72,7 @@ struct Filesystem
         }
         foreach (ref m; this.baseFiles)
         {
-            auto ret = moss.container.filesystem.mount(m, this.fakeRootPath, false);
+            ret = moss.container.filesystem.mount(m, this.fakeRootPath, false);
             if (ret < 0)
             {
                 return ret;
@@ -100,6 +105,26 @@ struct Filesystem
         return 0;
     }
 
+    int chroot()
+    {
+        chdir(this.fakeRootPath);
+        auto ret = pivotRoot(".", ".");
+        if (ret < 0)
+        {
+            return ret;
+        }
+
+        auto unmnt = Mount("", ".");
+        unmnt.unmountFlags = MNT.DETACH;
+        auto err = unmnt.unmount();
+        if (!err.isNull())
+        {
+            error(format!"Failed to bring down mountpoint: %s, %s"(unmnt.target, err.get.toString));
+            return -1;
+        }
+        return 0;
+    }
+
     void unmountBase() const
     {
         const auto err = this.resolvConf.unmount();
@@ -119,6 +144,8 @@ struct Filesystem
         {
             moss.container.filesystem.unmount(m, this.fakeRootPath, true);
         }
+        const auto rootfs = this.rootfsMount();
+        auto ret = moss.container.filesystem.unmount(rootfs, "", true);
     }
 
     void unmountExtra() const
@@ -146,6 +173,15 @@ private:
             "",
             MS.BIND,
             mount_attr(MOUNT_ATTR.RDONLY).nullable);
+    }
+
+    @property Mount rootfsMount() const
+    {
+        return Mount(
+            this.fakeRootPath,
+            this.fakeRootPath,
+            "",
+            MS.BIND);
     }
 }
 
@@ -191,4 +227,12 @@ private int unmount(const ref Mount m, string baseDir, bool isDir)
         remove(m2.target);
     }
     return 0;
+}
+
+private extern (C) long syscall(long number, ...) @system @nogc nothrow;
+
+private int pivotRoot(const string newRoot, const string putOld) @system nothrow
+{
+    immutable int SYS_PIVOT_ROOT = 155;
+    return cast(int) syscall(SYS_PIVOT_ROOT, newRoot.toStringz(), putOld.toStringz());
 }
