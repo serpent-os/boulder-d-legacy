@@ -9,69 +9,20 @@ import core.sys.posix.unistd : close, geteuid, getegid, write;
 import std.conv;
 import std.exception;
 import std.experimental.logger;
-import std.file : SpanMode,
-    copy, dirEntries, exists, mkdirRecurse,
-    remove, rmdir, symlink, fileWrite = write;
 import std.format;
 import std.path : dirName;
 import std.process : Pipe, environment, pipe, spawnProcess, wait;
 import std.string : toStringz, fromStringz;
 import std.typecons;
-static import core.sys.posix.unistd;
 
-import moss.core.mounts;
 import moss.container.context;
+import moss.container.filesystem;
 import moss.container.process;
-
-Mount[] defaultDirMounts()
-{
-    auto dev = Mount("", context.joinPath("/dev"), "tmpfs", MS.NONE,
-        mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NOEXEC).nullable);
-    dev.setData("mode=1777".toStringz());
-
-    return [
-        Mount("", context.joinPath("/proc"), "proc", MS.NONE,
-            mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NODEV | MOUNT_ATTR.NOEXEC | MOUNT_ATTR
-                .RELATIME).nullable),
-        Mount("/sys", context.joinPath("/sys"), "", MS.BIND | MS.REC,
-            mount_attr(MOUNT_ATTR.RDONLY).nullable, MNT.DETACH),
-        Mount("", context.joinPath("/tmp"), "tmpfs", MS.NONE,
-            mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NODEV).nullable),
-        dev,
-        Mount("", context.joinPath("/dev/shm"), "tmpfs", MS.NONE,
-            mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NODEV).nullable),
-        Mount("", context.joinPath("/dev/pts"), "devpts", MS.NONE,
-            mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NOEXEC | MOUNT_ATTR.RELATIME).nullable),
-    ];
-}
-
-string[string] defaultSymlinks()
-{
-    return [
-        "/proc/self/fd": context.joinPath("/dev/fd"),
-        "/proc/self/fd/0": context.joinPath("/dev/stdin"),
-        "/proc/self/fd/1": context.joinPath("/dev/stdout"),
-        "/proc/self/fd/2": context.joinPath("/dev/stderr"),
-        "pts/ptmx": context.joinPath("/dev/ptmx"),
-    ];
-}
-
-Mount[] defaultNodeMounts()
-{
-    return [
-        Mount("/dev/null", context.joinPath("/dev/null"), "", MS.BIND),
-        Mount("/dev/zero", context.joinPath("/dev/zero"), "", MS.BIND),
-        Mount("/dev/full", context.joinPath("/dev/full"), "", MS.BIND),
-        Mount("/dev/random", context.joinPath("/dev/random"), "", MS.BIND),
-        Mount("/dev/urandom", context.joinPath("/dev/urandom"), "",
-            MS.BIND),
-        Mount("/dev/tty", context.joinPath("/dev/tty"), "", MS.BIND),
-    ];
-}
+import moss.core.mounts;
 
 struct Container
 {
-    void setFilesystem(Filesystem fs)
+    this(Filesystem fs)
     {
         this.fs = fs;
     }
@@ -177,81 +128,26 @@ private:
 
     int mount()
     {
-        foreach (m; this.fs.baseDirs)
+        auto ret = this.fs.mountBase();
+        if (ret < 0)
         {
-            auto ret = moss.container.mount(m, true);
+            return ret;
+        }
+        if (this.withNet)
+        {
+            ret = this.fs.mountResolvConf();
             if (ret < 0)
             {
                 return ret;
             }
         }
-        foreach (source, target; this.fs.baseSymlinks)
-        {
-            symlink(source, target);
-        }
-        foreach (ref m; this.fs.baseFiles)
-        {
-            auto ret = moss.container.mount(m, false);
-            if (ret < 0)
-            {
-                return ret;
-            }
-        }
-        if (this.withNet && !this.resolvConf.target.exists)
-        {
-            info("Installing /etc/resolv.conf for networking");
-            auto m = this.resolvConf();
-            auto ret = moss.container.mount(m, false);
-            if (ret < 0)
-            {
-                return ret;
-            }
-        }
-        foreach (ref m; this.fs.extraMounts)
-        {
-            auto ret = moss.container.mount(m, true);
-            if (ret < 0)
-            {
-                return ret;
-            }
-        }
-        return 0;
+        return this.fs.mountExtra();
     }
 
     void unmount() const
     {
-        foreach_reverse (ref m; this.fs.extraMounts)
-        {
-            moss.container.unmount(m, true);
-        }
-        const auto err = this.resolvConf.unmount();
-        if (err.isNull)
-        {
-            remove(this.resolvConf.target);
-        }
-        foreach_reverse (ref m; this.fs.baseFiles)
-        {
-            moss.container.unmount(m, false);
-        }
-        foreach (source, target; this.fs.baseSymlinks)
-        {
-            remove(target);
-        }
-        foreach_reverse (ref m; this.fs.baseDirs)
-        {
-            moss.container.unmount(m, true);
-        }
-    }
-
-    static @property Mount resolvConf()
-    {
-        return Mount(
-            "/etc/resolv.conf",
-            context.joinPath(
-                "/etc/resolv.conf"),
-            "",
-            MS.BIND,
-            mount_attr(MOUNT_ATTR.RDONLY).nullable);
+        this.fs.unmountExtra();
+        this.fs.unmountBase();
     }
 
     immutable int privilegedUGID = 0;
@@ -262,15 +158,6 @@ private:
     bool withRoot;
 
     Process[] processes;
-}
-
-struct Filesystem
-{
-    Mount[] baseDirs;
-    string[string] baseSymlinks;
-    Mount[] baseFiles;
-
-    Mount[] extraMounts;
 }
 
 private struct IDMap
@@ -289,44 +176,6 @@ private struct ChildArguments
 {
     Container container;
     Pipe waitingPipe;
-}
-
-private int mount(ref Mount m, bool isDir)
-{
-    if (isDir)
-    {
-        m.target.mkdirRecurse();
-    }
-    else
-    {
-        fileWrite(m.target, null);
-    }
-    auto err = m.mount();
-    if (!err.isNull)
-    {
-        error(format!"Failed to activate mountpoint: %s, %s"(m.target, err.get.toString));
-        return 1;
-    }
-    return 0;
-}
-
-private int unmount(const ref Mount m, bool isDir)
-{
-    auto err = m.unmount();
-    if (!err.isNull())
-    {
-        error(format!"Failed to bring down mountpoint: %s, %s"(m, err.get.toString));
-        return -1;
-    }
-    if (isDir)
-    {
-        rmdir(m.target);
-    }
-    else
-    {
-        remove(m.target);
-    }
-    return 0;
 }
 
 private int mapUser(int pid, IDMap[] uids, IDMap[] gids)
@@ -348,7 +197,8 @@ private int mapUser(int pid, IDMap[] uids, IDMap[] gids)
         foreach (ref map; maps)
         {
             args ~= [
-                to!string(map.inner), to!string(map.outer), to!string(map.length)
+                to!string(map.inner), to!string(map.outer),
+                to!string(map.length)
             ];
         }
         return args;

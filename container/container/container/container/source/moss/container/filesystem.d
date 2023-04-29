@@ -1,0 +1,194 @@
+module moss.container.filesystem;
+
+import std.experimental.logger;
+import std.format;
+import std.file : exists, mkdirRecurse, remove, rmdir, symlink, write;
+import std.string : toStringz;
+
+import moss.core.mounts;
+
+struct Filesystem
+{
+    static Filesystem defaultFS(string fakeRootPath)
+    {
+        auto dev = Mount("", "dev", "tmpfs", MS.NONE,
+            mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NOEXEC).nullable);
+        dev.setData("mode=1777".toStringz());
+        auto baseDirs = [
+            Mount("", "proc", "proc", MS.NONE,
+                mount_attr(
+                    MOUNT_ATTR.NOSUID | MOUNT_ATTR.NODEV | MOUNT_ATTR.NOEXEC | MOUNT_ATTR
+                    .RELATIME).nullable),
+            Mount("/sys", "sys", "", MS.BIND | MS.REC,
+                mount_attr(MOUNT_ATTR.RDONLY).nullable, MNT.DETACH),
+            Mount("", "tmp", "tmpfs", MS.NONE,
+                mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NODEV).nullable),
+            dev,
+            Mount("", "dev/shm", "tmpfs", MS.NONE,
+                mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NODEV).nullable),
+            Mount("", "dev/pts", "devpts", MS.NONE,
+                mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NOEXEC | MOUNT_ATTR.RELATIME).nullable),
+        ];
+
+        auto baseSymlinks = [
+            "/proc/self/fd": "dev/fd",
+            "/proc/self/fd/0": "dev/stdin",
+            "/proc/self/fd/1": "dev/stdout",
+            "/proc/self/fd/2": "dev/stderr",
+            "/dev/pts/ptmx": "dev/ptmx",
+        ];
+
+        auto baseFiles = [
+            Mount("/dev/null", "dev/null", "", MS.BIND),
+            Mount("/dev/zero", "dev/zero", "", MS.BIND),
+            Mount("/dev/full", "dev/full", "", MS.BIND),
+            Mount("/dev/random", "dev/random", "", MS.BIND),
+            Mount("/dev/urandom", "dev/urandom", "", MS.BIND),
+            Mount("/dev/tty", "dev/tty", "", MS.BIND),
+        ];
+
+        return Filesystem(fakeRootPath, baseDirs, baseSymlinks, baseFiles);
+    }
+
+    int mountBase()
+    {
+        foreach (m; this.baseDirs)
+        {
+
+            auto ret = moss.container.filesystem.mount(m, this.fakeRootPath, true);
+            if (ret < 0)
+            {
+                return ret;
+            }
+        }
+        foreach (source, target; this.baseSymlinks)
+        {
+            symlink(source, this.fakeRootPath ~ "/" ~ target);
+        }
+        foreach (ref m; this.baseFiles)
+        {
+            auto ret = moss.container.filesystem.mount(m, this.fakeRootPath, false);
+            if (ret < 0)
+            {
+                return ret;
+            }
+        }
+        return 0;
+    }
+
+    int mountResolvConf()
+    {
+        info("Installing /etc/resolv.conf for networking");
+        auto m = this.resolvConf();
+        if (m.target.exists)
+        {
+            return 0;
+        }
+        return moss.container.filesystem.mount(m, this.fakeRootPath, false);
+    }
+
+    int mountExtra()
+    {
+        foreach (ref m; this.extraMounts)
+        {
+            auto ret = moss.container.filesystem.mount(m, this.fakeRootPath, true);
+            if (ret < 0)
+            {
+                return ret;
+            }
+        }
+        return 0;
+    }
+
+    void unmountBase() const
+    {
+        const auto err = this.resolvConf.unmount();
+        if (err.isNull)
+        {
+            remove(this.resolvConf.target);
+        }
+        foreach_reverse (ref m; this.baseFiles)
+        {
+            moss.container.filesystem.unmount(m, this.fakeRootPath, false);
+        }
+        foreach (source, target; this.baseSymlinks)
+        {
+            remove(this.fakeRootPath ~ "/" ~ target);
+        }
+        foreach_reverse (ref m; this.baseDirs)
+        {
+            moss.container.filesystem.unmount(m, this.fakeRootPath, true);
+        }
+    }
+
+    void unmountExtra() const
+    {
+        foreach_reverse (ref m; this.extraMounts)
+        {
+            moss.container.filesystem.unmount(m, this.fakeRootPath, true);
+        }
+    }
+
+    string fakeRootPath;
+
+    Mount[] baseDirs;
+    string[string] baseSymlinks;
+    Mount[] baseFiles;
+
+    Mount[] extraMounts;
+
+private:
+    static @property Mount resolvConf()
+    {
+        return Mount(
+            "/etc/resolv.conf",
+            "etc/resolv.conf",
+            "",
+            MS.BIND,
+            mount_attr(MOUNT_ATTR.RDONLY).nullable);
+    }
+}
+
+private int mount(ref Mount m, string baseDir, bool isDir)
+{
+    auto m2 = m;
+    m2.target = baseDir ~ "/" ~ m.target;
+
+    if (isDir)
+    {
+        m2.target.mkdirRecurse();
+    }
+    else
+    {
+        write(m2.target, null);
+    }
+    auto err = m2.mount();
+    if (!err.isNull)
+    {
+        error(format!"Failed to activate mountpoint: %s, %s"(m2.target, err.get.toString));
+        return 1;
+    }
+    return 0;
+}
+
+private int unmount(const ref Mount m, string baseDir, bool isDir)
+{
+    auto m2 = cast(Mount) m;
+    m2.target = baseDir ~ "/" ~ m.target;
+
+    auto err = m2.unmount();
+    if (!err.isNull())
+    {
+        error(format!"Failed to bring down mountpoint: %s, %s"(m2.target, err.get.toString));
+        return -1;
+    }
+    if (isDir)
+    {
+        rmdir(m2.target);
+    }
+    else
+    {
+        remove(m2.target);
+    }
+    return 0;
+}

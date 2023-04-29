@@ -32,8 +32,9 @@ if not dep_subid.found()
 endif
 
 libcontainer_sources = [
-	'source/moss/container/fakeroot.d',
 	'source/moss/container/context.d',
+	'source/moss/container/fakeroot.d',
+	'source/moss/container/filesystem.d',
 	'source/moss/container/package.d',
 	'source/moss/container/process.d',
 ]

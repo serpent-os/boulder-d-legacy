@@ -28,6 +28,7 @@ import std.string : empty, format;
 
 import moss.container;
 import moss.container.context;
+import moss.container.filesystem;
 import moss.container.process;
 import moss.core.cli;
 import moss.core.logger;
@@ -156,7 +157,7 @@ public struct ContainerCLI
      */
     int runContainer(ref string[] args)
     {
-        auto fs = Filesystem(defaultDirMounts(), defaultSymlinks(), defaultNodeMounts());
+        auto fs = Filesystem.defaultFS(this.rootfsDir);
         foreach (source, target; bindMountsRO)
         {
             fs.extraMounts ~= Mount.bindRO(source, context.joinPath(target));
@@ -175,8 +176,7 @@ public struct ContainerCLI
         string[] programArgs = commandLine[0].length > 0 ? commandLine[1 .. $] : null;
         auto proc = Process(programName, programArgs);
 
-        auto cont = Container();
-        cont.setFilesystem(fs);
+        auto cont = Container(fs);
         cont.withNetworking(networking);
         cont.withRootPrivileges(root);
         cont.setProcesses([proc]);
