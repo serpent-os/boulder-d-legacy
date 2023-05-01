@@ -50,57 +50,29 @@ struct Container
             flags |= CLONE_NEWNET | CLONE_NEWUTS;
         }
 
-        auto waitingPipe = pipe();
-        auto args = ChildArguments(
-            this,
-            waitingPipe,
-        );
-
-        immutable auto stackSize = 1024 * 1024;
-        auto stack = malloc(stackSize);
-        scope (exit)
-        {
-            free(stack);
-        }
-        auto StackTop = stack + stackSize;
-        auto pid = clone(&runContainerized, StackTop, flags | SIGCHLD, &args);
-        assert(pid > 0, "clone did not clone...");
-
-        this.mapHostUser(pid);
-        waitingPipe.writeEnd.close();
-
-        int status;
-        const auto ret = waitpid(pid, &status, 0);
-        enforce(ret >= 0);
-        return WEXITSTATUS(status);
+        auto rootProcess = ClonedProcess!(Container)(&Container.runContainerized);
+        auto rootPID = rootProcess.start(this, flags);
+        assert(rootPID > 0, "clone() failed");
+        this.mapHostUser(rootPID);
+        rootProcess.goAhead();
+        return rootProcess.join();
     }
 
 private:
-    extern (C) static int runContainerized(void* arg)
+    extern (C) static int runContainerized(Container thiz)
     {
-        auto args = cast(ChildArguments*) arg;
-
-        args.waitingPipe.writeEnd.close();
-        bool[1] stop;
-        args.waitingPipe.readEnd.rawRead(stop);
-
-        if (stop[0])
-        {
-            return 0;
-        }
-
-        args.container.mount();
+        thiz.mount();
         scope (exit)
         {
-            args.container.unmount();
+            thiz.unmount();
         }
 
-        if (!args.container.withRoot)
+        if (!thiz.withRoot)
         {
             dropPrivileges(1000, 1000);
         }
 
-        foreach (ref p; args.container.processes)
+        foreach (ref p; thiz.processes)
         {
             const auto ret = p.run();
             if (ret < 0)
@@ -160,6 +132,81 @@ private:
     Process[] processes;
 }
 
+private struct ClonedProcess(T)
+{
+    extern (C) int function(T arg) func;
+
+    int start(T arg, int flags)
+    {
+        if (pid != 0)
+        {
+            return -1;
+        }
+
+        immutable auto stackSize = 1024 * 1024;
+        this.stack = malloc(stackSize);
+        // TODO: free stack if clone() failed.
+        auto StackTop = this.stack + stackSize;
+
+        this.waitingPipe = pipe();
+        auto args = CloneArguments!(T)(this.func, arg, this.waitingPipe);
+        this.pid = clone(&ClonedProcess._run, StackTop, flags | SIGCHLD, &args);
+        return this.pid;
+    }
+
+    void goAhead()
+    {
+        if (pid == 0)
+        {
+            return;
+        }
+        this.waitingPipe.writeEnd.close();
+    }
+
+    int join()
+    {
+        if (pid == 0)
+        {
+            return 0;
+        }
+
+        int status;
+        const auto ret = waitpid(this.pid, &status, 0);
+        enforce(ret >= 0);
+
+        this.pid = 0;
+        free(this.stack);
+
+        return WEXITSTATUS(status);
+    }
+
+private:
+    extern (C) static int _run(void* arg)
+    {
+        auto args = cast(CloneArguments!(T)*) arg;
+
+        args.waitingPipe.writeEnd.close();
+        bool[1] stop;
+        args.waitingPipe.readEnd.rawRead(stop);
+        if (stop[0])
+        {
+            return 0;
+        }
+        return args.userFunc(args.userArg);
+    }
+
+    Pipe waitingPipe;
+    void* stack;
+    int pid;
+}
+
+private struct CloneArguments(T)
+{
+    extern (C) int function(T arg) userFunc;
+    T userArg;
+    Pipe waitingPipe;
+}
+
 private struct IDMap
 {
     int inner;
@@ -170,12 +217,6 @@ private struct IDMap
     {
         return format!"%s %s %s"(this.inner, this.outer, this.length);
     }
-}
-
-private struct ChildArguments
-{
-    Container container;
-    Pipe waitingPipe;
 }
 
 private int mapUser(int pid, IDMap[] uids, IDMap[] gids)
