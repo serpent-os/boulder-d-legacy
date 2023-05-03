@@ -26,11 +26,6 @@ import std.typecons;
 import moss.container.context;
 
 /**
- * Chroot to another root filesystem
- */
-extern (C) int chroot(const(char*) dir);
-
-/**
  * Simplistic encapsulation of a process.
  */
 public struct Process
@@ -101,10 +96,7 @@ private:
 
     int executeChild() const
     {
-        /* Chroot into working system */
-        auto ret = chroot(context.rootfs.toStringz);
-        assert(ret == 0);
-
+        int ret;
         if (!this.gid.isNull())
         {
             ret = setgid(this.gid.get());
