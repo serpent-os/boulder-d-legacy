@@ -14,6 +14,9 @@ struct Filesystem
         auto tmp = Mount("", "tmp", "tmpfs", MS.NONE,
             mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NODEV).nullable);
         tmp.setData("mode=1777".toStringz());
+        auto dev = Mount("", "dev", "tmpfs", MS.NONE,
+            mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NOEXEC).nullable);
+        dev.setData("mode=0755".toStringz());
         auto sysfs =  Mount("", "sys", "sysfs");
         if (withNet)
         {
@@ -26,8 +29,7 @@ struct Filesystem
                     MOUNT_ATTR.NOSUID | MOUNT_ATTR.NODEV | MOUNT_ATTR.NOEXEC | MOUNT_ATTR
                     .RELATIME).nullable),
             tmp,
-            Mount("", "dev", "tmpfs", MS.NONE,
-                mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NOEXEC).nullable),
+            dev,
             sysfs,
             Mount("", "dev/shm", "tmpfs", MS.NONE,
                 mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NODEV).nullable),
