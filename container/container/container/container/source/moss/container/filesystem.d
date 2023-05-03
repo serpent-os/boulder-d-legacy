@@ -11,9 +11,9 @@ struct Filesystem
 {
     static Filesystem defaultFS(string fakeRootPath)
     {
-        auto dev = Mount("", "dev", "tmpfs", MS.NONE,
-            mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NOEXEC).nullable);
-        dev.setData("mode=1777".toStringz());
+        auto tmp = Mount("", "tmp", "tmpfs", MS.NONE,
+            mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NODEV).nullable);
+        tmp.setData("mode=1777".toStringz());
         auto baseDirs = [
             Mount("", "proc", "proc", MS.NONE,
                 mount_attr(
@@ -21,9 +21,9 @@ struct Filesystem
                     .RELATIME).nullable),
             Mount("/sys", "sys", "", MS.BIND | MS.REC,
                 mount_attr(MOUNT_ATTR.RDONLY).nullable, MNT.DETACH),
-            Mount("", "tmp", "tmpfs", MS.NONE,
-                mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NODEV).nullable),
-            dev,
+            tmp,
+            Mount("", "dev", "tmpfs", MS.NONE,
+                mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NOEXEC).nullable),
             Mount("", "dev/shm", "tmpfs", MS.NONE,
                 mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NODEV).nullable),
             Mount("", "dev/pts", "devpts", MS.NONE,
