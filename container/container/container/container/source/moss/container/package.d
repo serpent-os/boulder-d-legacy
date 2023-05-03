@@ -61,11 +61,6 @@ private:
     extern (C) static int runContainerized(Container thiz)
     {
         thiz.mount();
-        scope (exit)
-        {
-            thiz.unmount();
-        }
-
         if (thiz.withRoot)
         {
             return executeProcesses(thiz);
@@ -108,12 +103,6 @@ private:
             }
         }
         return this.fs.mountExtra();
-    }
-
-    void unmount() const
-    {
-        this.fs.unmountExtra();
-        this.fs.unmountBase();
     }
 
     immutable int privilegedUGID = 0;

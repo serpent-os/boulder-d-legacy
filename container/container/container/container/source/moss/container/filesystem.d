@@ -125,37 +125,6 @@ struct Filesystem
         return 0;
     }
 
-    void unmountBase() const
-    {
-        const auto err = this.resolvConf.unmount();
-        if (err.isNull)
-        {
-            remove(this.resolvConf.target);
-        }
-        foreach_reverse (ref m; this.baseFiles)
-        {
-            moss.container.filesystem.unmount(m, this.fakeRootPath, false);
-        }
-        foreach (source, target; this.baseSymlinks)
-        {
-            remove(this.fakeRootPath ~ "/" ~ target);
-        }
-        foreach_reverse (ref m; this.baseDirs)
-        {
-            moss.container.filesystem.unmount(m, this.fakeRootPath, true);
-        }
-        const auto rootfs = this.rootfsMount();
-        auto ret = moss.container.filesystem.unmount(rootfs, "", true);
-    }
-
-    void unmountExtra() const
-    {
-        foreach_reverse (ref m; this.extraMounts)
-        {
-            moss.container.filesystem.unmount(m, this.fakeRootPath, true);
-        }
-    }
-
     string fakeRootPath;
 
     Mount[] baseDirs;
