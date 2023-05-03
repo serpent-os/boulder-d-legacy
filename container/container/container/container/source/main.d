@@ -157,7 +157,7 @@ public struct ContainerCLI
      */
     int runContainer(ref string[] args)
     {
-        auto fs = Filesystem.defaultFS(this.rootfsDir);
+        auto fs = Filesystem.defaultFS(this.rootfsDir, networking);
         foreach (source, target; bindMountsRO)
         {
             fs.extraMounts ~= Mount.bindRO(source, target);

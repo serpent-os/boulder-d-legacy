@@ -65,10 +65,11 @@ private:
         {
             return executeProcesses(thiz);
         }
+        thiz.fs.chroot();
         auto unprivProcess = ClonedProcess!(Container)(&Container.executeProcesses);
         auto unprivPID = unprivProcess.start(thiz, CLONE_NEWUSER);
         assert(unprivPID > 0, "clone() failed");
-        //mapHostID(unprivPID, 1000, 1000);
+        mapHostID(unprivPID, 1000, 1000);
         unprivProcess.goAhead();
         return unprivProcess.join();
     }
@@ -93,14 +94,6 @@ private:
         if (ret < 0)
         {
             return ret;
-        }
-        if (this.withNet)
-        {
-            ret = this.fs.mountResolvConf();
-            if (ret < 0)
-            {
-                return ret;
-            }
         }
         return 0;
     }

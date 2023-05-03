@@ -9,21 +9,26 @@ import moss.core.mounts;
 
 struct Filesystem
 {
-    static Filesystem defaultFS(string fakeRootPath)
+    static Filesystem defaultFS(string fakeRootPath, bool withNet)
     {
         auto tmp = Mount("", "tmp", "tmpfs", MS.NONE,
             mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NODEV).nullable);
         tmp.setData("mode=1777".toStringz());
+        auto sysfs =  Mount("", "sys", "sysfs");
+        if (withNet)
+        {
+            sysfs = Mount("/sys", "sys", "", MS.BIND | MS.REC,
+                mount_attr(MOUNT_ATTR.RDONLY).nullable, MNT.DETACH);
+        }
         auto baseDirs = [
             Mount("", "proc", "proc", MS.NONE,
                 mount_attr(
                     MOUNT_ATTR.NOSUID | MOUNT_ATTR.NODEV | MOUNT_ATTR.NOEXEC | MOUNT_ATTR
                     .RELATIME).nullable),
-            Mount("/sys", "sys", "", MS.BIND | MS.REC,
-                mount_attr(MOUNT_ATTR.RDONLY).nullable, MNT.DETACH),
             tmp,
             Mount("", "dev", "tmpfs", MS.NONE,
                 mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NOEXEC).nullable),
+            sysfs,
             Mount("", "dev/shm", "tmpfs", MS.NONE,
                 mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NODEV).nullable),
             Mount("", "dev/pts", "devpts", MS.NONE,
@@ -46,6 +51,15 @@ struct Filesystem
             Mount("/dev/urandom", "dev/urandom", "", MS.BIND),
             Mount("/dev/tty", "dev/tty", "", MS.BIND),
         ];
+        if (withNet)
+        {
+            baseFiles ~= Mount(
+                "/etc/resolv.conf",
+                "etc/resolv.conf",
+                "",
+                MS.BIND,
+                mount_attr(MOUNT_ATTR.RDONLY).nullable);
+        }
 
         return Filesystem(fakeRootPath, baseDirs, baseSymlinks, baseFiles);
     }
@@ -79,17 +93,6 @@ struct Filesystem
             }
         }
         return 0;
-    }
-
-    int mountResolvConf()
-    {
-        info("Installing /etc/resolv.conf for networking");
-        auto m = this.resolvConf();
-        if (m.target.exists)
-        {
-            return 0;
-        }
-        return moss.container.filesystem.mount(m, this.fakeRootPath, false);
     }
 
     int mountExtra()
@@ -134,16 +137,6 @@ struct Filesystem
     Mount[] extraMounts;
 
 private:
-    static @property Mount resolvConf()
-    {
-        return Mount(
-            "/etc/resolv.conf",
-            "etc/resolv.conf",
-            "",
-            MS.BIND,
-            mount_attr(MOUNT_ATTR.RDONLY).nullable);
-    }
-
     @property Mount rootfsMount() const
     {
         return Mount(
