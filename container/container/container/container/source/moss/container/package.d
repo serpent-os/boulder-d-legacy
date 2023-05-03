@@ -60,7 +60,7 @@ struct Container
 private:
     extern (C) static int runContainerized(Container thiz)
     {
-        thiz.mount();
+        thiz.mountBase();
         if (thiz.withRoot)
         {
             return executeProcesses(thiz);
@@ -87,7 +87,7 @@ private:
         return 0;
     }
 
-    int mount()
+    int mountBase()
     {
         auto ret = this.fs.mountBase();
         if (ret < 0)
@@ -102,7 +102,7 @@ private:
                 return ret;
             }
         }
-        return this.fs.mountExtra();
+        return 0;
     }
 
     immutable int privilegedUGID = 0;
