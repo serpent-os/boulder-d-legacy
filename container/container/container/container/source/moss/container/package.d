@@ -88,14 +88,9 @@ private:
         return 0;
     }
 
-    int mountBase()
+    void mountBase()
     {
-        auto ret = this.fs.mountBase();
-        if (ret < 0)
-        {
-            return ret;
-        }
-        return 0;
+        this.fs.mountBase();
     }
 
     immutable int privilegedUGID = 0;

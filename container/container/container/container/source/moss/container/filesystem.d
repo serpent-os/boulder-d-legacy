@@ -1,5 +1,6 @@
 module moss.container.filesystem;
 
+import std.exception : ErrnoException;
 import std.experimental.logger;
 import std.format;
 import std.file : chdir, exists, mkdirRecurse, remove, rmdir, symlink, write;
@@ -11,31 +12,41 @@ struct Filesystem
 {
     static Filesystem defaultFS(string fakeRootPath, bool withNet)
     {
-        auto tmp = Mount("", "tmp", "tmpfs", MS.NONE,
-            mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NODEV).nullable);
-        tmp.setData("mode=1777".toStringz());
-        auto dev = Mount("", "dev", "tmpfs", MS.NONE,
-            mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NOEXEC).nullable);
-        dev.setData("mode=0755".toStringz());
-        auto sysfs =  Mount("", "sys", "sysfs");
+        FSMount[] baseFS = [
+            FSMount("tmpfs", "dev", [
+                    "mode": FSConfigValue(FSCONFIG.SET_STRING, cast(void*) "0755".toStringz())
+                ]),
+            FSMount("tmpfs", "dev/shm"),
+            FSMount("tmpfs", "dev/pts"),
+            FSMount("proc", "proc"),
+            FSMount("tmpfs", "tmp", [
+                    "mode": FSConfigValue(FSCONFIG.SET_STRING, cast(void*) "1777".toStringz())
+                ]),
+        ];
+        if (!withNet)
+        {
+            baseFS ~= FSMount("sysfs", "sys");
+        }
+
+        auto baseFiles = [
+            FileMount("/dev/null", "dev/null", cast(AT) OPEN_TREE.CLONE),
+            FileMount("/dev/zero", "dev/zero", cast(AT) OPEN_TREE.CLONE),
+            FileMount("/dev/full", "dev/full", cast(AT) OPEN_TREE.CLONE),
+            FileMount("/dev/random", "dev/random", cast(AT) OPEN_TREE.CLONE),
+            FileMount("/dev/urandom", "dev/urandom", cast(AT) OPEN_TREE.CLONE),
+            FileMount("/dev/tty", "dev/tty", cast(AT) OPEN_TREE.CLONE),
+        ];
         if (withNet)
         {
-            sysfs = Mount("/sys", "sys", "", MS.BIND | MS.REC,
-                mount_attr(MOUNT_ATTR.RDONLY).nullable, MNT.DETACH);
+            baseFiles ~= [
+                FileMount(
+                    "/etc/resolv.conf", "etc/resolv.conf",
+                    cast(AT) OPEN_TREE.CLONE, MountAttr(MOUNT_ATTR.RDONLY)),
+                FileMount(
+                    "/sys", "sys",
+                    cast(AT) OPEN_TREE.CLONE, MountAttr(MOUNT_ATTR.RDONLY)),
+            ];
         }
-        auto baseDirs = [
-            Mount("", "proc", "proc", MS.NONE,
-                mount_attr(
-                    MOUNT_ATTR.NOSUID | MOUNT_ATTR.NODEV | MOUNT_ATTR.NOEXEC | MOUNT_ATTR
-                    .RELATIME).nullable),
-            tmp,
-            dev,
-            sysfs,
-            Mount("", "dev/shm", "tmpfs", MS.NONE,
-                mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NODEV).nullable),
-            Mount("", "dev/pts", "devpts", MS.NONE,
-                mount_attr(MOUNT_ATTR.NOSUID | MOUNT_ATTR.NOEXEC | MOUNT_ATTR.RELATIME).nullable),
-        ];
 
         auto baseSymlinks = [
             "/proc/self/fd": "dev/fd",
@@ -45,115 +56,73 @@ struct Filesystem
             "/dev/pts/ptmx": "dev/ptmx",
         ];
 
-        auto baseFiles = [
-            Mount("/dev/null", "dev/null", "", MS.BIND),
-            Mount("/dev/zero", "dev/zero", "", MS.BIND),
-            Mount("/dev/full", "dev/full", "", MS.BIND),
-            Mount("/dev/random", "dev/random", "", MS.BIND),
-            Mount("/dev/urandom", "dev/urandom", "", MS.BIND),
-            Mount("/dev/tty", "dev/tty", "", MS.BIND),
-        ];
-        if (withNet)
-        {
-            baseFiles ~= Mount(
-                "/etc/resolv.conf",
-                "etc/resolv.conf",
-                "",
-                MS.BIND,
-                mount_attr(MOUNT_ATTR.RDONLY).nullable);
-        }
-
-        return Filesystem(fakeRootPath, baseDirs, baseSymlinks, baseFiles);
+        return Filesystem(fakeRootPath, baseFS, baseFiles, baseSymlinks);
     }
 
-    int mountBase()
+    void mountBase()
     {
         auto rootfs = this.rootfsMount();
-        auto ret = moss.container.filesystem.mount(rootfs, "", true);
-        if (ret < 0)
+        moss.container.filesystem.mountFileDir(rootfs, "", true);
+        foreach (m; this.baseFS)
         {
-            return ret;
+            moss.container.filesystem.mountFS(m, this.fakeRootPath);
         }
-        foreach (m; this.baseDirs)
+        foreach (ref m; this.baseFiles)
         {
-            ret = moss.container.filesystem.mount(m, this.fakeRootPath, true);
-            if (ret < 0)
-            {
-                return ret;
-            }
+            moss.container.filesystem.mountFileDir(m, this.fakeRootPath, false);
         }
         foreach (source, target; this.baseSymlinks)
         {
             symlink(source, this.fakeRootPath ~ "/" ~ target);
         }
-        foreach (ref m; this.baseFiles)
-        {
-            ret = moss.container.filesystem.mount(m, this.fakeRootPath, false);
-            if (ret < 0)
-            {
-                return ret;
-            }
-        }
-        return 0;
     }
 
-    int mountExtra()
+    void mountExtra()
     {
         foreach (ref m; this.extraMounts)
         {
-            auto ret = moss.container.filesystem.mount(m, this.fakeRootPath, true);
-            if (ret < 0)
-            {
-                return ret;
-            }
+            moss.container.filesystem.mountFileDir(m, this.fakeRootPath, true);
         }
-        return 0;
     }
 
-    int chroot()
+    void chroot()
     {
         chdir(this.fakeRootPath);
-        auto ret = pivotRoot(".", ".");
-        if (ret < 0)
-        {
-            return ret;
-        }
+        pivotRoot(".", ".");
 
-        auto unmnt = Mount("", ".");
+        auto unmnt = FileMount("", ".");
         unmnt.unmountFlags = MNT.DETACH;
-        auto err = unmnt.unmount();
-        if (!err.isNull())
-        {
-            error(format!"Failed to bring down mountpoint: %s, %s"(unmnt.target, err.get.toString));
-            return -1;
-        }
-        return 0;
+        unmnt.unmount();
     }
 
     string fakeRootPath;
-
-    Mount[] baseDirs;
+    FSMount[] baseFS;
+    FileMount[] baseFiles;
     string[string] baseSymlinks;
-    Mount[] baseFiles;
-
-    Mount[] extraMounts;
+    FileMount[] extraMounts;
 
 private:
-    @property Mount rootfsMount() const
+    @property FileMount rootfsMount() const
     {
-        return Mount(
+        return FileMount(
             this.fakeRootPath,
             this.fakeRootPath,
-            "",
-            MS.BIND);
+            cast(AT) OPEN_TREE.CLONE);
     }
 }
 
-private int mount(ref Mount m, string baseDir, bool isDir)
+private void mountFS(ref FSMount m, string baseDir)
 {
     auto m2 = m;
     m2.target = baseDir ~ "/" ~ m.target;
+    m2.target.mkdirRecurse();
+    m.mount();
+}
 
+private void mountFileDir(ref FileMount m, string baseDir, bool isDir)
+{
+    auto m2 = m;
+    m2.target = baseDir ~ "/" ~ m.target;
     if (isDir)
     {
         m2.target.mkdirRecurse();
@@ -162,41 +131,17 @@ private int mount(ref Mount m, string baseDir, bool isDir)
     {
         write(m2.target, null);
     }
-    auto err = m2.mount();
-    if (!err.isNull)
-    {
-        error(format!"Failed to activate mountpoint: %s, %s"(m2.target, err.get.toString));
-        return 1;
-    }
-    return 0;
-}
-
-private int unmount(const ref Mount m, string baseDir, bool isDir)
-{
-    auto m2 = cast(Mount) m;
-    m2.target = baseDir ~ "/" ~ m.target;
-
-    auto err = m2.unmount();
-    if (!err.isNull())
-    {
-        error(format!"Failed to bring down mountpoint: %s, %s"(m2.target, err.get.toString));
-        return -1;
-    }
-    if (isDir)
-    {
-        rmdir(m2.target);
-    }
-    else
-    {
-        remove(m2.target);
-    }
-    return 0;
+    m2.mount();
 }
 
 private extern (C) long syscall(long number, ...) @system @nogc nothrow;
 
-private int pivotRoot(const string newRoot, const string putOld) @system nothrow
+private void pivotRoot(const string newRoot, const string putOld) @system
 {
     immutable int SYS_PIVOT_ROOT = 155;
-    return cast(int) syscall(SYS_PIVOT_ROOT, newRoot.toStringz(), putOld.toStringz());
+    const auto ret = syscall(SYS_PIVOT_ROOT, newRoot.toStringz(), putOld.toStringz());
+    if (ret < 0)
+    {
+        throw new ErrnoException("Failed to pivot root");
+    }
 }

@@ -160,11 +160,11 @@ public struct ContainerCLI
         auto fs = Filesystem.defaultFS(this.rootfsDir, networking);
         foreach (source, target; bindMountsRO)
         {
-            fs.extraMounts ~= Mount.bindRO(source, target);
+            fs.extraMounts ~= FileMount.bindRO(source, target);
         }
         foreach (source, target; bindMountsRW)
         {
-            fs.extraMounts ~= Mount.bindRW(source, target);
+            fs.extraMounts ~= FileMount.bindRW(source, target);
         }
 
         string[] commandLine = args;
