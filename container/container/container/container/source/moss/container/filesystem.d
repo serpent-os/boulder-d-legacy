@@ -116,7 +116,7 @@ private void mountFS(ref FSMount m, string baseDir)
     auto m2 = m;
     m2.target = baseDir ~ "/" ~ m.target;
     m2.target.mkdirRecurse();
-    m.mount();
+    m2.mount();
 }
 
 private void mountFileDir(ref FileMount m, string baseDir, bool isDir)
