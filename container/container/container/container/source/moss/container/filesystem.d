@@ -3,7 +3,7 @@ module moss.container.filesystem;
 import std.exception : ErrnoException;
 import std.experimental.logger;
 import std.format;
-import std.file : chdir, exists, mkdirRecurse, remove, rmdir, symlink, write;
+import std.file : chdir, exists, isDir, mkdirRecurse, remove, rmdir, symlink, write;
 import std.string : toStringz;
 
 import moss.core.mounts;
@@ -62,14 +62,14 @@ struct Filesystem
     void mountBase()
     {
         auto rootfs = this.rootfsMount();
-        moss.container.filesystem.mountFileDir(rootfs, "", true);
+        moss.container.filesystem.mountFileDir(rootfs, "");
         foreach (m; this.baseFS)
         {
             moss.container.filesystem.mountFS(m, this.fakeRootPath);
         }
         foreach (ref m; this.baseFiles)
         {
-            moss.container.filesystem.mountFileDir(m, this.fakeRootPath, false);
+            moss.container.filesystem.mountFileDir(m, this.fakeRootPath);
         }
         foreach (source, target; this.baseSymlinks)
         {
@@ -81,7 +81,7 @@ struct Filesystem
     {
         foreach (ref m; this.extraMounts)
         {
-            moss.container.filesystem.mountFileDir(m, this.fakeRootPath, true);
+            moss.container.filesystem.mountFileDir(m, this.fakeRootPath);
         }
     }
 
@@ -119,11 +119,11 @@ private void mountFS(ref FSMount m, string baseDir)
     m2.mount();
 }
 
-private void mountFileDir(ref FileMount m, string baseDir, bool isDir)
+private void mountFileDir(ref FileMount m, string baseDir)
 {
     auto m2 = m;
     m2.target = baseDir ~ "/" ~ m.target;
-    if (isDir)
+    if (m2.source.isDir())
     {
         m2.target.mkdirRecurse();
     }
