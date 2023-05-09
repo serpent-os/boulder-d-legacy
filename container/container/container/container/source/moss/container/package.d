@@ -43,40 +43,64 @@ struct Container
 
     int run()
     {
-        auto flags = CLONE_NEWNS | CLONE_NEWPID | CLONE_NEWIPC | CLONE_NEWUSER;
+        auto flags = CLONE_NEWPID | CLONE_NEWNS | CLONE_NEWIPC | CLONE_NEWUSER;
         if (!this.withNet)
         {
             flags |= CLONE_NEWNET | CLONE_NEWUTS;
         }
 
-        auto rootProcess = ClonedProcess!(Container)(&Container.runContainerized);
-        auto rootPID = rootProcess.start(this, flags);
-        assert(rootPID > 0, "clone() failed");
-        mapRootUser(rootPID);
-        rootProcess.goAhead();
-        return rootProcess.join();
+        extern (C) int function(Container arg) runner;
+        if (this.withRoot)
+        {
+            runner = &Container.runRoot;
+        }
+        else
+        {
+            runner = &Container.runUnprivileged;
+        }
+
+        auto process = ClonedProcess!(Container)(runner);
+        auto pid = process.start(this, flags);
+        assert(pid > 0, "clone() failed");
+        mapRootUser(pid);
+        process.goAhead();
+        return process.join();
     }
 
 private:
-    extern (C) static int runContainerized(Container thiz)
+    extern (C) static int runRoot(Container thiz)
     {
-        thiz.mountBase();
-        if (thiz.withRoot)
-        {
-            return executeProcesses(thiz);
-        }
+        thiz.fs.mountBase();
+        thiz.fs.mountProc();
+        thiz.fs.mountExtra();
         thiz.fs.chroot();
-        auto unprivProcess = ClonedProcess!(Container)(&Container.executeProcesses);
-        auto unprivPID = unprivProcess.start(thiz, CLONE_NEWUSER);
+        return thiz.runProcesses();
+    }
+
+    extern (C) static int runUnprivileged(Container thiz)
+    {
+        thiz.fs.mountBase();
+        thiz.fs.mountExtra();
+        thiz.fs.mountProc();
+        thiz.fs.chroot();
+        auto unprivProcess = ClonedProcess!(Container)(&Container.blah);
+        auto unprivPID = unprivProcess.start(thiz, CLONE_NEWNS | CLONE_NEWPID | CLONE_NEWUSER);
         assert(unprivPID > 0, "clone() failed");
         mapHostID(unprivPID, 1000, 1000);
         unprivProcess.goAhead();
         return unprivProcess.join();
     }
 
-    extern (C) static int executeProcesses(Container thiz)
+    import core.sys.posix.unistd : _exit, fork, pid_t, setgid, setuid, uid_t;
+
+    extern (C) static int blah(Container thiz)
     {
-        foreach (ref p; thiz.processes)
+        return thiz.runProcesses();
+    }
+
+    int runProcesses()
+    {
+        foreach (ref p; this.processes)
         {
             const auto ret = p.run();
             if (ret < 0)
@@ -86,11 +110,6 @@ private:
             }
         }
         return 0;
-    }
-
-    void mountBase()
-    {
-        this.fs.mountBase();
     }
 
     immutable int privilegedUGID = 0;

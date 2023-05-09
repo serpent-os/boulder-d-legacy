@@ -18,7 +18,6 @@ struct Filesystem
                 ]),
             FSMount("tmpfs", "dev/shm"),
             FSMount("tmpfs", "dev/pts"),
-            FSMount("proc", "proc"),
             FSMount("tmpfs", "tmp", [
                     "mode": FSConfigValue(FSCONFIG.SET_STRING, cast(void*) "1777".toStringz())
                 ]),
@@ -57,6 +56,12 @@ struct Filesystem
         ];
 
         return Filesystem(fakeRootPath, baseFS, baseFiles, baseSymlinks);
+    }
+
+    void mountProc()
+    {
+        auto proc = FSMount("proc", "proc");
+        moss.container.filesystem.mountFS(proc, this.fakeRootPath);
     }
 
     void mountBase()
