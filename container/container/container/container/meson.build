@@ -36,6 +36,7 @@ libcontainer_sources = [
 	'source/moss/container/fakeroot.d',
 	'source/moss/container/filesystem.d',
 	'source/moss/container/mapping.d',
+	'source/moss/container/overlay.d',
 	'source/moss/container/package.d',
 	'source/moss/container/process.d',
 ]
