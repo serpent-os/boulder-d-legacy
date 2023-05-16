@@ -64,6 +64,10 @@ public struct ContainerCLI
     @Option("d", "directory", "Directory to find a root filesystem")
     string rootfsDir = null;
 
+    /** Work directory. */
+    @Option("w", "workdir", "Work directory (will be created if non-existent)")
+    string workDir = null;
+
     /** Immediately start at this directory in the container (cwd) */
     @Option("workdir", null, "Start at this working directory in the container (Default: /)")
     string cwd = "/";
@@ -124,6 +128,12 @@ public struct ContainerCLI
         if (rootfsDir.empty)
         {
             stderr.writeln("You must set a directory with the -d option");
+            return 1;
+        }
+
+        if (workDir.empty)
+        {
+            stderr.writeln("You must choose a work directory path with the -w option");
             return 1;
         }
 
