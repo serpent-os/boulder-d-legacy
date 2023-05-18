@@ -65,8 +65,8 @@ public struct ContainerCLI
     string rootfsDir = null;
 
     /** Work directory. */
-    @Option("w", "workdir", "Work directory (will be created if non-existent)")
-    string workDir = null;
+    @Option("o", "overlayroot", "OverlayFS parent directory (will be created if non-existent)")
+    string overlayRoot = null;
 
     /** Immediately start at this directory in the container (cwd) */
     @Option("workdir", null, "Start at this working directory in the container (Default: /)")
@@ -131,9 +131,9 @@ public struct ContainerCLI
             return 1;
         }
 
-        if (workDir.empty)
+        if (overlayRoot.empty)
         {
-            stderr.writeln("You must choose a work directory path with the -w option");
+            stderr.writeln("You must choose an OverlayFS parent directory path with the -o option");
             return 1;
         }
 
