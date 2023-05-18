@@ -1,9 +1,10 @@
 module moss.container.filesystem;
 
+import core.sys.posix.unistd : chown;
 import std.exception : ErrnoException;
 import std.experimental.logger;
 import std.format;
-import std.file : chdir, exists, isDir, mkdirRecurse, remove, rmdir, symlink, write;
+import std.file : SpanMode, chdir, dirEntries, exists, isDir, mkdirRecurse, remove, rmdir, symlink, write;
 import std.string : toStringz;
 
 import moss.core.mounts;
@@ -101,6 +102,7 @@ struct Filesystem
     }
 
     string fakeRootPath;
+
     FSMount[] baseFS;
     FileMount[] baseFiles;
     string[string] baseSymlinks;
@@ -148,5 +150,43 @@ private void pivotRoot(const string newRoot, const string putOld) @system
     if (ret < 0)
     {
         throw new ErrnoException("Failed to pivot root");
+    }
+}
+
+private string mountOverlay(string lowerDir, string overlayRoot)
+{
+    const string upperDir = overlayRoot ~ "/" ~ "upper";
+    const string workDir = overlayRoot ~ "/" ~ "work";
+    const string mergedDir = overlayRoot ~ "/" ~ "merged";
+
+    foreach (ref path; [upperDir, workDir, mergedDir])
+    {
+        mkdirRecurse(path);
+    }
+    auto prop = [
+        "lowerdir": FSConfigValue(
+            FSCONFIG.SET_PATH,
+            cast(void*) lowerDir.toStringz(),
+            AT.FDCWD),
+        "upperdir": FSConfigValue(
+            FSCONFIG.SET_PATH,
+            cast(void*) upperDir.toStringz(),
+            AT.FDCWD),
+        "workdir": FSConfigValue(
+            FSCONFIG.SET_PATH,
+            cast(void*) workDir.toStringz(),
+            AT.FDCWD),
+        "metacopy": FSConfigValue(FSCONFIG.SET_STRING, cast(void*) "on".toStringz()),
+        "volatile": FSConfigValue(FSCONFIG.SET_FLAG, null),
+    ];
+    FSMount("overlay", mergedDir, prop).mount();
+    return mergedDir;
+}
+
+private void chownRecursive(int uid, int gid, string path)
+{
+    foreach (string child; dirEntries(path, SpanMode.shallow, false))
+    {
+        chown(child.toStringz(), uid, gid);
     }
 }
