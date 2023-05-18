@@ -8,12 +8,12 @@ import moss.core.mounts;
 
 struct OverlayFS
 {
-    string baseDir;
+    string parentDir;
     string overlayedDir;
 
     string mergedDir() const pure @property
     {
-        return this.joinPath(this.baseDir, this.relMergedDir);
+        return this.joinPath(this.parentDir, this.relMergedDir);
     }
 
     void mount() const
@@ -55,12 +55,12 @@ private:
 
     string upperDir() const pure @property
     {
-        return this.joinPath(this.baseDir, this.relUpperDir);
+        return this.joinPath(this.parentDir, this.relUpperDir);
     }
 
     string workDir() const pure @property
     {
-        return this.joinPath(this.baseDir, this.relWorkDir);
+        return this.joinPath(this.parentDir, this.relWorkDir);
     }
 
     static string joinPath(string base, string child) pure
