@@ -23,11 +23,18 @@ struct OverlayFS
             mkdirRecurse(path);
         }
         auto prop = [
-            "lowerdir": FSConfigValue(FSCONFIG.SET_STRING, cast(void*) this.overlayedDir.toStringz()),
-            "upperdir": FSConfigValue(FSCONFIG.SET_STRING, cast(void*) this.upperDir()
-                    .toStringz()),
-            "workdir": FSConfigValue(FSCONFIG.SET_STRING, cast(void*) this.workDir()
-                    .toStringz()),
+            "lowerdir": FSConfigValue(
+                FSCONFIG.SET_PATH,
+                cast(void*) this.overlayedDir.toStringz(),
+                AT.FDCWD),
+            "upperdir": FSConfigValue(
+                FSCONFIG.SET_PATH,
+                cast(void*) this.upperDir().toStringz(),
+                AT.FDCWD),
+            "workdir": FSConfigValue(
+                FSCONFIG.SET_PATH,
+                cast(void*) this.workDir().toStringz(),
+                AT.FDCWD),
             "metacopy": FSConfigValue(FSCONFIG.SET_STRING, cast(void*) "on".toStringz()),
         ];
         FSMount("overlay", this.mergedDir(), prop).mount();
