@@ -36,6 +36,7 @@ struct OverlayFS
                 cast(void*) this.workDir().toStringz(),
                 AT.FDCWD),
             "metacopy": FSConfigValue(FSCONFIG.SET_STRING, cast(void*) "on".toStringz()),
+            "volatile": FSConfigValue(FSCONFIG.SET_FLAG, null),
         ];
         FSMount("overlay", this.mergedDir(), prop).mount();
     }
