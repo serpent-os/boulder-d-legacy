@@ -71,6 +71,7 @@ struct Container
 private:
     extern (C) static int runRoot(Container thiz)
     {
+        thiz.fs.fakeRootPath = mountOverlay(thiz.fs.fakeRootPath, thiz.overlayParent);
         thiz.fs.mountBase();
         thiz.fs.mountProc();
         thiz.fs.mountExtra();
@@ -80,6 +81,7 @@ private:
 
     extern (C) static int runUnprivileged(Container thiz)
     {
+        thiz.fs.fakeRootPath = mountOverlay(thiz.fs.fakeRootPath, thiz.overlayParent);
         thiz.fs.mountBase();
         thiz.fs.mountExtra();
         thiz.fs.mountProc();
