@@ -9,6 +9,36 @@ import std.string : toStringz;
 
 import moss.core.mounts;
 
+string mountOverlay(string lowerDir, string overlayRoot)
+{
+    const string upperDir = overlayRoot ~ "/" ~ "upper";
+    const string workDir = overlayRoot ~ "/" ~ "work";
+    const string mergedDir = overlayRoot ~ "/" ~ "merged";
+
+    foreach (ref path; [upperDir, workDir, mergedDir])
+    {
+        mkdirRecurse(path);
+    }
+    auto prop = [
+        "lowerdir": FSConfigValue(
+            FSCONFIG.SET_PATH,
+            cast(void*) lowerDir.toStringz(),
+            AT.FDCWD),
+        "upperdir": FSConfigValue(
+            FSCONFIG.SET_PATH,
+            cast(void*) upperDir.toStringz(),
+            AT.FDCWD),
+        "workdir": FSConfigValue(
+            FSCONFIG.SET_PATH,
+            cast(void*) workDir.toStringz(),
+            AT.FDCWD),
+        "metacopy": FSConfigValue(FSCONFIG.SET_STRING, cast(void*) "on".toStringz()),
+        "volatile": FSConfigValue(FSCONFIG.SET_FLAG, null),
+    ];
+    FSMount("overlay", mergedDir, prop).mount();
+    return mergedDir;
+}
+
 struct Filesystem
 {
     static Filesystem defaultFS(string fakeRootPath, bool withNet)
@@ -151,36 +181,6 @@ private void pivotRoot(const string newRoot, const string putOld) @system
     {
         throw new ErrnoException("Failed to pivot root");
     }
-}
-
-private string mountOverlay(string lowerDir, string overlayRoot)
-{
-    const string upperDir = overlayRoot ~ "/" ~ "upper";
-    const string workDir = overlayRoot ~ "/" ~ "work";
-    const string mergedDir = overlayRoot ~ "/" ~ "merged";
-
-    foreach (ref path; [upperDir, workDir, mergedDir])
-    {
-        mkdirRecurse(path);
-    }
-    auto prop = [
-        "lowerdir": FSConfigValue(
-            FSCONFIG.SET_PATH,
-            cast(void*) lowerDir.toStringz(),
-            AT.FDCWD),
-        "upperdir": FSConfigValue(
-            FSCONFIG.SET_PATH,
-            cast(void*) upperDir.toStringz(),
-            AT.FDCWD),
-        "workdir": FSConfigValue(
-            FSCONFIG.SET_PATH,
-            cast(void*) workDir.toStringz(),
-            AT.FDCWD),
-        "metacopy": FSConfigValue(FSCONFIG.SET_STRING, cast(void*) "on".toStringz()),
-        "volatile": FSConfigValue(FSCONFIG.SET_FLAG, null),
-    ];
-    FSMount("overlay", mergedDir, prop).mount();
-    return mergedDir;
 }
 
 private void chownRecursive(int uid, int gid, string path)
