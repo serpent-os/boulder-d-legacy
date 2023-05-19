@@ -21,17 +21,14 @@ string mountOverlay(string lowerDir, string overlayRoot)
     }
     auto prop = [
         "lowerdir": FSConfigValue(
-            FSCONFIG.SET_PATH,
-            cast(void*) lowerDir.toStringz(),
-            AT.FDCWD),
+            FSCONFIG.SET_STRING,
+            cast(void*) lowerDir.toStringz()),
         "upperdir": FSConfigValue(
-            FSCONFIG.SET_PATH,
-            cast(void*) upperDir.toStringz(),
-            AT.FDCWD),
+            FSCONFIG.SET_STRING,
+            cast(void*) upperDir.toStringz()),
         "workdir": FSConfigValue(
-            FSCONFIG.SET_PATH,
-            cast(void*) workDir.toStringz(),
-            AT.FDCWD),
+            FSCONFIG.SET_STRING,
+            cast(void*) workDir.toStringz()),
         "metacopy": FSConfigValue(FSCONFIG.SET_STRING, cast(void*) "on".toStringz()),
         "volatile": FSConfigValue(FSCONFIG.SET_FLAG, null),
     ];
