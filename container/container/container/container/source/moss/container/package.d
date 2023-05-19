@@ -21,8 +21,9 @@ import moss.core.mounts;
 
 struct Container
 {
-    this(Filesystem fs)
+    this(string overlayParent, Filesystem fs)
     {
+        this.overlayParent = overlayParent;
         this.fs = fs;
     }
 
@@ -115,10 +116,11 @@ private:
     immutable int privilegedUGID = 0;
     immutable int regularUGID = 1;
 
+    string overlayParent;
     Filesystem fs;
+
     bool withNet;
     bool withRoot;
-
     Process[] processes;
 }
 

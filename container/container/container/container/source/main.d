@@ -186,7 +186,7 @@ public struct ContainerCLI
         string[] programArgs = commandLine[0].length > 0 ? commandLine[1 .. $] : null;
         auto proc = Process(programName, programArgs);
 
-        auto cont = Container(fs);
+        auto cont = Container(this.overlayRoot, fs);
         cont.withNetworking(networking);
         cont.withRootPrivileges(root);
         cont.setProcesses([proc]);
