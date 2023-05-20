@@ -69,13 +69,8 @@ public static immutable(Stage) stageCreateRoot = Stage("create-root", (StageCont
     }
     else
     {
-        auto recipeMount = Mount.bindRO(context.job.hostPaths.recipe, context.job.unconfinedRecipe);
-        auto err = recipeMount.mount();
-        if (!err.isNull)
-        {
-            error(format!"Failed to mount %s: %s"(recipeMount.target, err.get.toString));
-            return StageReturn.Failure;
-        }
+        auto recipeMount = FileMount.bindRO(context.job.hostPaths.recipe, context.job.unconfinedRecipe);
+        recipeMount.mount();
         context.addMount(recipeMount);
     }
 
