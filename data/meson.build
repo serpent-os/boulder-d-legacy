@@ -14,7 +14,7 @@ configure_file(
     configuration: {
         'VERSION': meson.project_version(),
         'GIT_HASH': run_command(
-            ['git', 'describe', '--tags', '--always', '--dirty', '--abbrev=7'],
+            'git', 'describe', '--exclude=*', '--always', '--dirty',
             check: false,
         ).stdout().strip()
     },
