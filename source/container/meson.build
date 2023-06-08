@@ -25,7 +25,7 @@ container = executable(
     container_sources,
     dependencies: container_deps,
     install: true,
-    install_dir : get_option('libexecdir'),
+    install_dir : get_option('libexecdir') / meson.project_name(),
     include_directories: global_includes,
     link_args: '--link-defaultlib-shared=false',
 )

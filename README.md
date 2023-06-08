@@ -3,6 +3,8 @@
 This repository contains the `boulder` tool, which is used to produce
 `.stone` binary packages from a `stone.yml` source definition file.
 
+`boulder` builds stones in an isolated environment (that is, a namespace-based container). The companion application `/usr/libexec/boulder/container` is responsible of creating, running, and destroying this environment. The companion application is launched by `boulder` itself and that is the only intended and supported use case.
+
 #### Prerequisites
 
 `boulder` (and its own dependencies) depends on a couple of system libraries
