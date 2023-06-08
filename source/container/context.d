@@ -13,12 +13,12 @@
  * Authors: Copyright © 2020-2023 Serpent OS Developers
  * License: Zlib
  */
-module moss.container.context;
+module container.context;
 
-public import moss.container.fakeroot : FakerootBinary;
+public import container.fakeroot : FakerootBinary;
 
 import core.sys.posix.stdlib : uid_t;
-import moss.container.fakeroot : discoverFakeroot;
+import container.fakeroot : discoverFakeroot;
 import std.array : join;
 import std.concurrency : initOnce;
 import std.experimental.logger;

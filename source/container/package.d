@@ -1,4 +1,4 @@
-module moss.container;
+module container;
 
 import core.stdc.stdio;
 import core.stdc.stdlib;
@@ -13,10 +13,10 @@ import std.path : dirName;
 import std.process : Pipe, environment, pipe, spawnProcess, wait;
 import std.string : toStringz, fromStringz;
 
-import moss.container.context;
-import moss.container.filesystem;
-import moss.container.mapping;
-import moss.container.process;
+import container.context;
+import container.filesystem;
+import container.mapping;
+import container.process;
 import moss.core.mounts;
 
 struct Container

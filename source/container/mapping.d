@@ -1,4 +1,4 @@
-module moss.container.mapping;
+module container.mapping;
 
 import core.stdc.stdio : FILE;
 import core.stdc.stdlib;

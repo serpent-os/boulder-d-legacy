@@ -1,4 +1,4 @@
-module moss.container.filesystem;
+module container.filesystem;
 
 import core.sys.posix.unistd : chown;
 import std.exception : ErrnoException;
@@ -89,20 +89,20 @@ struct Filesystem
     void mountProc()
     {
         auto proc = FSMount("proc", "proc");
-        moss.container.filesystem.mountFS(proc, this.fakeRootPath);
+        container.filesystem.mountFS(proc, this.fakeRootPath);
     }
 
     void mountBase()
     {
         auto rootfs = this.rootfsMount();
-        moss.container.filesystem.mountFileDir(rootfs, "");
+        container.filesystem.mountFileDir(rootfs, "");
         foreach (m; this.baseFS)
         {
-            moss.container.filesystem.mountFS(m, this.fakeRootPath);
+            container.filesystem.mountFS(m, this.fakeRootPath);
         }
         foreach (ref m; this.baseFiles)
         {
-            moss.container.filesystem.mountFileDir(m, this.fakeRootPath);
+            container.filesystem.mountFileDir(m, this.fakeRootPath);
         }
         foreach (source, target; this.baseSymlinks)
         {
@@ -114,7 +114,7 @@ struct Filesystem
     {
         foreach (ref m; this.extraMounts)
         {
-            moss.container.filesystem.mountFileDir(m, this.fakeRootPath);
+            container.filesystem.mountFileDir(m, this.fakeRootPath);
         }
     }
 

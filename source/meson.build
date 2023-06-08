@@ -1,4 +1,5 @@
 components = [
+    'container',
     'drafter',
     'mason',
     'boulder',

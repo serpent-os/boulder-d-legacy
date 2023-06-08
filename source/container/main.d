@@ -13,7 +13,7 @@
  * Authors: Copyright © 2020-2023 Serpent OS Developers
  * License: Zlib
  */
-module main;
+module container.main;
 
 import core.stdc.stdlib : _Exit;
 import core.sys.linux.sched;
@@ -26,10 +26,10 @@ import std.file : exists, isDir;
 import std.stdio : stderr, stdout;
 import std.string : empty, format;
 
-import moss.container;
-import moss.container.context;
-import moss.container.filesystem;
-import moss.container.process;
+import container;
+import container.context;
+import container.filesystem;
+import container.process;
 import moss.core.cli;
 import moss.core.logger;
 import moss.core.mounts;

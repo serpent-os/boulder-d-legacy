@@ -17,9 +17,9 @@
  * Authors: Copyright © 2020-2023 Serpent OS Developers
  * License: Zlib
  */
-module moss.container.fakeroot;
+module container.fakeroot;
 
-import moss.container.context;
+import container.context;
 import std.file : exists;
 import std.array : join;
 

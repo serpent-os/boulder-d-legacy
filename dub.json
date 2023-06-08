@@ -16,6 +16,22 @@
 			"path": "../libmoss"
 		}
 	},
+	"excludedSourceFiles": [
+		"source/container/*"
+	],
+	"subPackages": [
+		{
+			"name": "container",
+			"targetType": "executable",
+			"sourcePaths": [
+				"source/container"
+			],
+			"importPaths": [
+				"source/container"
+			],
+			"targetPath": "libexec"
+		}
+	],
 	"stringImportPaths": [
 		"data"
 	],

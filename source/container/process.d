@@ -13,7 +13,7 @@
  * Authors: Copyright © 2020-2023 Serpent OS Developers
  * License: Zlib
  */
-module moss.container.process;
+module container.process;
 
 import core.sys.posix.sys.wait;
 import core.sys.posix.unistd : _exit, fork, pid_t, setgid, setuid, uid_t;
@@ -23,7 +23,7 @@ import std.stdio : stderr, stdin, stdout;
 import std.string : format, fromStringz, toStringz;
 import std.typecons;
 
-import moss.container.context;
+import container.context;
 
 /**
  * Simplistic encapsulation of a process.
