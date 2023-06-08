@@ -11,6 +11,7 @@ container_deps = [
 ]
 
 container_sources = [
+    'cli/package.d',
 	'context.d',
 	'fakeroot.d',
 	'filesystem.d',
