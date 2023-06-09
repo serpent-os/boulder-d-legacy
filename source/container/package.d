@@ -49,54 +49,35 @@ struct Container
         {
             flags |= CLONE_NEWNET | CLONE_NEWUTS;
         }
-
-        extern (C) int function(Container arg) runner;
-        if (this.withRoot)
-        {
-            runner = &Container.runRoot;
-        }
-        else
-        {
-            runner = &Container.runUnprivileged;
-        }
-
-        auto process = ClonedProcess!(Container)(runner);
-        auto pid = process.start(this, flags);
+        auto proc = ClonedProcess!(Container)(&Container.enter);
+        auto pid = proc.start(this, flags);
         assert(pid > 0, "clone() failed");
         mapRootUser(pid);
-        process.goAhead();
-        return process.join();
+        proc.goAhead();
+        return proc.join();
     }
 
 private:
-    extern (C) static int runRoot(Container thiz)
+    extern (C) static int enter(Container thiz)
     {
         thiz.fs.fakeRootPath = mountOverlay(thiz.fs.fakeRootPath, thiz.overlayParent);
         thiz.fs.mountBase();
         thiz.fs.mountProc();
         thiz.fs.mountExtra();
         thiz.fs.chroot();
-        return thiz.runProcesses();
+        if (thiz.withRoot)
+        {
+            return thiz.runProcesses();
+        }
+        auto proc = ClonedProcess!(Container)(&Container.runProcessesUnpriv);
+        auto pid = proc.start(thiz, CLONE_NEWNS | CLONE_NEWPID | CLONE_NEWUSER);
+        assert(pid > 0, "clone() failed");
+        mapHostID(pid, 1000, 1000); // TODO: do not use fixed UID and GID.
+        proc.goAhead();
+        return proc.join();
     }
 
-    extern (C) static int runUnprivileged(Container thiz)
-    {
-        thiz.fs.fakeRootPath = mountOverlay(thiz.fs.fakeRootPath, thiz.overlayParent);
-        thiz.fs.mountBase();
-        thiz.fs.mountExtra();
-        thiz.fs.mountProc();
-        thiz.fs.chroot();
-        auto unprivProcess = ClonedProcess!(Container)(&Container.blah);
-        auto unprivPID = unprivProcess.start(thiz, CLONE_NEWNS | CLONE_NEWPID | CLONE_NEWUSER);
-        assert(unprivPID > 0, "clone() failed");
-        mapHostID(unprivPID, 1000, 1000);
-        unprivProcess.goAhead();
-        return unprivProcess.join();
-    }
-
-    import core.sys.posix.unistd : _exit, fork, pid_t, setgid, setuid, uid_t;
-
-    extern (C) static int blah(Container thiz)
+    extern (C) static int runProcessesUnpriv(Container thiz)
     {
         return thiz.runProcesses();
     }
@@ -196,7 +177,15 @@ private:
 
 private struct CloneArguments(T)
 {
+    /** userFunc is the function to be run isolated. */
     extern (C) int function(T arg) userFunc;
+
+    /** userArg is the argument passed to userFunc. */
     T userArg;
+
+    /**
+     * waitingPipe puts the cloned process on pause and makes
+     * it wait for user's permission to resume.
+     */
     Pipe waitingPipe;
 }
