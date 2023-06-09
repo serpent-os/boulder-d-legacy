@@ -23,11 +23,20 @@
 		{
 			"name": "container",
 			"targetType": "executable",
+			"dependencies": {
+				"libmoss": {
+					"path": "../libmoss"
+				},
+				"dopt": {
+					"repository": "git+https://github.com/tarkah/dopt.git",
+					"version": "c90d16a"
+				}
+			},
 			"sourcePaths": [
 				"source/container"
 			],
 			"importPaths": [
-				"source/container"
+				"source"
 			],
 			"targetPath": "libexec/boulder"
 		}
