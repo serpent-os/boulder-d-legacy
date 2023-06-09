@@ -59,7 +59,7 @@ struct Container
     }
 
 private:
-    extern (C) static int enter(Container thiz)
+    static int enter(Container thiz)
     {
         if (!thiz.fs.isNull())
         {
@@ -82,7 +82,7 @@ private:
         return proc.join();
     }
 
-    extern (C) static int runProcessesUnpriv(Container thiz)
+    static int runProcessesUnpriv(Container thiz)
     {
         return thiz.runProcesses();
     }
@@ -111,7 +111,7 @@ private:
 
 private struct ClonedProcess(T)
 {
-    extern (C) int function(T arg) func;
+    int function(T arg) func;
 
     int start(T arg, int flags)
     {
@@ -180,7 +180,7 @@ private:
 private struct CloneArguments(T)
 {
     /** userFunc is the function to be run isolated. */
-    extern (C) int function(T arg) userFunc;
+    int function(T arg) userFunc;
 
     /** userArg is the argument passed to userFunc. */
     T userArg;
