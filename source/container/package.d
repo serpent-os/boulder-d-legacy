@@ -21,9 +21,9 @@ import moss.core.mounts;
 
 struct Container
 {
-    this(string overlayParent, Filesystem fs)
+    this(string overlayRoot, Filesystem fs)
     {
-        this.overlayParent = overlayParent;
+        this.overlayRoot = overlayRoot;
         this.fs = fs;
     }
 
@@ -60,7 +60,7 @@ struct Container
 private:
     extern (C) static int enter(Container thiz)
     {
-        thiz.fs.fakeRootPath = mountOverlay(thiz.fs.fakeRootPath, thiz.overlayParent);
+        thiz.fs.rootfsDir = mountOverlay(thiz.fs.rootfsDir, thiz.overlayRoot);
         thiz.fs.mountBase();
         thiz.fs.mountProc();
         thiz.fs.mountExtra();
@@ -96,10 +96,7 @@ private:
         return 0;
     }
 
-    immutable int privilegedUGID = 0;
-    immutable int regularUGID = 1;
-
-    string overlayParent;
+    string overlayRoot;
     Filesystem fs;
 
     bool withNet;

@@ -29,8 +29,8 @@ string mountOverlay(string lowerDir, string overlayRoot)
         "workdir": FSConfigValue(
             FSCONFIG.SET_STRING,
             cast(void*) workDir.toStringz()),
-        "metacopy": FSConfigValue(FSCONFIG.SET_STRING, cast(void*) "on".toStringz()),
         "volatile": FSConfigValue(FSCONFIG.SET_FLAG, null),
+        "userxattr": FSConfigValue(FSCONFIG.SET_FLAG, null),
     ];
     FSMount("overlay", mergedDir, prop).mount();
     return mergedDir;
@@ -38,7 +38,7 @@ string mountOverlay(string lowerDir, string overlayRoot)
 
 struct Filesystem
 {
-    static Filesystem defaultFS(string fakeRootPath, bool withNet)
+    static Filesystem defaultFS(string rootfsDir, bool withNet)
     {
         FSMount[] baseFS = [
             FSMount("tmpfs", "dev", [
@@ -83,13 +83,13 @@ struct Filesystem
             "/dev/pts/ptmx": "dev/ptmx",
         ];
 
-        return Filesystem(fakeRootPath, baseFS, baseFiles, baseSymlinks);
+        return Filesystem(rootfsDir, baseFS, baseFiles, baseSymlinks);
     }
 
     void mountProc()
     {
         auto proc = FSMount("proc", "proc");
-        container.filesystem.mountFS(proc, this.fakeRootPath);
+        container.filesystem.mountFS(proc, this.rootfsDir);
     }
 
     void mountBase()
@@ -98,15 +98,15 @@ struct Filesystem
         container.filesystem.mountFileDir(rootfs, "");
         foreach (m; this.baseFS)
         {
-            container.filesystem.mountFS(m, this.fakeRootPath);
+            container.filesystem.mountFS(m, this.rootfsDir);
         }
         foreach (ref m; this.baseFiles)
         {
-            container.filesystem.mountFileDir(m, this.fakeRootPath);
+            container.filesystem.mountFileDir(m, this.rootfsDir);
         }
         foreach (source, target; this.baseSymlinks)
         {
-            symlink(source, this.fakeRootPath ~ "/" ~ target);
+            symlink(source, this.rootfsDir ~ "/" ~ target);
         }
     }
 
@@ -114,13 +114,13 @@ struct Filesystem
     {
         foreach (ref m; this.extraMounts)
         {
-            container.filesystem.mountFileDir(m, this.fakeRootPath);
+            container.filesystem.mountFileDir(m, this.rootfsDir);
         }
     }
 
     void chroot()
     {
-        chdir(this.fakeRootPath);
+        chdir(this.rootfsDir);
         pivotRoot(".", ".");
 
         auto unmnt = FileMount("", ".");
@@ -128,7 +128,7 @@ struct Filesystem
         unmnt.unmount();
     }
 
-    string fakeRootPath;
+    string rootfsDir;
 
     FSMount[] baseFS;
     FileMount[] baseFiles;
@@ -139,8 +139,8 @@ private:
     @property FileMount rootfsMount() const
     {
         return FileMount(
-            this.fakeRootPath,
-            this.fakeRootPath,
+            this.rootfsDir,
+            this.rootfsDir,
             cast(AT) OPEN_TREE.CLONE);
     }
 }
