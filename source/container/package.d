@@ -12,6 +12,7 @@ import std.format;
 import std.path : dirName;
 import std.process : Pipe, environment, pipe, spawnProcess, wait;
 import std.string : toStringz, fromStringz;
+import std.typecons : Nullable, nullable;
 
 import container.context;
 import container.filesystem;
@@ -24,7 +25,7 @@ struct Container
     this(string overlayRoot, Filesystem fs)
     {
         this.overlayRoot = overlayRoot;
-        this.fs = fs;
+        this.fs = nullable(fs);
     }
 
     void setProcesses(Process[] processes)
@@ -60,11 +61,15 @@ struct Container
 private:
     extern (C) static int enter(Container thiz)
     {
-        thiz.fs.rootfsDir = mountOverlay(thiz.fs.rootfsDir, thiz.overlayRoot);
-        thiz.fs.mountBase();
-        thiz.fs.mountProc();
-        thiz.fs.mountExtra();
-        thiz.fs.chroot();
+        if (!thiz.fs.isNull())
+        {
+            auto fs = thiz.fs.get();
+            fs.rootfsDir = mountOverlay(fs.rootfsDir, thiz.overlayRoot);
+            fs.mountBase();
+            fs.mountProc();
+            fs.mountExtra();
+            fs.chroot();
+        }
         if (thiz.withRoot)
         {
             return thiz.runProcesses();
@@ -97,7 +102,7 @@ private:
     }
 
     string overlayRoot;
-    Filesystem fs;
+    Nullable!Filesystem fs;
 
     bool withNet;
     bool withRoot;
