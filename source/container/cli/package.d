@@ -34,7 +34,7 @@ public struct ContainerCLI
     string path = null;
 
     @Subcommand()
-    Subcommands commands;
+    Subcommands subcommand;
 }
 
 
