@@ -8,15 +8,14 @@ module container.cli;
 
 import std : stderr, stdout;
 import std.range;
-import std.sumtype : SumType;
+import std.sumtype;
 
 import container.cli.create;
 import container.cli.remove;
 import container.cli.run;
 import dopt;
 
-//alias Subcommands = SumType!(Create, Remove, Run);
-alias Subcommands = SumType!(Create);
+alias Subcommands = SumType!(Create, Remove, Run);
 
 @Command("container")
 @Help(`Use container to manage lightweight containers using Linux namespaces.
@@ -26,7 +25,7 @@ general testing.`)
 @Version(`"moss-container, version %s"("0.1")
 Copyright © 2020-2023 Serpent OS Developers
 Available under the terms of the Zlib license`)
-public struct ContainerCLI
+private struct ContainerCLI
 {
     /** Path where the container resides. */
     @Global() @Short("p") @Long("path")
@@ -35,6 +34,13 @@ public struct ContainerCLI
 
     @Subcommand()
     Subcommands subcommand;
+
+    void checkPath() {
+        if (this.path.empty())
+        {
+            throw new Exception("path must not be empty");
+        }
+    }
 }
 
 
@@ -46,4 +52,11 @@ public void run(string[] args) {
     }
     catch (HelpException e) {}
     catch (VersionException e) {}
+
+    cli.checkPath();
+    cli.subcommand.match!(
+        (Create c) => Create.run(c, cli.path),
+        (Remove c) => Remove.run(c, cli.path),
+        (Run c) => Run.run(c, cli.path),
+    );
 }

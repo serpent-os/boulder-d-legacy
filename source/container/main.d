@@ -15,6 +15,8 @@
  */
 module container.main;
 
+import std : stderr;
+
 import container.cli : run;
 
 int main(string[] args)
@@ -25,6 +27,7 @@ int main(string[] args)
     }
     catch (Exception e)
     {
+        stderr.writeln(e.msg);
         return 1;
     }
     return 0;

@@ -9,6 +9,10 @@ module container.cli.remove;
 import dopt;
 
 @Command() @Help("Remove a container")
-public struct Remove
+package struct Remove
 {
+    static void run(Remove thiz, string path)
+    {
+
+    }
 }

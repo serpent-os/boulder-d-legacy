@@ -9,7 +9,7 @@ module container.cli.run;
 import dopt;
 
 @Command() @Help("Run a command in an existing container")
-public struct Run
+package struct Run
 {
     /** Read-only bind mounts */
     @Option() @Long("bind-ro") @Help("Bind a read-only host location into the container")
@@ -34,4 +34,9 @@ public struct Run
     /** Immediately start at this directory in the container (cwd) */
     @Option() @Long("workdir") @Help("Start at this working directory in the container (Default: /)")
     string cwd = "/";
+
+    public static void run(Run thiz, string path)
+    {
+
+    }
 }

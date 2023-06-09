@@ -9,7 +9,10 @@ module container.cli.create;
 import dopt;
 
 @Command() @Help("Create a new container")
-public struct Create
+package struct Create
 {
+    public static void run(Create thiz, string path)
+    {
 
+    }
 }
