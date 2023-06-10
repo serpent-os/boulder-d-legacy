@@ -53,8 +53,8 @@ struct Container
         {
             flags |= CLONE_NEWNET | CLONE_NEWUTS;
         }
-        auto proc = ClonedProcess!(Container)(&Container.enter);
-        auto pid = proc.start(this, flags);
+        auto proc = clonedProcess(&Container.enter, this, flags);
+        auto pid = proc.start();
         assert(pid > 0, "clone() failed");
         mapRootUser(pid);
         proc.goAhead();
@@ -77,8 +77,8 @@ private:
         {
             return thiz.runProcesses();
         }
-        auto proc = ClonedProcess!(Container)(&Container.runProcessesUnpriv);
-        auto pid = proc.start(thiz, CLONE_NEWNS | CLONE_NEWPID | CLONE_NEWUSER);
+        auto proc = clonedProcess(&Container.runProcessesUnpriv, thiz, CLONE_NEWNS | CLONE_NEWPID | CLONE_NEWUSER);
+        auto pid = proc.start();
         assert(pid > 0, "clone() failed");
         mapHostID(pid, 1000, 1000); // TODO: do not use fixed UID and GID.
         proc.goAhead();

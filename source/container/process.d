@@ -24,6 +24,7 @@ import std.experimental.logger;
 import std.process;
 import std.stdio : stderr, stdin, stdout;
 import std.string : format, fromStringz, toStringz;
+import std.traits;
 import std.typecons;
 
 import container.context;
@@ -137,11 +138,19 @@ private:
     Nullable!int gid;
 }
 
-public struct ClonedProcess(T)
+public auto clonedProcess(F, T...)(F func, T args, int flags)
+        if (isSpawnable!(F, T))
 {
-    int function(T arg) func;
+    return ClonedProcess!(F, T)(func, args, flags);
+}
 
-    int start(T arg, int flags)
+public struct ClonedProcess(F, T...) if (isSpawnable!(F, T))
+{
+    F func;
+    T args;
+    int cloneFlags;
+
+    int start()
     {
         if (pid != 0)
         {
@@ -154,8 +163,8 @@ public struct ClonedProcess(T)
         auto StackTop = this.stack + stackSize;
 
         this.waitingPipe = pipe();
-        auto args = CloneArguments!(T)(this.func, arg, this.waitingPipe);
-        this.pid = clone(&ClonedProcess._run, StackTop, flags | SIGCHLD, &args);
+        auto args = CloneArguments!(F, T)(this.func, this.args, this.waitingPipe);
+        this.pid = clone(&ClonedProcess._run, StackTop, this.cloneFlags | SIGCHLD, &args);
         return this.pid;
     }
 
@@ -188,7 +197,7 @@ public struct ClonedProcess(T)
 private:
     extern (C) static int _run(void* arg)
     {
-        auto args = cast(CloneArguments!(T)*) arg;
+        auto args = cast(CloneArguments!(F, T)*) arg;
 
         args.waitingPipe.writeEnd.close();
         bool[1] stop;
@@ -197,7 +206,7 @@ private:
         {
             return 0;
         }
-        return args.userFunc(args.userArg);
+        return args.userFunc(args.userArgs);
     }
 
     Pipe waitingPipe;
@@ -205,17 +214,47 @@ private:
     int pid;
 }
 
-private struct CloneArguments(T)
+private struct CloneArguments(F, T...) if (isSpawnable!(F, T))
 {
     /** userFunc is the function to be run isolated. */
-    int function(T arg) userFunc;
+    F userFunc;
 
-    /** userArg is the argument passed to userFunc. */
-    T userArg;
+    /** userArgs are the arguments passed to userFunc. */
+    T userArgs;
 
     /**
      * waitingPipe puts the cloned process on pause and makes
      * it wait for user's permission to resume.
      */
     Pipe waitingPipe;
+}
+
+/* Copied from https://github.com/dlang/phobos/blob/f263028f11ccea5969c44b0ef66db60ddbed8d71/std/concurrency.d#L473 */
+private template isSpawnable(F, T...)
+{
+    template isParamsImplicitlyConvertible(F1, F2, int i = 0)
+    {
+        alias param1 = Parameters!F1;
+        alias param2 = Parameters!F2;
+        static if (param1.length != param2.length)
+        {
+            enum isParamsImplicitlyConvertible = false;
+        }
+        else static if (param1.length == i)
+        {
+            enum isParamsImplicitlyConvertible = true;
+        }
+        else static if (is(param2[i] : param1[i]))
+        {
+            enum isParamsImplicitlyConvertible = isParamsImplicitlyConvertible!(F1, F2, i + 1);
+        }
+        else
+        {
+            enum isParamsImplicitlyConvertible = false;
+        }
+    }
+
+    enum isSpawnable = isCallable!F && is(ReturnType!F : int)
+        && isParamsImplicitlyConvertible!(F, int function(T))
+        && (isFunctionPointer!F || !hasUnsharedAliasing!F);
 }
