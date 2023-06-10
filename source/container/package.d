@@ -1,9 +1,8 @@
 module container;
 
 import core.stdc.stdio;
-import core.stdc.stdlib;
-import core.sys.posix.fcntl;
 import core.sys.linux.sched;
+import core.sys.posix.fcntl;
 import core.sys.posix.sys.wait;
 import std.conv;
 import std.exception;
@@ -16,9 +15,8 @@ import std.typecons : Nullable, nullable;
 
 import container.context;
 import container.filesystem;
-import container.mapping;
 import container.process;
-import moss.core.mounts;
+import container.usermapping;
 
 struct Container
 {
@@ -43,7 +41,12 @@ struct Container
         this.withRoot = root;
     }
 
-    int run()
+    int run(T)(int function(T arg)[] funcs)
+    {
+
+    }
+
+    int run(Process[] processes)
     {
         auto flags = CLONE_NEWPID | CLONE_NEWNS | CLONE_NEWIPC | CLONE_NEWUSER;
         if (!this.withNet)
@@ -107,87 +110,4 @@ private:
     bool withNet;
     bool withRoot;
     Process[] processes;
-}
-
-private struct ClonedProcess(T)
-{
-    int function(T arg) func;
-
-    int start(T arg, int flags)
-    {
-        if (pid != 0)
-        {
-            return -1;
-        }
-
-        immutable auto stackSize = 1024 * 1024;
-        this.stack = malloc(stackSize);
-        // TODO: free stack if clone() failed.
-        auto StackTop = this.stack + stackSize;
-
-        this.waitingPipe = pipe();
-        auto args = CloneArguments!(T)(this.func, arg, this.waitingPipe);
-        this.pid = clone(&ClonedProcess._run, StackTop, flags | SIGCHLD, &args);
-        return this.pid;
-    }
-
-    void goAhead()
-    {
-        if (pid == 0)
-        {
-            return;
-        }
-        this.waitingPipe.writeEnd.close();
-    }
-
-    int join()
-    {
-        if (pid == 0)
-        {
-            return 0;
-        }
-
-        int status;
-        const auto ret = waitpid(this.pid, &status, 0);
-        enforce(ret >= 0);
-
-        this.pid = 0;
-        free(this.stack);
-
-        return WEXITSTATUS(status);
-    }
-
-private:
-    extern (C) static int _run(void* arg)
-    {
-        auto args = cast(CloneArguments!(T)*) arg;
-
-        args.waitingPipe.writeEnd.close();
-        bool[1] stop;
-        args.waitingPipe.readEnd.rawRead(stop);
-        if (stop[0])
-        {
-            return 0;
-        }
-        return args.userFunc(args.userArg);
-    }
-
-    Pipe waitingPipe;
-    void* stack;
-    int pid;
-}
-
-private struct CloneArguments(T)
-{
-    /** userFunc is the function to be run isolated. */
-    int function(T arg) userFunc;
-
-    /** userArg is the argument passed to userFunc. */
-    T userArg;
-
-    /**
-     * waitingPipe puts the cloned process on pause and makes
-     * it wait for user's permission to resume.
-     */
-    Pipe waitingPipe;
 }

@@ -21,9 +21,9 @@ container_sources = [
 	'fakeroot.d',
 	'filesystem.d',
     'main.d',
-	'mapping.d',
 	'package.d',
 	'process.d',
+	'usermapping.d',
 ]
 
 container = executable(

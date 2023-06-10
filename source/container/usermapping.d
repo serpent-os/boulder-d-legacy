@@ -1,4 +1,4 @@
-module container.mapping;
+module container.usermapping;
 
 import core.stdc.stdio : FILE;
 import core.stdc.stdlib;
