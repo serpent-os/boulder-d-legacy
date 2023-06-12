@@ -138,9 +138,10 @@ private:
     Nullable!int gid;
 }
 
-public ClonedProcess!F clonedProcess(F)(F func, int flags) if (isCloneable!F)
+/** isCloneable is a constraint that ensures a callable object returns an integer. */
+public template isCloneable(F)
 {
-    return ClonedProcess!F(func, flags);
+    enum isCloneable = isCallable!F && is(ReturnType!F : int);
 }
 
 public struct ClonedProcess(F) if (isCloneable!F)
@@ -161,7 +162,7 @@ public struct ClonedProcess(F) if (isCloneable!F)
         auto StackTop = this.stack + stackSize;
 
         this.waitingPipe = pipe();
-        auto args = CloneArguments!(F, T)(this.func, this.args, this.waitingPipe);
+        auto args = CloneArguments!F(this.func, this.waitingPipe);
         this.pid = clone(&ClonedProcess._run, StackTop, this.cloneFlags | SIGCHLD, &args);
         return this.pid;
     }
@@ -212,6 +213,11 @@ private:
     int pid;
 }
 
+public ClonedProcess!F clonedProcess(F)(F func, int flags) if (isCloneable!F)
+{
+    return ClonedProcess!F(func, flags);
+}
+
 private struct CloneArguments(F) if (isCloneable!F)
 {
     /** func is the the callable object to be run isolated. */
@@ -222,10 +228,4 @@ private struct CloneArguments(F) if (isCloneable!F)
      * it wait for user's permission to resume.
      */
     Pipe waitingPipe;
-}
-
-/** isCloneable is a constraint that ensures a callable object returns an integer. */
-private template isCloneable(F)
-{
-    enum isCloneable = isCallable!F && is(ReturnType!F : int);
 }

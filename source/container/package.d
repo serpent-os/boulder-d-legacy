@@ -26,11 +26,6 @@ struct Container
         this.fs = nullable(fs);
     }
 
-    void setProcesses(Process[] processes)
-    {
-        this.processes = processes;
-    }
-
     void withNetworking(bool withNet)
     {
         this.withNet = withNet;
@@ -41,19 +36,47 @@ struct Container
         this.withRoot = root;
     }
 
-    int run(T)(int function(T arg)[] funcs)
+    int run(F)(const F[] funcs) if (isCloneable!F)
     {
-
+        this.runnable = () {
+            foreach (f; funcs)
+            {
+                const auto ret = f();
+                if (ret != 0)
+                {
+                    return ret;
+                }
+            }
+            return 0;
+        };
+        return this._run();
     }
 
-    int run(Process[] processes)
+    int run(const Process[] processes)
+    {
+        this.runnable = () {
+            foreach (ref p; processes)
+            {
+                const auto ret = p.run();
+                if (ret < 0)
+                {
+                    return ret;
+                }
+            }
+            return 0;
+        };
+        return this._run();
+    }
+
+private:
+    int _run() const
     {
         auto flags = CLONE_NEWPID | CLONE_NEWNS | CLONE_NEWIPC | CLONE_NEWUSER;
         if (!this.withNet)
         {
             flags |= CLONE_NEWNET | CLONE_NEWUTS;
         }
-        auto proc = clonedProcess(&Container.enter, this, flags);
+        auto proc = ClonedProcess!(int delegate())(&this.enter, flags);
         auto pid = proc.start();
         assert(pid > 0, "clone() failed");
         mapRootUser(pid);
@@ -61,23 +84,22 @@ struct Container
         return proc.join();
     }
 
-private:
-    static int enter(Container thiz)
+    int enter() const
     {
-        if (!thiz.fs.isNull())
+        if (!this.fs.isNull())
         {
-            auto fs = thiz.fs.get();
-            fs.rootfsDir = mountOverlay(fs.rootfsDir, thiz.overlayRoot);
+            auto fs = this.fs.get();
+            fs.rootfsDir = mountOverlay(fs.rootfsDir, this.overlayRoot);
             fs.mountBase();
             fs.mountProc();
             fs.mountExtra();
             fs.chroot();
         }
-        if (thiz.withRoot)
+        if (this.withRoot)
         {
-            return thiz.runProcesses();
+            return this.runnable();
         }
-        auto proc = clonedProcess(&Container.runProcessesUnpriv, thiz, CLONE_NEWNS | CLONE_NEWPID | CLONE_NEWUSER);
+        auto proc = clonedProcess(this.runnable, CLONE_NEWNS | CLONE_NEWPID | CLONE_NEWUSER);
         auto pid = proc.start();
         assert(pid > 0, "clone() failed");
         mapHostID(pid, 1000, 1000); // TODO: do not use fixed UID and GID.
@@ -85,29 +107,11 @@ private:
         return proc.join();
     }
 
-    static int runProcessesUnpriv(Container thiz)
-    {
-        return thiz.runProcesses();
-    }
-
-    int runProcesses()
-    {
-        foreach (ref p; this.processes)
-        {
-            const auto ret = p.run();
-            if (ret < 0)
-            {
-                return ret;
-                // TODO log error. Or maybe the called should do that?
-            }
-        }
-        return 0;
-    }
-
     string overlayRoot;
     Nullable!Filesystem fs;
 
     bool withNet;
     bool withRoot;
-    Process[] processes;
+
+    int delegate() runnable;
 }
