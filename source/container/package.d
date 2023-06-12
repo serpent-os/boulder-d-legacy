@@ -84,11 +84,11 @@ private:
         return proc.join();
     }
 
-    int enter() const
+    int enter() const @trusted
     {
         if (!this.fs.isNull())
         {
-            auto fs = this.fs.get();
+            auto fs = cast() this.fs.get();
             fs.rootfsDir = mountOverlay(fs.rootfsDir, this.overlayRoot);
             fs.mountBase();
             fs.mountProc();
@@ -99,7 +99,7 @@ private:
         {
             return this.runnable();
         }
-        auto proc = clonedProcess(this.runnable, CLONE_NEWNS | CLONE_NEWPID | CLONE_NEWUSER);
+        auto proc = ClonedProcess!(int delegate())(this.runnable, CLONE_NEWNS | CLONE_NEWPID | CLONE_NEWUSER);
         auto pid = proc.start();
         assert(pid > 0, "clone() failed");
         mapHostID(pid, 1000, 1000); // TODO: do not use fixed UID and GID.

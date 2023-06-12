@@ -86,13 +86,13 @@ struct Filesystem
         return Filesystem(rootfsDir, baseFS, baseFiles, baseSymlinks);
     }
 
-    void mountProc()
+    void mountProc() const
     {
         auto proc = FSMount("proc", "proc");
         container.filesystem.mountFS(proc, this.rootfsDir);
     }
 
-    void mountBase()
+    void mountBase() const
     {
         auto rootfs = this.rootfsMount();
         container.filesystem.mountFileDir(rootfs, "");
@@ -110,7 +110,7 @@ struct Filesystem
         }
     }
 
-    void mountExtra()
+    void mountExtra() const
     {
         foreach (ref m; this.extraMounts)
         {
@@ -118,7 +118,7 @@ struct Filesystem
         }
     }
 
-    void chroot()
+    void chroot() const
     {
         chdir(this.rootfsDir);
         pivotRoot(".", ".");
@@ -145,17 +145,17 @@ private:
     }
 }
 
-private void mountFS(ref FSMount m, string baseDir)
+private void mountFS(const ref FSMount m, string baseDir) @trusted
 {
-    auto m2 = m;
+    auto m2 = cast() m;
     m2.target = baseDir ~ "/" ~ m.target;
     m2.target.mkdirRecurse();
     m2.mount();
 }
 
-private void mountFileDir(ref FileMount m, string baseDir)
+private void mountFileDir(const ref FileMount m, string baseDir) @trusted
 {
-    auto m2 = m;
+    auto m2 = cast() m;
     m2.target = baseDir ~ "/" ~ m.target;
     if (m2.source.isDir())
     {
@@ -170,7 +170,7 @@ private void mountFileDir(ref FileMount m, string baseDir)
 
 private extern (C) long syscall(long number, ...) @system @nogc nothrow;
 
-private void pivotRoot(const string newRoot, const string putOld) @system
+private void pivotRoot(string newRoot, string putOld) @system
 {
     immutable int SYS_PIVOT_ROOT = 155;
     const auto ret = syscall(SYS_PIVOT_ROOT, newRoot.toStringz(), putOld.toStringz());
