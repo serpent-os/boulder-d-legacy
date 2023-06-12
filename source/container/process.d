@@ -138,16 +138,14 @@ private:
     Nullable!int gid;
 }
 
-public auto clonedProcess(F, T...)(F func, T args, int flags)
-        if (isSpawnable!(F, T))
+public ClonedProcess!F clonedProcess(F)(F func, int flags) if (isCloneable!F)
 {
-    return ClonedProcess!(F, T)(func, args, flags);
+    return ClonedProcess!F(func, flags);
 }
 
-public struct ClonedProcess(F, T...) if (isSpawnable!(F, T))
+public struct ClonedProcess(F) if (isCloneable!F)
 {
     F func;
-    T args;
     int cloneFlags;
 
     int start()
@@ -197,7 +195,7 @@ public struct ClonedProcess(F, T...) if (isSpawnable!(F, T))
 private:
     extern (C) static int _run(void* arg)
     {
-        auto args = cast(CloneArguments!(F, T)*) arg;
+        auto args = cast(CloneArguments!(F)*) arg;
 
         args.waitingPipe.writeEnd.close();
         bool[1] stop;
@@ -206,7 +204,7 @@ private:
         {
             return 0;
         }
-        return args.userFunc(args.userArgs);
+        return args.func();
     }
 
     Pipe waitingPipe;
@@ -214,13 +212,10 @@ private:
     int pid;
 }
 
-private struct CloneArguments(F, T...) if (isSpawnable!(F, T))
+private struct CloneArguments(F) if (isCloneable!F)
 {
-    /** userFunc is the function to be run isolated. */
-    F userFunc;
-
-    /** userArgs are the arguments passed to userFunc. */
-    T userArgs;
+    /** func is the the callable object to be run isolated. */
+    F func;
 
     /**
      * waitingPipe puts the cloned process on pause and makes
@@ -229,32 +224,8 @@ private struct CloneArguments(F, T...) if (isSpawnable!(F, T))
     Pipe waitingPipe;
 }
 
-/* Copied from https://github.com/dlang/phobos/blob/f263028f11ccea5969c44b0ef66db60ddbed8d71/std/concurrency.d#L473 */
-private template isSpawnable(F, T...)
+/** isCloneable is a constraint that ensures a callable object returns an integer. */
+private template isCloneable(F)
 {
-    template isParamsImplicitlyConvertible(F1, F2, int i = 0)
-    {
-        alias param1 = Parameters!F1;
-        alias param2 = Parameters!F2;
-        static if (param1.length != param2.length)
-        {
-            enum isParamsImplicitlyConvertible = false;
-        }
-        else static if (param1.length == i)
-        {
-            enum isParamsImplicitlyConvertible = true;
-        }
-        else static if (is(param2[i] : param1[i]))
-        {
-            enum isParamsImplicitlyConvertible = isParamsImplicitlyConvertible!(F1, F2, i + 1);
-        }
-        else
-        {
-            enum isParamsImplicitlyConvertible = false;
-        }
-    }
-
-    enum isSpawnable = isCallable!F && is(ReturnType!F : int)
-        && isParamsImplicitlyConvertible!(F, int function(T))
-        && (isFunctionPointer!F || !hasUnsharedAliasing!F);
+    enum isCloneable = isCallable!F && is(ReturnType!F : int);
 }
