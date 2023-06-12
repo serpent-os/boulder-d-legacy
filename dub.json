@@ -32,6 +32,9 @@
 					"version": "c90d16a"
 				}
 			},
+			"libs": [
+				"subid"
+			],
 			"sourcePaths": [
 				"source/container"
 			],
