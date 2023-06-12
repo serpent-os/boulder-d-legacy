@@ -94,6 +94,9 @@ private:
             fs.mountProc();
             fs.mountExtra();
             fs.chroot();
+        } else {
+            const auto fs = Filesystem("/");
+            fs.mountProc();
         }
         if (this.withRoot)
         {
