@@ -6,7 +6,11 @@
 
 module container.cli.run;
 
+import container;
+import container.filesystem;
+import container.process;
 import dopt;
+import moss.core.mounts;
 
 @Command() @Help("Run a command in an existing container")
 package struct Run
@@ -32,11 +36,37 @@ package struct Run
     root = false;
 
     /** Immediately start at this directory in the container (cwd) */
-    @Option() @Long("workdir") @Help("Start at this working directory in the container (Default: /)")
-    string cwd = "/";
+    @Option() @Long("initial-dir") @Help("Start at this working directory in the container (Default: /)")
+    string initialDir = "/";
 
-    public static void run(Run thiz, string path)
+    @Positional() @Help("Parent directory of the OverlayFS working tree")
+    string workRoot;
+
+    @Positional() @Help("Command to run, with arguments")
+    string[] args;
+
+    public void run(string path)
     {
-
+        auto fs = Filesystem.defaultFS(path, this.networking);
+        foreach (source, target; bindMountsRO)
+        {
+            fs.extraMounts ~= FileMount.bindRO(source, target);
+        }
+        foreach (source, target; bindMountsRW)
+        {
+            fs.extraMounts ~= FileMount.bindRW(source, target);
+        }
+        if (this.args.length < 1)
+        {
+            this.args = ["/bin/bash", "--login"];
+        }
+        auto cont = Container(this.workRoot, fs);
+        cont.withNetworking(this.networking);
+        cont.withRootPrivileges(this.root);
+        auto proc = Process(
+            this.args[0],
+            this.args.length > 1 ? this.args[1 .. $] : null,
+        );
+        cont.run([proc]);
     }
 }

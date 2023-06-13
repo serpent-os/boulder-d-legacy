@@ -68,14 +68,20 @@ public void run(string[] args) {
     {
         cli = parse!ContainerCLI(args);
     }
-    catch (HelpException e) {}
-    catch (VersionException e) {}
+    catch (HelpException e)
+    {
+        return;
+    }
+    catch (VersionException e)
+    {
+        return;
+    }
 
     cli.checkPath();
     cli.setLogger();
     cli.subcommand.match!(
-        (Create c) => Create.run(c, cli.path),
-        (Remove c) => Remove.run(c, cli.path),
-        (Run c) => Run.run(c, cli.path),
+        (Create c) => c.run(cli.path),
+        (Remove c) => c.run(cli.path),
+        (Run c) => c.run(cli.path),
     );
 }

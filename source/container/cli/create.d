@@ -11,7 +11,7 @@ import dopt;
 @Command() @Help("Create a new container")
 package struct Create
 {
-    public static void run(Create thiz, string path)
+    public void run(string path)
     {
 
     }

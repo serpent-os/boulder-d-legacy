@@ -11,7 +11,7 @@ import dopt;
 @Command() @Help("Remove a container")
 package struct Remove
 {
-    static void run(Remove thiz, string path)
+    static run(string path)
     {
 
     }
