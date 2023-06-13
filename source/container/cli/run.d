@@ -67,6 +67,7 @@ package struct Run
             this.args[0],
             this.args.length > 1 ? this.args[1 .. $] : null,
         );
+        proc.setCWD(this.initialDir);
         cont.run([proc]);
     }
 }

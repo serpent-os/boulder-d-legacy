@@ -55,6 +55,11 @@ public struct Process
         this.gid = gid.nullable;
     }
 
+    void setCWD(string cwd)
+    {
+        this.cwd = cwd;
+    }
+
 package:
 
     /**
@@ -124,7 +129,7 @@ private:
         try
         {
             auto pid = spawnProcess(finalArgs, stdin, stdout, stderr,
-                context.environment, config, context.workDir);
+                context.environment, config, this.cwd);
             return wait(pid);
         }
         catch (ProcessException px)
@@ -136,6 +141,7 @@ private:
 
     Nullable!int uid;
     Nullable!int gid;
+    string cwd;
 }
 
 /** isCloneable is a constraint that ensures a callable object returns an integer. */
