@@ -6,6 +6,12 @@
 
 module container.cli.run;
 
+import std.algorithm : splitter;
+import std.conv : octal;
+import std.path : buildPath, pathSeparator;
+import std.file : FileException, getAttributes;
+import std.process : environment;
+
 import container;
 import container.filesystem;
 import container.process;
@@ -15,6 +21,7 @@ import moss.core.mounts;
 @Command() @Help("Run a command in an existing container")
 package struct Run
 {
+public:
     /** Read-only bind mounts */
     @Option() @Long("bind-ro") @Help("Bind a read-only host location into the container")
     string[string] bindMountsRO;
@@ -35,6 +42,9 @@ package struct Run
     @Option() @Long("root") @Help("Set whether the user inside the container is root")
     root = false;
 
+    @Option() @Short("f") @Long("fakeroot") @Help("Enable fakeroot integration")
+    bool fakeroot = false;
+
     /** Immediately start at this directory in the container (cwd) */
     @Option() @Long("initial-dir") @Help("Start at this working directory in the container (Default: /)")
     string initialDir = "/";
@@ -45,7 +55,7 @@ package struct Run
     @Positional() @Help("Command to run, with arguments")
     string[] args;
 
-    public void run(string path)
+    void run(string path)
     {
         auto fs = Filesystem.defaultFS(path, this.networking);
         foreach (source, target; bindMountsRO)
@@ -63,12 +73,53 @@ package struct Run
         auto cont = Container(this.workRoot, fs);
         cont.withNetworking(this.networking);
         cont.withRootPrivileges(this.root);
-        auto proc = Process(
-            this.args[0],
-            this.args.length > 1 ? this.args[1 .. $] : null,
-        );
+        auto proc = this.process();
         proc.setCWD(this.initialDir);
         proc.setEnvironment(this.environment);
         cont.run([proc]);
+    }
+
+private:
+    Process process()
+    {
+        Process proc;
+        if (this.fakeroot)
+        {
+            auto path = this.findFakeroot();
+            if (path == null)
+            {
+                throw new Exception("fakeroot requested but no fakeroot executable was found");
+            }
+            proc = Process(path, this.args);
+        }
+        else
+        {
+            proc = Process(this.args[0], this.args.length > 1 ? this.args[1 .. $] : null);
+        }
+        return proc;
+    }
+
+    string findFakeroot()
+    {
+        auto pathDirs = environment.get("PATH", "/usr/bin").splitter(pathSeparator);
+        foreach (dir; pathDirs)
+        {
+            foreach (cmd; ["fakeroot-sysv", "fakeroot"])
+            {
+                auto cmdPath = dir.buildPath(cmd);
+                try
+                {
+                    if ((cmdPath.getAttributes() & octal!111) != 0)
+                    {
+                        return cmdPath; /* cmdPath is executable. */
+                    }
+                }
+                catch (FileException e)
+                {
+                    continue;
+                }
+            }
+        }
+        return null;
     }
 }
