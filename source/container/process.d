@@ -45,6 +45,11 @@ public struct Process
      */
     string[] args = null;
 
+    void setCWD(string cwd)
+    {
+        this.cwd = cwd;
+    }
+
     void setUID(int uid)
     {
         this.uid = uid.nullable;
@@ -55,9 +60,9 @@ public struct Process
         this.gid = gid.nullable;
     }
 
-    void setCWD(string cwd)
+    void setEnvironment(string[string] env)
     {
-        this.cwd = cwd;
+        this.env = env;
     }
 
 package:
@@ -129,7 +134,7 @@ private:
         try
         {
             auto pid = spawnProcess(finalArgs, stdin, stdout, stderr,
-                context.environment, config, this.cwd);
+                this.env, config, this.cwd);
             return wait(pid);
         }
         catch (ProcessException px)
@@ -142,6 +147,7 @@ private:
     Nullable!int uid;
     Nullable!int gid;
     string cwd;
+    string[string] env;
 }
 
 /** isCloneable is a constraint that ensures a callable object returns an integer. */

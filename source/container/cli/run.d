@@ -29,7 +29,7 @@ package struct Run
 
     /** Environmental variables for sub processes */
     @Option() @Short("E") @Long("env") @Help("Set an environmental variable")
-    string[string] environment;
+    string[string] environment = null;
 
     /** UID to use */
     @Option() @Long("root") @Help("Set whether the user inside the container is root")
@@ -68,6 +68,7 @@ package struct Run
             this.args.length > 1 ? this.args[1 .. $] : null,
         );
         proc.setCWD(this.initialDir);
+        proc.setEnvironment(this.environment);
         cont.run([proc]);
     }
 }
