@@ -17,8 +17,6 @@ container_sources = [
     'cli/package.d',
     'cli/remove.d',
     'cli/run.d',
-	'context.d',
-	'fakeroot.d',
 	'filesystem.d',
     'main.d',
 	'package.d',

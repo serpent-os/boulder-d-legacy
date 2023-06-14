@@ -13,7 +13,6 @@ import std.process : Pipe, environment, pipe, spawnProcess, wait;
 import std.string : toStringz, fromStringz;
 import std.typecons : Nullable, nullable;
 
-import container.context;
 import container.filesystem;
 import container.process;
 import container.usermapping;

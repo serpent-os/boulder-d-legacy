@@ -27,8 +27,6 @@ import std.string : format, fromStringz, toStringz;
 import std.traits;
 import std.typecons;
 
-import container.context;
-
 /**
  * Simplistic encapsulation of a process.
  */
@@ -124,12 +122,6 @@ private:
 
         auto config = Config.newEnv;
         const(string)[] finalArgs = programName ~ args;
-
-        /* Fakeroot available */
-        if (context.fakeroot && context.fakerootBinary != FakerootBinary.None)
-        {
-            finalArgs = cast(string) context.fakerootBinary ~ finalArgs;
-        }
 
         try
         {
