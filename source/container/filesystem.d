@@ -6,14 +6,15 @@ import std.experimental.logger;
 import std.format;
 import std.file : SpanMode, chdir, dirEntries, exists, isDir, mkdirRecurse, remove, rmdir, symlink, write;
 import std.string : toStringz;
+import std.path : buildPath;
 
 import moss.core.mounts;
 
 string mountOverlay(string lowerDir, string overlayRoot)
 {
-    const string upperDir = overlayRoot ~ "/" ~ "upper";
-    const string workDir = overlayRoot ~ "/" ~ "work";
-    const string mergedDir = overlayRoot ~ "/" ~ "merged";
+    const string upperDir = overlayRoot.buildPath("upper");
+    const string workDir = overlayRoot.buildPath("work");
+    const string mergedDir = overlayRoot.buildPath("merged");
 
     foreach (ref path; [upperDir, workDir, mergedDir])
     {
@@ -106,7 +107,7 @@ struct Filesystem
         }
         foreach (source, target; this.baseSymlinks)
         {
-            symlink(source, this.rootfsDir ~ "/" ~ target);
+            symlink(source, this.rootfsDir.buildPath(target));
         }
     }
 
@@ -148,7 +149,7 @@ private:
 private void mountFS(const ref FSMount m, string baseDir) @trusted
 {
     auto m2 = cast() m;
-    m2.target = baseDir ~ "/" ~ m.target;
+    m2.target = baseDir.buildPath(m.target);
     m2.target.mkdirRecurse();
     m2.mount();
 }
@@ -156,7 +157,7 @@ private void mountFS(const ref FSMount m, string baseDir) @trusted
 private void mountFileDir(const ref FileMount m, string baseDir) @trusted
 {
     auto m2 = cast() m;
-    m2.target = baseDir ~ "/" ~ m.target;
+    m2.target = baseDir.buildPath(m.target);
     if (m2.source.isDir())
     {
         m2.target.mkdirRecurse();
