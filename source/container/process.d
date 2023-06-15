@@ -15,12 +15,18 @@
  */
 module container.process;
 
+import core.stdc.errno : errno;
 import core.stdc.stdlib;
+import core.stdc.string : strerror;
 import core.sys.linux.sched;
 import core.sys.posix.sys.wait;
 import core.sys.posix.unistd : _exit, fork, pid_t, setgid, setuid, uid_t;
+import std.algorithm : filter, joiner, map, splitter;
+import std.conv : octal, to;
 import std.exception;
 import std.experimental.logger;
+import std.file : getAttributes;
+import std.path : chainPath, pathSeparator;
 import std.process;
 import std.stdio : stderr, stdin, stdout;
 import std.string : format, fromStringz, toStringz;
@@ -36,7 +42,7 @@ public struct Process
     /**
      * Main executable to launch
      */
-    string programName = null;
+    string command = null;
 
     /**
      * Additional arguments to the program
@@ -63,7 +69,10 @@ public struct Process
         this.env = env;
     }
 
-package:
+    void withFakeroot(bool fr)
+    {
+        this.fakeroot = fr;
+    }
 
     /**
      * Fork and run the process
@@ -91,9 +100,6 @@ package:
                 waiter = waitpid(child, &status, WUNTRACED | WCONTINUED);
                 if (waiter < 0)
                 {
-                    import core.stdc.errno : errno;
-                    import core.stdc.string : strerror;
-
                     error(format!"waitpid: Error: %s"(strerror(errno).fromStringz));
                 }
             }
@@ -120,26 +126,26 @@ private:
             assert(ret == 0);
         }
 
-        auto config = Config.newEnv;
-        const(string)[] finalArgs = programName ~ args;
+        string[] args;
+        if (this.fakeroot)
+        {
+            auto path = findFakeroot();
+            if (path == null)
+            {
+                throw new Exception("fakeroot requested but no fakeroot executable was found");
+            }
+            args ~= path;
+        }
+        args ~= this.command ~ this.args;
 
-        try
-        {
-            auto pid = spawnProcess(finalArgs, stdin, stdout, stderr,
-                this.env, config, this.cwd);
-            return wait(pid);
-        }
-        catch (ProcessException px)
-        {
-            error(format!"Failed to run container: %s"(px.message));
-            return 1;
-        }
+        return spawnProcess(args, this.env, Config.newEnv, this.cwd).wait();
     }
 
     Nullable!int uid;
     Nullable!int gid;
     string cwd;
     string[string] env;
+    bool fakeroot;
 }
 
 /** isCloneable is a constraint that ensures a callable object returns an integer. */
@@ -155,45 +161,53 @@ public struct ClonedProcess(F) if (isCloneable!F)
 
     int start()
     {
-        if (pid != 0)
+        if (this.pid > 0)
         {
-            return -1;
+           throw new Error("cannot clone an already-cloned process");
         }
 
         immutable auto stackSize = 1024 * 1024;
         this.stack = malloc(stackSize);
-        // TODO: free stack if clone() failed.
+        scope(failure)
+        {
+            free(this.stack);
+        }
         auto StackTop = this.stack + stackSize;
 
         this.waitingPipe = pipe();
         auto args = CloneArguments!F(this.func, this.waitingPipe);
         this.pid = clone(&ClonedProcess._run, StackTop, this.cloneFlags | SIGCHLD, &args);
+        if (this.pid < 0)
+        {
+            throw new ProcessException(format!"failed to clone process: %s"(strerror(errno).fromStringz()));
+        }
         return this.pid;
     }
 
     void goAhead()
     {
-        if (pid == 0)
+        if (pid <= 0)
         {
-            return;
+            throw new Error("cannot make a non-cloned process go ahead");
         }
         this.waitingPipe.writeEnd.close();
     }
 
+    /** join waits for the process to exit and returns the exit status. */
     int join()
     {
-        if (pid == 0)
+        if (pid <= 0)
         {
-            return 0;
+            throw new Error("cannot join a non-cloned process");
         }
 
         int status;
-        const auto ret = waitpid(this.pid, &status, 0);
-        enforce(ret >= 0);
-
+        if (waitpid(this.pid, &status, 0) < 0)
+        {
+            throw new ProcessException(format!"failed to join process: %s"(strerror(errno).fromStringz()));
+        }
         this.pid = 0;
         free(this.stack);
-
         return WEXITSTATUS(status);
     }
 
@@ -232,4 +246,14 @@ private struct CloneArguments(F) if (isCloneable!F)
      * it wait for user's permission to resume.
      */
     Pipe waitingPipe;
+}
+
+private string findFakeroot()
+{
+    auto pathFinder = environment.get("PATH", "/usr/bin")
+        .splitter(pathSeparator)
+        .map!(p => [p.chainPath("fakeroot-sysv"), p.chainPath("fakeroot")])
+        .joiner
+        .filter!(p => ((p.getAttributes & octal!111) != 0).ifThrown(false));
+    return !pathFinder.empty() ? pathFinder.front.to!string : null;
 }

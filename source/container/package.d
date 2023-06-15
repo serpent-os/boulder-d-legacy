@@ -56,11 +56,7 @@ struct Container
         this.runnable = () {
             foreach (ref p; processes)
             {
-                const auto ret = p.run();
-                if (ret < 0)
-                {
-                    return ret;
-                }
+                p.run();
             }
             return 0;
         };

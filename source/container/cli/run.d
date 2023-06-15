@@ -6,13 +6,6 @@
 
 module container.cli.run;
 
-import std.algorithm : filter, joiner, map, splitter;
-import std.conv : octal, to;
-import std.exception : ifThrown;
-import std.path : chainPath, pathSeparator;
-import std.file : getAttributes;
-import std.process : environment;
-
 import container;
 import container.filesystem;
 import container.process;
@@ -74,39 +67,10 @@ public:
         auto cont = Container(this.workRoot, fs);
         cont.withNetworking(this.networking);
         cont.withRootPrivileges(this.root);
-        auto proc = this.process();
+        auto proc = Process(this.args[0], this.args.length > 1 ? this.args[1 .. $] : null);
         proc.setCWD(this.initialDir);
         proc.setEnvironment(this.environment);
+        proc.withFakeroot(this.fakeroot);
         cont.run([proc]);
-    }
-
-private:
-    Process process()
-    {
-        Process proc;
-        if (this.fakeroot)
-        {
-            auto path = this.findFakeroot();
-            if (path == null)
-            {
-                throw new Exception("fakeroot requested but no fakeroot executable was found");
-            }
-            proc = Process(path, this.args);
-        }
-        else
-        {
-            proc = Process(this.args[0], this.args.length > 1 ? this.args[1 .. $] : null);
-        }
-        return proc;
-    }
-
-    string findFakeroot()
-    {
-        auto pathFinder = environment.get("PATH", "/usr/bin")
-            .splitter(pathSeparator)
-            .map!(p => [p.chainPath("fakeroot-sysv"), p.chainPath("fakeroot")])
-            .joiner
-            .filter!(p => ((p.getAttributes & octal!111) != 0).ifThrown(false));
-        return !pathFinder.empty() ? pathFinder.front.to!string : null;
     }
 }
