@@ -6,10 +6,11 @@
 
 module container.cli.run;
 
-import std.algorithm : splitter;
-import std.conv : octal;
-import std.path : buildPath, pathSeparator;
-import std.file : FileException, getAttributes;
+import std.algorithm : filter, joiner, map, splitter;
+import std.conv : octal, to;
+import std.exception : ifThrown;
+import std.path : chainPath, pathSeparator;
+import std.file : getAttributes;
 import std.process : environment;
 
 import container;
@@ -101,25 +102,11 @@ private:
 
     string findFakeroot()
     {
-        auto pathDirs = environment.get("PATH", "/usr/bin").splitter(pathSeparator);
-        foreach (dir; pathDirs)
-        {
-            foreach (cmd; ["fakeroot-sysv", "fakeroot"])
-            {
-                auto cmdPath = dir.buildPath(cmd);
-                try
-                {
-                    if ((cmdPath.getAttributes() & octal!111) != 0)
-                    {
-                        return cmdPath; /* cmdPath is executable. */
-                    }
-                }
-                catch (FileException e)
-                {
-                    continue;
-                }
-            }
-        }
-        return null;
+        auto pathFinder = environment.get("PATH", "/usr/bin")
+            .splitter(pathSeparator)
+            .map!(p => [p.chainPath("fakeroot-sysv"), p.chainPath("fakeroot")])
+            .joiner
+            .filter!(p => ((p.getAttributes & octal!111) != 0).ifThrown(false));
+        return !pathFinder.empty() ? pathFinder.front.to!string : null;
     }
 }
