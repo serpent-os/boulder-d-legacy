@@ -4,7 +4,7 @@ import core.stdc.stdio : FILE;
 import core.sys.posix.fcntl;
 import core.sys.posix.unistd : close, getegid, geteuid, write;
 import std.conv : to;
-import std.exception : ErrnoException;
+import std.exception : ErrnoException, enforce;
 import std.format : format;
 import std.process : environment, spawnProcess, wait;
 import std.string : toStringz;
@@ -111,10 +111,8 @@ extern (C)
 Tuple!(IDMap, IDMap) subID()
 {
     auto user = environment.get("USER");
-    if (user == "")
-    {
-        throw new UserMappingException("USER environment variable is not defined");
-    }
+    enforce!UserMappingException(user != "", "USER environment variable is not defined");
+
     /* There may be multiple rages. We just need one, so consider the first. */
     subid_range* uid;
     subid_range* gid;
@@ -125,7 +123,7 @@ Tuple!(IDMap, IDMap) subID()
     {
         throw new ErrnoException("failed to get UID range");
     }
-    else if (ret == 0)
+    if (ret == 0)
     {
         throw new UserMappingException("no UID range found");
     }
@@ -134,7 +132,7 @@ Tuple!(IDMap, IDMap) subID()
     {
         throw new ErrnoException("failed to get GID range");
     }
-    else if (ret == 0)
+    if (ret == 0)
     {
         throw new UserMappingException("no GID range found");
     }
@@ -165,18 +163,12 @@ void mapWithCapability(int pid, IDMap[] uids, IDMap[] gids)
     foreach (ref entry; mapping)
     {
         auto fd = open(entry[0].toStringz(), O_WRONLY);
-        if (fd < 0)
-        {
-            throw new ErrnoException(format!"Failed to open %s"(entry[0]));
-        }
+        enforce!ErrnoException(fd >= 0, format!"Failed to open %s"(entry[0]));
         scope (exit)
         {
             close(fd);
         }
         const auto ret = write(fd, entry[1].ptr, entry[1].length);
-        if (ret < 0)
-        {
-            throw new ErrnoException(format!"Failed to write into %s"(entry[0]));
-        }
+        enforce!ErrnoException(ret >= 0, format!"Failed to write into %s"(entry[0]));
     }
 }
