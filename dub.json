@@ -29,7 +29,7 @@
 				},
 				"dopt": {
 					"repository": "git+https://github.com/tarkah/dopt.git",
-					"version": "c90d16a"
+					"version": "387ce049bae7cb5adbac5ec075eff6b349d02675"
 				}
 			},
 			"libs": [
