@@ -1,10 +1,10 @@
 module container.usermapping;
 
 import core.stdc.stdio : FILE;
-import core.stdc.stdlib;
 import core.sys.posix.fcntl;
 import core.sys.posix.unistd : close, getegid, geteuid, write;
 import std.conv : to;
+import std.exception : ErrnoException;
 import std.format : format;
 import std.process : environment, spawnProcess, wait;
 import std.string : toStringz;
@@ -36,6 +36,13 @@ void mapHostID(int pid, int hostUID, int hostGID)
     auto gids = [IDMap(rootUGID, unprivilegedUGID, hostGID), IDMap(hostGID, rootUGID, 1)];
 
     mapWithCapability(pid, uids, gids);
+}
+
+class UserMappingException : Exception
+{
+    this(string msg, string file = __FILE__, size_t line = __LINE__) {
+        super(msg, file, line);
+    }
 }
 
 private:
@@ -104,17 +111,33 @@ extern (C)
 Tuple!(IDMap, IDMap) subID()
 {
     auto user = environment.get("USER");
-    assert(user != "", "USER environment variable is not defined");
-
+    if (user == "")
+    {
+        throw new UserMappingException("USER environment variable is not defined");
+    }
     /* There may be multiple rages. We just need one, so consider the first. */
     subid_range* uid;
     subid_range* gid;
     int ret;
     subid_init(null, null);
     ret = subid_get_uid_ranges(user.toStringz(), &uid);
-    assert(ret > 0, "Failed to get UID range, or no ranges available");
+    if (ret < 0)
+    {
+        throw new ErrnoException("failed to get UID range");
+    }
+    else if (ret == 0)
+    {
+        throw new UserMappingException("no UID range found");
+    }
     ret = subid_get_gid_ranges(user.toStringz(), &gid);
-    assert(ret > 0, "Failed to get GID range, or no ranges available");
+    if (ret < 0)
+    {
+        throw new ErrnoException("failed to get GID range");
+    }
+    else if (ret == 0)
+    {
+        throw new UserMappingException("no GID range found");
+    }
 
     return tuple(
         IDMap(0, cast(int) uid.start, cast(int) uid.count),
@@ -142,12 +165,18 @@ void mapWithCapability(int pid, IDMap[] uids, IDMap[] gids)
     foreach (ref entry; mapping)
     {
         auto fd = open(entry[0].toStringz(), O_WRONLY);
-        assert(fd > 0, format!"Failed to open %s"(entry[0]));
+        if (fd < 0)
+        {
+            throw new ErrnoException(format!"Failed to open %s"(entry[0]));
+        }
         scope (exit)
         {
             close(fd);
         }
         const auto ret = write(fd, entry[1].ptr, entry[1].length);
-        assert(ret == entry[1].length, format!"Failed to write into %s"(entry[0]));
+        if (ret < 0)
+        {
+            throw new ErrnoException(format!"Failed to write into %s"(entry[0]));
+        }
     }
 }
