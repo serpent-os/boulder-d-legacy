@@ -10,10 +10,10 @@ import std.process : environment, spawnProcess, wait;
 import std.string : toStringz;
 import std.typecons : Tuple, tuple;
 
-package:
+public static immutable auto rootUGID = 0;
+public static immutable auto unprivilegedUGID = 1;
 
-static immutable auto rootUGID = 0;
-static immutable auto unprivilegedUGID = 1;
+package:
 
 void mapRootUser(int pid)
 {

@@ -31,7 +31,7 @@ private struct ContainerCLI
 {
     /** Path where the container resides. */
     @Global() @Short("p") @Long("path")
-    @Help("Path where the container resides (will be created if non-existent)")
+    @Help("Mandatory path where the container resides (will be created if non-existent)")
     string path = null;
 
     @Global() @Long("no-color") @Help("Do not color console output")
@@ -68,20 +68,23 @@ public void run(string[] args) {
     {
         cli = parse!ContainerCLI(args);
     }
-    catch (HelpException e)
-    {
-        return;
-    }
-    catch (VersionException e)
+    catch (DoptException e)
     {
         return;
     }
 
     cli.checkPath();
     cli.setLogger();
-    cli.subcommand.match!(
-        (Create c) => c.run(cli.path),
-        (Remove c) => c.run(cli.path),
-        (Run c) => c.run(cli.path),
-    );
+    try
+    {
+        cli.subcommand.match!(
+            (Create c) => c.run(cli.path),
+            (Remove c) => c.run(cli.path),
+            (Run c) => c.run(cli.path),
+        );
+    }
+    catch (Exception e)
+    {
+        stderr.writeln(e.msg);
+    }
 }
