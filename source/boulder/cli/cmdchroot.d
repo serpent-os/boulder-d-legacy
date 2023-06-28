@@ -13,32 +13,27 @@
  * License: Zlib
  */
 
-module boulder.cli.chroot_command;
+module boulder.cli.cmdchroot;
 
-import boulder.cli : BoulderCLI;
-import boulder.controller;
-import mason.build.context : buildContext;
-import mason.build.util : executeCommand;
-import moss.core : ExitStatus;
 import std.experimental.logger;
 import std.file : exists, thisExePath;
 import std.format : format;
 import std.path : absolutePath, buildNormalizedPath, dirName;
-public import moss.core.cli;
+
+import boulder.controller;
+import dopt;
+import mason.build.context : buildContext;
+import mason.build.util : executeCommand;
+import moss.core : ExitStatus;
 
 /**
  * The ChrootCommand is responsible for handling requests to chroot into
  * a stone.yml's build location
  */
-@CommandName("chroot") @CommandAlias("cr")
-@CommandHelp("Chroot into a recipe's build location using moss-container.")
-@CommandUsage("[recipe]")
-public struct ChrootCommand
+@Command() /*@Alias("cr")*/
+@Help("Chroot into a recipe's build location using moss-container.")
+public struct Chroot
 {
-    /** Extend BaseCommand with ChrootCommand specific functionality */
-    BaseCommand pt;
-    alias pt this;
-
     /**
      * Main entry point into the ChrootCommand where we expect a valid recipe
      * (stone.yml) file
@@ -50,7 +45,7 @@ public struct ChrootCommand
      *      argv = arguments passed to command line
      * Returns: ExitStatus.Success on success, ExitStatus.Failure on failure.
      */
-    @CommandEntry() int run(ref string[] argv)
+    int run(ref string[] argv)
     {
         immutable useDebug = this.findAncestor!BoulderCLI.debugMode;
         globalLogLevel = useDebug ? LogLevel.trace : LogLevel.info;

@@ -7,8 +7,7 @@
 /**
  * Main entry point
  *
- * Provides the main entry point into the `moss-container` binary along
- * with some CLI parsing and container namespace initialisation.
+ * Provides the main entry point into the `container` companion application.
  *
  * Authors: Copyright © 2020-2023 Serpent OS Developers
  * License: Zlib

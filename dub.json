@@ -14,6 +14,10 @@
 	"dependencies": {
 		"libmoss": {
 			"path": "../libmoss"
+		},
+		"dopt": {
+			"repository": "git+https://github.com/tarkah/dopt.git",
+			"version": "387ce049bae7cb5adbac5ec075eff6b349d02675"
 		}
 	},
 	"excludedSourceFiles": [

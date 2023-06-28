@@ -13,28 +13,52 @@
  * License: Zlib
  */
 
-module boulder.cli.deletecache_command;
+module boulder.cli.cmddeletecache;
 
-public import moss.core.cli;
+import std.experimental.logger;
+import std.format : format;
+
 import boulder.buildjob : sharedRootArtefactsCache, sharedRootBuildCache,
     sharedRootCcacheCache, sharedRootPkgCacheCache, sharedRootRootCache;
-import boulder.cli : BoulderCLI;
 import boulder.upstreamcache : sharedRootUpstreamsCache;
+import dopt;
 import moss.core : ExitStatus;
 import moss.core.sizing : formattedSize;
-import std.format : format;
-import std.experimental.logger;
 
 /**
  * The DeleteCacheCommand is responsible deleting the various caches used by boulder
  */
-@CommandName("delete-cache") @CommandAlias("dc")
-@CommandHelp("Delete assets & caches stored by boulder")
-public struct DeleteCacheCommand
+@Command() /*@Alias("dc")*/
+@Help("Delete assets & caches stored by boulder")
+public struct DeleteCache
 {
-    /** Extend BaseCommand with DeleteCacheCommand specific functionality */
-    BaseCommand pt;
-    alias pt this;
+    /** Delete all assets & caches */
+    @Option() @Short("a") @Long("all") @Help("Delete all assets and caches used by boulder")
+    bool deleteAll = false;
+
+    /** Delete artefacts */
+    @Option() @Short("A") @Long("artefacts") @Help("Delete artefacts cache")
+    bool delArtefacts = false;
+
+    /** Delete build */
+    @Option() @Short("b") @Long("build") @Help("Delete build cache")
+    bool delBuild = false;
+
+    /** Delete ccache */
+    @Option() @Short("c") @Long("ccache") @Help("Delete ccache cache")
+    bool delCcache = false;
+
+    /** Delete pkgCache */
+    @Option() @Short("P") @Long("pkgCache") @Help("Delete pkgCache cache")
+    bool delPkgCache = false;
+
+    /** Delete upstreams */
+    @Option() @Short("u") @Long("upstreams") @Help("Delete upstreams cache")
+    bool delUpstreams = false;
+
+    /** Get total disk usage of boulder assets and caches */
+    @Option() @Short("s") @Long("sizes") @Help("Display disk usage used by boulder assets and caches.")
+    bool sizes = false;
 
     /**
      * Boulder assets and caches deletion
@@ -42,7 +66,7 @@ public struct DeleteCacheCommand
      *      argv = arguments passed to the cli
      * Returns: ExitStatus.Success on success, ExitStatus.Failure on failure
      */
-    @CommandEntry() int run(ref string[] argv)
+    int run(ref string[] argv)
     {
         immutable useDebug = this.findAncestor!BoulderCLI.debugMode;
         globalLogLevel = useDebug ? LogLevel.trace : LogLevel.info;
@@ -112,28 +136,6 @@ public struct DeleteCacheCommand
 
         return exitStatus;
     }
-
-    /** Delete all assets & caches */
-    @Option("a", "all", "Delete all assets and caches used by boulder")
-    bool deleteAll = false;
-    /** Delete artefacts */
-    @Option("A", "artefacts", "Delete artefacts cache")
-    bool delArtefacts = false;
-    /** Delete build */
-    @Option("b", "build", "Delete build cache")
-    bool delBuild = false;
-    /** Delete ccache */
-    @Option("c", "ccache", "Delete ccache cache")
-    bool delCcache = false;
-    /** Delete pkgCache */
-    @Option("P", "pkgCache", "Delete pkgCache cache")
-    bool delPkgCache = false;
-    /** Delete upstreams */
-    @Option("u", "upstreams", "Delete upstreams cache")
-    bool delUpstreams = false;
-    /** Get total disk usage of boulder assets and caches */
-    @Option("s", "sizes", "Display disk usage used by boulder assets and caches.")
-    bool sizes = false;
 }
 
 /**

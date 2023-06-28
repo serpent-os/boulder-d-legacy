@@ -13,34 +13,33 @@
  * License: Zlib
  */
 
-module boulder.cli.new_command;
+module boulder.cli.cmdnew;
 
-public import moss.core.cli;
-import boulder.cli : BoulderCLI;
-import drafter;
-import moss.core;
 import std.algorithm : each;
+import std.experimental.logger;
 import std.file : exists;
 import std.format : format;
-import std.experimental.logger;
+
+import dopt;
+import drafter;
+import moss.core;
 
 /**
  * The BuildCommand is responsible for handling requests to build stone.yml
  * formatted files into useful binary packages.
  */
-@CommandName("new")
-@CommandHelp("Create skeletal stone.yml recipe from source archive URI")
-@CommandUsage("[$URI]")
-public struct NewCommand
+@Command()
+@Help("Create skeletal stone.yml recipe from source archive URI")
+public struct New
 {
-    /** Extend BaseCommand with NewCommand specific functionality */
-    BaseCommand pt;
-    alias pt this;
+    /** Where to output the YML file */
+    @Option() @Short("o") @Long("output") @Help("Location to output generated build recipe")
+    string outputPath = "stone.yml";
 
     /**
      * Manipulation of recipes
      */
-    @CommandEntry() int run(ref string[] argv)
+    int run(ref string[] argv)
     {
         immutable useDebug = this.findAncestor!BoulderCLI.debugMode;
         globalLogLevel = useDebug ? LogLevel.trace : LogLevel.info;
@@ -72,8 +71,4 @@ public struct NewCommand
 
         return exitStatus;
     }
-
-    /** Where to output the YML file */
-    @Option("o", "output", "Location to output generated build recipe")
-    string outputPath = "stone.yml";
 }
