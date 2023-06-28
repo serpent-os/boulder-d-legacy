@@ -1,5 +1,5 @@
 libmason_sources = [
-    'cli/build_command.d',
+    'cli/cmdbuild.d',
     'cli/package.d',
     'package.d',
     'build/analysers/binary.d',

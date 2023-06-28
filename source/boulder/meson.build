@@ -1,12 +1,11 @@
 # Build the main executable.
 
 boulder_sources = [
+    'cli/cmdbuild.d',
+    'cli/cmdchroot.d',
+    'cli/cmddeletecache.d',
+    'cli/cmdnew.d',
     'cli/package.d',
-    'cli/build_command.d',
-    'cli/chroot_command.d',
-    'cli/deletecache_command.d',
-    'cli/new_command.d',
-    'cli/version_command.d',
     'buildjob.d',
     'controller.d',
     'environment.d',
