@@ -16,12 +16,9 @@
 module boulder.cli.cmdbuild;
 
 import std.experimental.logger;
-import std.file : exists;
-import std.format : format;
-import std.stdio;
+import std.range : empty;
 
 import boulder.controller;
-import moss.core;
 import dopt;
 
 /**
@@ -56,6 +53,9 @@ package struct Build
     @Option() @Short("c") @Long("compiler-cache") @Help("Enable compiler caching")
     bool compilerCache = false;
 
+    @Positional() @Help("Recipe path")
+    string recipePath;
+
     /**
      * Main entry point into the BuildControlCommand. We expect a list of paths that
      * contain "stone.yml" formatted build description files. For each path
@@ -64,48 +64,21 @@ package struct Build
      * Once all validation is passed, we begin building all of the passed
      * file paths into packages.
      */
-    int run(ref string[] argv)
+    void run(string configDir, string profile)
     {
-        immutable useDebug = this.findAncestor!BoulderCLI.debugMode;
-        globalLogLevel = useDebug ? LogLevel.trace : LogLevel.info;
-        ExitStatus res;
-
-        immutable profile = this.findAncestor!BoulderCLI.profile;
-        immutable configDir = this.findAncestor!BoulderCLI.configDir;
-
-        if (!outputDirectory.exists)
+        if (this.recipePath.empty())
         {
-            error(format!"Output directory does not exist: %s"(outputDirectory));
-            return ExitStatus.Failure;
+            trace("No recipe specified, building stone.yml recipe in current directory");
+            this.recipePath = "stone.yml";
         }
-
-        auto controller = new Controller(outputDirectory, architecture,
-                !unconfined, profile, compilerCache, configDir);
-
-        /* Require a recipe to continue */
-        if (argv == null && !"stone.yml".exists)
-        {
-            error("No recipe specified and no stone.yml file found in current directory");
-            return ExitStatus.Failure;
-        }
-
-        if (argv.length > 1)
-        {
-            error(format!"Unexpected number of arguments, got %s. Expected one recipe file."(
-                    argv.length));
-            return ExitStatus.Failure;
-        }
-
-        /* When no recipes are specified, build stone.yml recipe in current directory if it exists */
-        if (argv == null && "stone.yml".exists)
-        {
-            trace("No recipe specified, building stone.yml recipe found in current directory");
-            res = controller.build("stone.yml");
-        }
-        else
-        {
-            res = controller.build(argv[0]);
-        }
-        return res;
+        auto controller = new Controller(
+            this.outputDirectory,
+            this.architecture,
+            !this.unconfined,
+            profile,
+            this.compilerCache,
+            configDir,
+        );
+        controller.build(this.recipePath);
     }
 }
