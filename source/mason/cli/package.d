@@ -15,27 +15,33 @@
 
 module mason.cli;
 
-public import moss.core.cli;
-public import mason.cli.build_command;
+import std.sumtype;
+
+import dopt;
+import mason.cli.cmdbuild;
+
+private alias Subcommands = SumType!(Build);
+
 
 /**
  * The MasonCLI type holds some global configuration bits
  */
-@RootCommand @CommandName("mason")
-@CommandHelp("mason - build stone packages using YML recipes")
-@CommandUsage("[--args] [command]")
-public struct MasonCLI
+@Command("mason")
+@Help("Build stone packages using YML recipes.")
+private struct MasonCLI
 {
-    /** Extend BaseCommand to give a root command for our CLI */
-    BaseCommand pt;
-    alias pt this;
-
     /** Select an alternative output location than the current working directory */
-    @Option("o", "output", "Directory to store build results") string outputDirectory = ".";
+    @Option() @Short("o") @Long("output") @Help("Directory to store build results")
+    string outputDirectory = ".";
 
     /** Override the build directory to one containing the prepared sources */
-    @Option("b", "buildDir", "Set the build directory") string buildDir = null;
+    @Option() @Short("b") @Long("buildDir") @Help("Set the build directory")
+    string buildDir = null;
 
     /** When set to true, we enable debug output */
-    @Option("d", "debug", "Enable debugging output") bool debugMode = false;
+    @Option() @Short("d") @Long("debug") @Help("Enable debugging output")
+    bool debugMode = false;
+
+    @Subcommand()
+    Subcommands subcommand;
 }
