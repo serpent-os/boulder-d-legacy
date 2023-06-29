@@ -20,14 +20,5 @@ import container.cli : run;
 
 int main(string[] args)
 {
-    try
-    {
-        run(args);
-    }
-    catch (Exception e)
-    {
-        stderr.writeln(e.msg);
-        return 1;
-    }
-    return 0;
+    return run(args);
 }

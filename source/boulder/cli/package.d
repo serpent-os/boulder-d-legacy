@@ -16,7 +16,6 @@
 module boulder.cli;
 
 import core.sys.posix.unistd : isatty;
-import std : stderr;
 import std.sumtype;
 import std.format : format;
 
@@ -96,7 +95,7 @@ public int run(string[] args) {
     }
     catch (Exception e)
     {
-        stderr.writeln(e.msg);
+        fatal(e.msg);
         return -1;
     }
     return 0;

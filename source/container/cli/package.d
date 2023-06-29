@@ -7,7 +7,6 @@
 module container.cli;
 
 import core.sys.posix.unistd : isatty;
-import std : stderr, stdout;
 import std.range;
 import std.sumtype;
 
@@ -61,7 +60,7 @@ private struct ContainerCLI
 }
 
 
-public void run(string[] args) {
+public int run(string[] args) {
 
     ContainerCLI cli;
     try
@@ -71,7 +70,7 @@ public void run(string[] args) {
     catch (DoptException e)
     {
         /* User requested the version or the help string. That's OK. */
-        return;
+        return 0;
     }
 
     cli.checkPath();
@@ -86,6 +85,8 @@ public void run(string[] args) {
     }
     catch (Exception e)
     {
-        stderr.writeln(e.msg);
+        fatal(e.msg);
+        return -1;
     }
+    return 0;
 }
