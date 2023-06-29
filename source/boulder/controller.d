@@ -213,7 +213,7 @@ public final class Controller : StageContext
      * Params:
      *      filename = filename of recipe to build
      */
-    ExitStatus build(in string filename)
+    void build(in string filename)
     {
         parseRecipe(filename);
 
@@ -295,31 +295,20 @@ public final class Controller : StageContext
         _job.extraDeps = () @trusted { return upstreamDeps.uniq.array(); }();
 
         /* Run all the build stages */
-        immutable res = iterateStages(buildStages);
-        if (res == StageReturn.Failure)
-        {
-            return ExitStatus.Failure;
-        }
-        return ExitStatus.Success;
+        iterateStages(buildStages);
     }
 
     /**
      * Chroot into a recipe's build environment
      * Params:
      *      filename = recipe to parse in order to setup the chroot
-     * Returns: ExitStatus.{Success,Failure}
      */
-    ExitStatus chroot(in string filename)
+    void chroot(in string filename)
     {
         parseRecipe(filename);
 
         /* Check for valid build environment */
-        immutable buildEnv = _job.hostPaths.rootfs;
-        if (!buildEnv.exists)
-        {
-            error("No build environment found. Try building the package recipe first.");
-            return ExitStatus.Failure;
-        }
+        enforce!(_job.hostPaths.rootfs.exists, "No build environment found. Try building the package recipe first");
 
         /* Always ensure these useful packages are available in the chroot */
         string[] upstreamDeps;
@@ -329,68 +318,16 @@ public final class Controller : StageContext
         _job.extraDeps = () @trusted { return upstreamDeps.uniq.array(); }();
 
         /* Run all the chroot stages */
-        auto res = iterateStages(chrootStages);
-        if (res == StageReturn.Failure)
-        {
-            return ExitStatus.Failure;
-        }
-        return ExitStatus.Success;
+        iterateStages(chrootStages);
     }
 
     /**
      * Iterate over build stages
      * Params:
      *      stages = Array of build stages to iterate over
-     * Returns: StageReturn
      */
-    StageReturn iterateStages(in immutable(Stage)*[] stages)
+    void iterateStages(in immutable(Stage)*[] stages)
     {
-        int stageIndex;
-        int nStages = cast(int) stages.length;
-        StageReturn result = StageReturn.Failure;
-        build_loop: while (true)
-        {
-            /* Dun dun dun */
-            if (stageIndex > nStages - 1)
-            {
-                break build_loop;
-            }
-
-            auto stage = stages[stageIndex];
-            enforce(stage.functor !is null);
-
-            trace(format!"Stage begin: %s"(stage.name));
-            try
-            {
-                result = stage.functor(this);
-            }
-            catch (Exception e)
-            {
-                error(format!"Exception: %s"(e.message));
-                result = StageReturn.Failure;
-            }
-
-            /* Take the early fail */
-            if (failFlag == true)
-            {
-                result = StageReturn.Failure;
-            }
-
-            final switch (result)
-            {
-            case StageReturn.Failure:
-                error(format!"Stage failure: %s"(stage.name));
-                break build_loop;
-            case StageReturn.Success:
-                info(format!"Stage success: %s"(stage.name));
-                ++stageIndex;
-                break;
-            case StageReturn.Skipped:
-                trace(format!"Stage skipped: %s"(stage.name));
-                ++stageIndex;
-                break;
-            }
-        }
         scope (exit)
         {
             /* Unmount anything mounted on both error and normal exit */
@@ -401,7 +338,21 @@ public final class Controller : StageContext
                 m.unmount();
             }
         }
-        return result;
+        foreach (stage; stages)
+        {
+            trace(format!"Stage begin: %s"(stage.name));
+            final switch (stage.functor(this))
+            {
+            case StageReturn.Failure:
+                throw new Exception(format!"Stage failure: %s"(stage.name));
+            case StageReturn.Success:
+                info(format!"Stage success: %s"(stage.name));
+                break;
+            case StageReturn.Skipped:
+                trace(format!"Stage skipped: %s"(stage.name));
+                break;
+            }
+        }
     }
 
     /**
