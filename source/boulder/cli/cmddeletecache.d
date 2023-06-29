@@ -15,15 +15,27 @@
 
 module boulder.cli.cmddeletecache;
 
+import core.atomic : atomicOp;
+import std.array : array;
 import std.experimental.logger;
+import std.file :
+    DirEntry,
+    FileException,
+    attrIsDir,
+    attrIsFile,
+    dirEntries,
+    exists,
+    getSize,
+    remove,
+    rmdir,
+    SpanMode;
 import std.format : format;
+import std.parallelism : parallel;
 
-import boulder.buildjob : sharedRootArtefactsCache, sharedRootBuildCache,
-    sharedRootCcacheCache, sharedRootPkgCacheCache, sharedRootRootCache;
-import boulder.upstreamcache : sharedRootUpstreamsCache;
+import boulder.buildjob;
+import boulder.upstreamcache;
 import dopt;
-import moss.core : ExitStatus;
-import moss.core.sizing : formattedSize;
+import moss.core.sizing;
 
 /**
  * The DeleteCacheCommand is responsible deleting the various caches used by boulder
@@ -57,49 +69,55 @@ public struct DeleteCache
     bool delUpstreams = false;
 
     /** Get total disk usage of boulder assets and caches */
-    @Option() @Short("s") @Long("sizes") @Help("Display disk usage used by boulder assets and caches.")
-    bool sizes = false;
+    @Option() @Short("s") @Long("show-sizes") @Help("Display disk usage used by boulder assets and caches and exit.")
+    bool showSizes = false;
 
-    /**
-     * Boulder assets and caches deletion
-     * Params:
-     *      argv = arguments passed to the cli
-     * Returns: ExitStatus.Success on success, ExitStatus.Failure on failure
-     */
-    int run(ref string[] argv)
+    void run()
     {
-        immutable useDebug = this.findAncestor!BoulderCLI.debugMode;
-        globalLogLevel = useDebug ? LogLevel.trace : LogLevel.info;
-
-        if (argv.length > 0)
+        if (showSizes)
         {
-            warning(
-                    "Unexcepted number of arguments specified. For help, run boulder delete-cache -h");
-            return ExitStatus.Failure;
+            /* Print out disk usage and return if showSizes is requested */
+            this.runShowSize();
         }
+        else {
+            this.runDeleteCache();
+        }
+    }
 
-        /* Print out disk usage and return if sizes is requested */
-        if (sizes == true)
+private:
+
+    void runShowSize()
+    {
+        string[] cachePaths = [
+            sharedRootArtefactsCache(),
+            sharedRootBuildCache(),
+            sharedRootCcacheCache(),
+            sharedRootPkgCacheCache(),
+            sharedRootRootCache(),
+            sharedRootUpstreamsCache(),
+        ];
+        double totalSize = 0;
+        foreach (string path; cachePaths)
         {
-            string[] cachePaths = [
-                sharedRootArtefactsCache(), sharedRootBuildCache(),
-                sharedRootCcacheCache(), sharedRootPkgCacheCache(),
-                sharedRootRootCache(), sharedRootUpstreamsCache(),
-            ];
-            double totalSize = 0;
-            foreach (string path; cachePaths)
+            try
             {
                 auto size = getSizeDir(path);
                 totalSize += size;
                 info(format!"Size of %s is %s"(path, formattedSize(size)));
             }
-            info(format!"Total size: %s"(formattedSize(totalSize)));
-            return ExitStatus.Success;
+            catch (FileException e)
+            {
+                warning(format!"Failed to compute size of file: %s"(e.msg));
+            }
         }
+        info(format!"Total size: %s"(formattedSize(totalSize)));
+    }
 
+    void runDeleteCache()
+    {
         /* Figure out what paths we're nuking */
         string[] nukeCachePaths = [sharedRootRootCache()];
-        if (deleteAll == true)
+        if (deleteAll)
         {
             delArtefacts = true;
             delBuild = true;
@@ -107,34 +125,43 @@ public struct DeleteCache
             delPkgCache = true;
             delUpstreams = true;
         }
-        if (delArtefacts == true)
+        if (delArtefacts)
+        {
             nukeCachePaths ~= sharedRootArtefactsCache();
-        if (delBuild == true)
+        }
+        if (delBuild)
+        {
             nukeCachePaths ~= sharedRootBuildCache();
-        if (delCcache == true)
+        }
+        if (delCcache)
+        {
             nukeCachePaths ~= sharedRootCcacheCache();
-        if (delPkgCache == true)
+        }
+        if (delPkgCache)
+        {
             nukeCachePaths ~= sharedRootPkgCacheCache();
-        if (delUpstreams == true)
+        }
+        if (delUpstreams)
+        {
             nukeCachePaths ~= sharedRootUpstreamsCache();
+        }
 
-        /* Nuke the paths */
         double totalSize = 0;
-        auto exitStatus = ExitStatus.Success;
         foreach (string path; nukeCachePaths)
         {
             auto size = getSizeDir(path);
-            exitStatus = deleteDir(path);
-            if (exitStatus == ExitStatus.Failure)
+            try
             {
-                warning(format!"Failed to delete all files in %s"(path));
+                deleteDir(path);
+                info(format!"Removed: %s, %s"(path, formattedSize(size)));
+                totalSize += size;
             }
-            info(format!"Removed: %s, %s"(path, formattedSize(size)));
-            totalSize += size;
+            catch (FileException e)
+            {
+                warning(format!"Failed to delete all files in %s: %s"(path, e.msg));
+            }
         }
         info(format!"Total restored size: %s"(formattedSize(totalSize)));
-
-        return exitStatus;
     }
 }
 
@@ -142,53 +169,31 @@ public struct DeleteCache
  * Deletes all files in a directory in parallel, this is quicker than rmdirRecurse.
  * Params:
  *      path = directory to remove
- * Returns: ExitStatus.Success, ExitStatus.Failure
  */
-auto deleteDir(in string path) @trusted
+private void deleteDir(in string path) @trusted
 {
-    import std.file : attrIsDir, DirEntry, dirEntries, exists, FileException,
-        remove, rmdir, SpanMode;
-    import std.parallelism : parallel;
-
-    /* Whether we failed to remove some files */
-    bool failed;
-
     DirEntry[] dirs;
     DirEntry[] files;
-
-    try
+    foreach (name; dirEntries(path, SpanMode.depth, false))
     {
-        foreach (name; dirEntries(path, SpanMode.depth, false))
+        if (!attrIsDir(name.linkAttributes))
         {
-            if (!attrIsDir(name.linkAttributes))
-            {
-                files ~= name;
-            }
-            else
-            {
-                dirs ~= name;
-            }
+            files ~= name;
         }
-        foreach (file; parallel(files))
+        else
         {
-            remove(file);
-        }
-        /* Dirs are already sorted depth first :) */
-        foreach (dir; dirs)
-        {
-            rmdir(dir);
+            dirs ~= name;
         }
     }
-    catch (FileException e)
+    foreach (file; parallel(files))
     {
-        warning(format!"Issue deleting %s, reason: %s"(path, e));
-        failed = true;
+        remove(file);
     }
-    if (failed == true)
+    /* Dirs are already sorted depth first :) */
+    foreach (dir; dirs)
     {
-        return ExitStatus.Failure;
+        rmdir(dir);
     }
-    return ExitStatus.Success;
 }
 
 /**
@@ -197,35 +202,19 @@ auto deleteDir(in string path) @trusted
  *      path = directory to get size of
  * Returns: totalSize
  */
-auto getSizeDir(in string path) @trusted
+private double getSizeDir(in string path) @trusted
 {
-    import core.atomic : atomicOp;
-    import std.array : array;
-    import std.file : attrIsFile, dirEntries, FileException, getSize, SpanMode;
-    import std.parallelism : parallel;
-
     /* Use a global var and increment it with an atomicOp to
        ensure an consistent result due to parallel stat */
     shared ulong totalSize;
-
-    try
+    foreach (name; parallel(dirEntries(path, SpanMode.breadth, false)))
     {
-        foreach (name; parallel(dirEntries(path, SpanMode.breadth, false).array))
+        if (attrIsFile(name.linkAttributes))
         {
-            if (attrIsFile(name.linkAttributes))
-            {
-                atomicOp!"+="(totalSize, getSize(name));
-            }
+            atomicOp!"+="(totalSize, getSize(name));
         }
     }
-    /* Don't crash and burn if we fail to stat a file */
-    catch (FileException e)
-    {
-        trace(format!"Caught a FileException within %s, reason: %s"(path, e));
-    }
-
     /* Return a thread local var */
     immutable double returnSize = totalSize;
-
     return returnSize;
 }
