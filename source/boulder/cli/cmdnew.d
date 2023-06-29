@@ -15,14 +15,12 @@
 
 module boulder.cli.cmdnew;
 
-import std.algorithm : each;
 import std.experimental.logger;
 import std.file : exists;
 import std.format : format;
 
 import dopt;
 import drafter;
-import moss.core;
 
 /**
  * The BuildCommand is responsible for handling requests to build stone.yml
@@ -36,39 +34,31 @@ public struct New
     @Option() @Short("o") @Long("output") @Help("Location to output generated build recipe")
     string outputPath = "stone.yml";
 
+    @Positional() @Required() @Help("Upstream source URLs")
+    string[] upstreams;
+
     /**
      * Manipulation of recipes
      */
-    int run(ref string[] argv)
+    void run()
     {
-        immutable useDebug = this.findAncestor!BoulderCLI.debugMode;
-        globalLogLevel = useDebug ? LogLevel.trace : LogLevel.info;
-
-        if (argv == null)
-        {
-            warning("No arguments specified. For help, run boulder new -h");
-            return ExitStatus.Failure;
-        }
-
-        if (outputPath.exists)
+        if (outputPath.exists())
         {
             error(format!"Refusing to overwrite existing recipe: %s"(outputPath));
-            return ExitStatus.Failure;
+            return;
         }
 
         auto drafter = new Drafter(outputPath);
-        argv.each!((a) => drafter.addSource(a, UpstreamType.Plain));
-        auto exitStatus = drafter.run();
-        if (exitStatus == ExitStatus.Success)
+        foreach (url; this.upstreams)
         {
-            info(format!"Successfully wrote skeletal recipe %s\n"(outputPath));
-            info("The next step is to edit and flesh out the freshly created");
-            info(format!"skeletal recipe %s\n"(outputPath));
-            info("Once that has been done, an attempt to build it should be");
-            info(format!"made with the command: sudo boulder build %s\n"(outputPath));
+            drafter.addSource(url, UpstreamType.Plain);
         }
-        drafter.destroy(); /* Ensure we flush & close */
+        drafter.run();
 
-        return exitStatus;
+        info(format!"Successfully wrote skeletal recipe %s\n"(outputPath));
+        info("The next step is to edit and flesh out the freshly created");
+        info(format!"skeletal recipe %s\n"(outputPath));
+        info("Once that has been done, an attempt to build it should be");
+        info(format!"made with the command: sudo boulder build %s\n"(outputPath));
     }
 }
