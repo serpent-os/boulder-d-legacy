@@ -45,3 +45,8 @@ private struct MasonCLI
     @Subcommand()
     Subcommands subcommand;
 }
+
+int run(string[] args)
+{
+    return 0;
+}

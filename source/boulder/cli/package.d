@@ -15,6 +15,8 @@
 
 module boulder.cli;
 
+import core.sys.posix.unistd : isatty;
+import std : stderr;
 import std.sumtype;
 import std.format : format;
 
@@ -24,6 +26,7 @@ import boulder.cli.cmddeletecache;
 import boulder.cli.cmdnew;
 import boulder.environment : fullVersion;
 import dopt;
+import moss.core.logger;
 
 private alias Subcommands = SumType!(Build, Chroot, DeleteCache, New);
 
@@ -37,6 +40,9 @@ Copyright © 2020-2023 Serpent OS Developers
 Available under the terms of the Zlib license`(fullVersion()))
 private struct BoulderCLI
 {
+    @Global() @Long("no-color") @Help("Do not color console output")
+    bool noColor = false;
+
     /** When set to true, we enable debug output */
     @Global @Short("d") @Long("debug") @Help("Enable debugging output")
     bool debugMode = false;
@@ -51,4 +57,46 @@ private struct BoulderCLI
 
     @Subcommand()
     Subcommands subcommand;
+
+    void setLogger()
+    {
+        auto logOpts = ColorLoggerFlags.Timestamps;
+        if (isatty(0) && isatty(1) && !this.noColor)
+        {
+            logOpts |= ColorLoggerFlags.Color;
+        }
+        if (this.debugMode)
+        {
+            globalLogLevel = LogLevel.trace;
+        }
+        configureLogger(logOpts);
+    }
+}
+
+public int run(string[] args) {
+    BoulderCLI cli;
+    try
+    {
+        cli = parse!BoulderCLI(args);
+    }
+    catch (DoptException e)
+    {
+        return 0;
+    }
+    cli.setLogger();
+    try
+    {
+        cli.subcommand.match!(
+            (Build c) => c.run(cli.configDir, cli.profile),
+            (Chroot c) => c.run(cli.configDir, cli.profile),
+            (DeleteCache c) => c.run(),
+            (New c) => c.run(),
+        );
+    }
+    catch (Exception e)
+    {
+        stderr.writeln(e.msg);
+        return -1;
+    }
+    return 0;
 }

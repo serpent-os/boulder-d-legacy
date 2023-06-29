@@ -19,56 +19,19 @@
 
 module main;
 
-import boulder.cli;
-import core.sys.posix.unistd;
-import mason.cli;
-import moss.core.logger;
 import std.path : baseName;
-import std.stdio;
 
-/**
- * Handle main entry for the boulder subtool
- */
-int boulderMain(string[] args)
-{
-    auto clip = cliProcessor!BoulderCLI(args);
-    clip.addCommand!BuildControlCommand;
-    clip.addCommand!ChrootCommand;
-    clip.addCommand!DeleteCacheCommand;
-    clip.addCommand!NewCommand;
-    clip.addCommand!VersionCommand;
-    clip.addCommand!HelpCommand;
-    return clip.process(args);
-}
-
-/**
- * Handle main entry for the mason subtool
- */
-int masonMain(string[] args)
-{
-    auto clip = cliProcessor!MasonCLI(args);
-    clip.addCommand!BuildCommand;
-    clip.addCommand!HelpCommand;
-    return clip.process(args);
-}
+static import boulder.cli;
+static import mason.cli;
 
 int main(string[] args)
 {
-    if (isatty(0) && isatty(1))
-    {
-        configureLogger(ColorLoggerFlags.Color | ColorLoggerFlags.Timestamps);
-    }
-    else
-    {
-        configureLogger(ColorLoggerFlags.Timestamps);
-    }
-
-    auto programName = args[0].baseName;
+    const auto programName = args[0].baseName;
     switch (programName)
     {
     case "mason":
-        return masonMain(args);
+        return mason.cli.run(args);
     default:
-        return boulderMain(args);
+        return boulder.cli.run(args);
     }
 }
