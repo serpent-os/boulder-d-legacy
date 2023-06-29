@@ -15,13 +15,14 @@
 
 module mason.cli;
 
+import core.sys.posix.unistd : isatty;
 import std.sumtype;
 
 import dopt;
 import mason.cli.cmdbuild;
+import moss.core.logger;
 
 private alias Subcommands = SumType!(Build);
-
 
 /**
  * The MasonCLI type holds some global configuration bits
@@ -30,13 +31,8 @@ private alias Subcommands = SumType!(Build);
 @Help("Build stone packages using YML recipes.")
 private struct MasonCLI
 {
-    /** Select an alternative output location than the current working directory */
-    @Option() @Short("o") @Long("output") @Help("Directory to store build results")
-    string outputDirectory = ".";
-
-    /** Override the build directory to one containing the prepared sources */
-    @Option() @Short("b") @Long("buildDir") @Help("Set the build directory")
-    string buildDir = null;
+    @Global() @Long("no-color") @Help("Do not color console output")
+    bool noColor = false;
 
     /** When set to true, we enable debug output */
     @Option() @Short("d") @Long("debug") @Help("Enable debugging output")
@@ -44,9 +40,44 @@ private struct MasonCLI
 
     @Subcommand()
     Subcommands subcommand;
+
+    void setLogger()
+    {
+        auto logOpts = ColorLoggerFlags.Timestamps;
+        if (isatty(0) && isatty(1) && !this.noColor)
+        {
+            logOpts |= ColorLoggerFlags.Color;
+        }
+        if (this.debugMode)
+        {
+            globalLogLevel = LogLevel.trace;
+        }
+        configureLogger(logOpts);
+    }
 }
 
-int run(string[] args)
-{
+public int run(string[] args) {
+    MasonCLI cli;
+    try
+    {
+        cli = parse!MasonCLI(args);
+    }
+    catch (DoptException e)
+    {
+        /* User requested the version or the help string. That's OK. */
+        return 0;
+    }
+    cli.setLogger();
+    try
+    {
+        cli.subcommand.match!(
+            (Build c) => c.run(),
+        );
+    }
+    catch (Exception e)
+    {
+        fatal(e.msg);
+        return -1;
+    }
     return 0;
 }

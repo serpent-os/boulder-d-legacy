@@ -25,7 +25,6 @@ import mason.build.context;
 import mason.build.controller;
 import mason.cli : MasonCLI;
 import moss.core;
-import moss.core.logger;
 
 /**
  * The BuildCommand is responsible for handling requests to build stone.yml
@@ -50,6 +49,17 @@ public struct Build
     @Option() @Short("c") @Long("compiler-cache") @Help("Enable compiler caching")
     bool compilerCache = false;
 
+    /** Select an alternative output location than the current working directory */
+    @Option() @Short("o") @Long("output") @Help("Directory to store build results")
+    string outputDirectory = ".";
+
+    /** Override the build directory to one containing the prepared sources */
+    @Option() @Short("b") @Long("buildDir") @Help("Set the build directory")
+    string buildDir = null;
+
+    @Positional() @Help("Directories containing the recipes")
+    string[] recipePaths;
+
     /**
      * Main entry point into the BuildCommand. We expect a list of paths that
      * contain "stone.yml" formatted build description files. For each path
@@ -58,46 +68,23 @@ public struct Build
      * Once all validation is passed, we begin building all of the passed
      * file paths into packages.
      */
-    int run(ref string[] argv)
+    void run()
     {
-        /* configureLogger resets the globalLogLevel to LogLevel.info */
-        if (isatty(0) && isatty(1))
-        {
-            configureLogger(ColorLoggerFlags.Color | ColorLoggerFlags.Timestamps);
-        }
-        else
-        {
-            configureLogger(ColorLoggerFlags.Timestamps);
-        }
+        buildContext.outputDirectory = this.outputDirectory;
+        buildContext.jobs = this.jobs;
+        buildContext.compilerCache = this.compilerCache;
 
-        immutable useDebug = this.findAncestor!MasonCLI.debugMode;
-        globalLogLevel = useDebug ? LogLevel.trace : LogLevel.info;
-        info(format!"mason log level set to: %s"(globalLogLevel));
-
-        auto outputDir = pt.findAncestor!(MasonCLI).outputDirectory;
-        auto buildDir = pt.findAncestor!(MasonCLI).buildDir;
-
-        buildContext.outputDirectory = outputDir;
-        buildContext.jobs = jobs;
-        buildContext.compilerCache = compilerCache;
-
-        /* Auto discover job count */
         if (buildContext.jobs < 1)
         {
+            /* Auto discover job count */
             buildContext.jobs = totalCPUs - 1;
         }
-        buildContext.rootDir = buildDir;
+        buildContext.rootDir = this.buildDir;
 
         auto controller = new BuildController(architecture);
-        foreach (specURI; argv)
+        foreach (path; this.recipePaths)
         {
-            if (!controller.build(specURI))
-            {
-                trace(format!"Could not build '%s'"(specURI));
-                return ExitStatus.Failure;
-            }
+            controller.build(path);
         }
-
-        return ExitStatus.Success;
     }
 }
