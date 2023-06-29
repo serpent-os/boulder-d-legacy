@@ -32,7 +32,7 @@ public static immutable(Stage) stageChrootPackage = Stage("chroot-package", &chr
  *
  * Params:
  *      context = context for the stage
- * Returns: a fleshed out moss-container command to chroot into a build location
+ * Returns: a fleshed out container command to chroot into a build location
  */
 static public StageReturn chrootPackage(scope StageContext context)
 {
@@ -48,20 +48,15 @@ static public StageReturn chrootPackage(scope StageContext context)
     }
     string[] args = [
         /* Root moss filesystem */
-        "--directory", context.job.hostPaths.rootfs, "--bind-rw",
+        "--directory", context.job.hostPaths.rootfs,
         /* Output tree */
-        format!"%s=%s"(context.job.hostPaths.artefacts,
-                context.job.guestPaths.artefacts), "--bind-rw",
+        "--bind-rw", format!"%s=%s"(context.job.hostPaths.artefacts, context.job.guestPaths.artefacts),
         /* Build root (with sources) */
-        format!"%s=%s"(context.job.hostPaths.buildRoot,
-                context.job.guestPaths.buildRoot),
+        "--bind-rw", format!"%s=%s"(context.job.hostPaths.buildRoot, context.job.guestPaths.buildRoot),
         /* ccache */
-        "--bind-rw",
-        format!"%s=%s"(context.job.hostPaths.compilerCache,
-                context.job.guestPaths.compilerCache),
+        "--bind-rw", format!"%s=%s"(context.job.hostPaths.compilerCache, context.job.guestPaths.compilerCache),
         /* recipe tree */
-        "--bind-ro",
-        format!"%s=%s"(context.job.hostPaths.recipe, context.job.guestPaths.recipe),
+        "--bind-ro", format!"%s=%s"(context.job.hostPaths.recipe, context.job.guestPaths.recipe),
         /* Start at working directory */
         "--workdir", context.job.guestPaths.buildRoot,
         /* Enable colours */

@@ -23,7 +23,7 @@ private alias Subcommands = SumType!(Create, Remove, Run);
 container sits between boulder and mason to provide isolation
 support, however you can also use container for smoketesting and
 general testing.`)
-@Version(`"moss-container, version %s"("0.1")
+@Version(`container, version 0.1
 Copyright © 2020-2023 Serpent OS Developers
 Available under the terms of the Zlib license`)
 private struct ContainerCLI

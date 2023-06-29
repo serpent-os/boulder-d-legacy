@@ -33,13 +33,13 @@ import std.experimental.logger;
 import std.file : exists, rmdirRecurse, thisExePath;
 import std.format : format;
 import std.parallelism : totalCPUs;
-import std.path : absolutePath, baseName, buildNormalizedPath, buildNormalizedPath, dirName;
+import std.path : absolutePath, baseName, buildNormalizedPath, dirName;
 import std.range : empty, take;
 import std.string : startsWith, split;
 
 /**
- * This is the main entry point for all build commands which will be dispatched
- * to mason in the chroot environment via moss-container.
+ * This is the main entry point for all build commands which
+ * will be dispatched to mason in the container.
  */
 public final class Controller : StageContext
 {
@@ -52,23 +52,22 @@ public final class Controller : StageContext
      *      confinement = Enable confined builds
      */
     this(string outputDir, string architecture, bool confinement, string profile,
-            bool compilerCache, string configDir = null)
+            bool compilerCache, string resourcePath = null)
     {
         this._architecture = architecture;
         this._confinement = confinement;
         this._profile = profile;
         this._compilerCache = compilerCache;
 
-        /* Relative locations for moss/moss-container */
-        auto binDir = thisExePath.dirName;
-        _mossBinary = binDir.buildNormalizedPath("moss").absolutePath;
-        _containerBinary = binDir.buildNormalizedPath("moss-container").absolutePath;
+        /* Relative locations for moss and container */
+        _mossBinary = buildNormalizedPath(resourcePath, "bin", "moss");
+        _containerBinary = buildNormalizedPath(resourcePath, "libexec", "boulder", "container");
 
         _outputDirectory = outputDir.absolutePath;
 
         /* Init config */
         auto config = new ProfileConfiguration();
-        config.load(configDir);
+        config.load(resourcePath);
 
         auto p = config.sections.find!((c) => c.id == _profile);
         enforce(!p.empty, "No build profiles available");
@@ -89,7 +88,7 @@ public final class Controller : StageContext
             }
         }
 
-        /* Only need moss/moss-container for confined builds */
+        /* Only need moss and container for confined builds */
         if (confinement)
         {
             if (!mossBinary.exists)
@@ -98,11 +97,11 @@ public final class Controller : StageContext
             }
             if (!containerBinary.exists)
             {
-                fatal(format!"Cannot find `moss-container` at: %s"(_containerBinary));
+                fatal(format!"Cannot find `container` at: %s"(_containerBinary));
             }
 
             trace(format!"moss: %s"(_mossBinary));
-            trace(format!"moss-container: %s"(_containerBinary));
+            trace(format!"container: %s"(_containerBinary));
         }
         else
         {

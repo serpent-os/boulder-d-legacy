@@ -7,7 +7,7 @@
 /**
  * boulder.cli.chroot_command
  *
- * Helper to chroot into a recipe build location with moss-container
+ * Helper to chroot into a recipe build location with container
  *
  * Authors: Copyright © 2020-2023 Serpent OS Developers
  * License: Zlib
@@ -26,7 +26,7 @@ import dopt;
  * a stone.yml's build location
  */
 @Command() /*@Alias("cr")*/
-@Help("Chroot into a recipe's build location using moss-container.")
+@Help("Chroot into a recipe's build location using the container application.")
 public struct Chroot
 {
     @Positional() @Help("Recipe path")

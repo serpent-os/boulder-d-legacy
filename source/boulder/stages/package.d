@@ -93,7 +93,7 @@ public interface StageContext
     pure @property immutable(string) mossBinary() @safe @nogc nothrow const;
 
     /**
-     * Path to moss-container
+     * Path to the container application
      *
      * Returns: Immutable string containing the path
      */
