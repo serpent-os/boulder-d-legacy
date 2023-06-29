@@ -70,6 +70,7 @@ public void run(string[] args) {
     }
     catch (DoptException e)
     {
+        /* User requested the version or the help string. That's OK. */
         return;
     }
 
