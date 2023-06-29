@@ -16,15 +16,10 @@
 module boulder.cli.cmdchroot;
 
 import std.experimental.logger;
-import std.file : exists, thisExePath;
-import std.format : format;
-import std.path : absolutePath, buildNormalizedPath, dirName;
+import std.range : empty;
 
 import boulder.controller;
 import dopt;
-import mason.build.context : buildContext;
-import mason.build.util : executeCommand;
-import moss.core : ExitStatus;
 
 /**
  * The ChrootCommand is responsible for handling requests to chroot into
@@ -34,46 +29,17 @@ import moss.core : ExitStatus;
 @Help("Chroot into a recipe's build location using moss-container.")
 public struct Chroot
 {
-    /**
-     * Main entry point into the ChrootCommand where we expect a valid recipe
-     * (stone.yml) file
-     *
-     * Once all validation is passed, we chroot into the recipe's build location
-     * using `moss-container`.
-     *
-     * Params:
-     *      argv = arguments passed to command line
-     * Returns: ExitStatus.Success on success, ExitStatus.Failure on failure.
-     */
-    int run(ref string[] argv)
+    @Positional() @Help("Recipe path")
+    string recipePath;
+
+    void run(string configDir, string profile)
     {
-        immutable useDebug = this.findAncestor!BoulderCLI.debugMode;
-        globalLogLevel = useDebug ? LogLevel.trace : LogLevel.info;
+        /* TODO use a (custom) prefix to look for `container`. */
 
-        immutable profile = this.findAncestor!BoulderCLI.profile;
-        immutable configDir = this.findAncestor!BoulderCLI.configDir;
-
-        if (argv.length > 1)
+        if (this.recipePath.empty())
         {
-            warning("Unexpected number of arguments declared. For help, run boulder chroot -h");
-            return ExitStatus.Failure;
-        }
-
-        /* Check moss-container exists */
-        immutable binDir = thisExePath.dirName;
-        immutable containerBinary = binDir.buildNormalizedPath("moss-container").absolutePath;
-        if (!containerBinary.exists)
-        {
-            error(format!"Cannot find `moss-container` at: %s"(containerBinary));
-            return ExitStatus.Failure;
-        }
-
-        /* Use stone.yml in current dir if no args passed, otherwise the recipe is the first arg */
-        immutable recipe = argv.length > 0 ? argv[0] : "stone.yml";
-        if (!recipe.exists)
-        {
-            error(format!"Recipe not found: %s"(recipe));
-            return ExitStatus.Failure;
+            trace("No recipe specified, considering stone.yml recipe in current directory");
+            this.recipePath = "stone.yml";
         }
 
         /* Dummy vars to create a controller */
@@ -81,13 +47,15 @@ public struct Chroot
         immutable unconfined = false;
         immutable compilerCache = false;
         immutable architecture = "native";
-        /* Create the controller */
-        auto controller = new Controller(outputDirectory, architecture,
-                !unconfined, profile, compilerCache, configDir);
 
-        /* Chroot into the recipe */
-        controller.chroot(recipe);
-
-        return ExitStatus.Success;
+        auto controller = new Controller(
+            outputDirectory,
+            architecture,
+            !unconfined,
+            profile,
+            compilerCache,
+            configDir,
+        );
+        controller.chroot(recipePath);
     }
 }
