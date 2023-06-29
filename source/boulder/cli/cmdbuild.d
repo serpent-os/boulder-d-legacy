@@ -64,7 +64,7 @@ package struct Build
      * Once all validation is passed, we begin building all of the passed
      * file paths into packages.
      */
-    void run(string configDir, string profile)
+    void run(string resourcePath, string profile)
     {
         if (this.recipePath.empty())
         {
@@ -77,7 +77,7 @@ package struct Build
             !this.unconfined,
             profile,
             this.compilerCache,
-            configDir,
+            resourcePath,
         );
         controller.build(this.recipePath);
     }

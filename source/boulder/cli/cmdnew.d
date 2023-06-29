@@ -40,7 +40,7 @@ public struct New
     /**
      * Manipulation of recipes
      */
-    void run()
+    void run(string resourcePath)
     {
         if (outputPath.exists())
         {
@@ -48,7 +48,7 @@ public struct New
             return;
         }
 
-        auto drafter = new Drafter(outputPath);
+        auto drafter = new Drafter(resourcePath, outputPath);
         foreach (url; this.upstreams)
         {
             drafter.addSource(url, UpstreamType.Plain);

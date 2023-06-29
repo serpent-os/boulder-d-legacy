@@ -32,7 +32,7 @@ public struct Chroot
     @Positional() @Help("Recipe path")
     string recipePath;
 
-    void run(string configDir, string profile)
+    void run(string resourcePath, string profile)
     {
         /* TODO use a (custom) prefix to look for `container`. */
 
@@ -54,7 +54,7 @@ public struct Chroot
             !unconfined,
             profile,
             compilerCache,
-            configDir,
+            resourcePath,
         );
         controller.chroot(recipePath);
     }

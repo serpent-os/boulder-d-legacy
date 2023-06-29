@@ -68,14 +68,6 @@ public final class Controller : StageContext
 
         /* Init config */
         auto config = new ProfileConfiguration();
-        if (configDir is null || configDir.empty)
-        {
-            configDir = "/";
-        }
-        else
-        {
-            warning(format!"Using non-standard configuration directory: %s"(configDir));
-        }
         config.load(configDir);
 
         auto p = config.sections.find!((c) => c.id == _profile);

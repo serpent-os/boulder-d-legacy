@@ -39,7 +39,7 @@ import std.container.rbtree : RedBlackTree;
 import std.exception : enforce;
 import std.file : exists, remove, thisExePath;
 import std.format : format;
-import std.path : baseName, dirName, buildNormalizedPath, absolutePath;
+import std.path : baseName, buildPath, dirName;
 import std.process;
 import std.range : empty;
 import std.sumtype;
@@ -73,7 +73,7 @@ public final class Drafter
     /**
      * Construct a new Drafter
      */
-    this(in string outputPath)
+    this(in string resourcePath, in string outputPath)
     {
         controller = new FetchController();
         analyser = new Analyser();
@@ -88,9 +88,7 @@ public final class Drafter
         controller.onComplete.connect(&onComplete);
         _licenseEngine = new Engine();
 
-        auto licenseDir = thisExePath.dirName.buildNormalizedPath("..",
-                "share", "boulder", "licenses").absolutePath;
-        _licenseEngine.loadFromDirectory(licenseDir);
+        _licenseEngine.loadFromDirectory(buildPath(resourcePath, "share", "boulder", "licenses"));
         _licenses = new RedBlackTree!(string, "a < b", false);
         outputFile = File(outputPath, "w");
         /* only used in destructor on error */

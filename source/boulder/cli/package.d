@@ -17,7 +17,10 @@ module boulder.cli;
 
 import core.sys.posix.unistd : isatty;
 import std.sumtype;
+import std.file : thisExePath;
 import std.format : format;
+import std.range : empty;
+import std.path : buildPath, dirName;
 
 import boulder.cli.cmdbuild;
 import boulder.cli.cmdchroot;
@@ -51,8 +54,9 @@ private struct BoulderCLI
     string profile = "default-x86_64";
 
     /** Where to find the root of configurations (/etc + /usr) */
-    @Global @Short("C") @Long("config-directory") @Help("Root directory for configurations")
-    string configDir;
+    @Global @Short("C") @Long("prefix")
+    @Help("Prefix directory where to look for executables and config files")
+    string resourcePath;
 
     @Subcommand()
     Subcommands subcommand;
@@ -84,13 +88,21 @@ public int run(string[] args) {
         return 0;
     }
     cli.setLogger();
+    if (cli.resourcePath.empty())
+    {
+        cli.resourcePath = thisExePath().dirName().buildPath("..");
+    }
+    else
+    {
+        info(format!"Using non-standard resource path %s"(cli.resourcePath));
+    }
     try
     {
         cli.subcommand.match!(
-            (Build c) => c.run(cli.configDir, cli.profile),
-            (Chroot c) => c.run(cli.configDir, cli.profile),
+            (Build c) => c.run(cli.resourcePath, cli.profile),
+            (Chroot c) => c.run(cli.resourcePath, cli.profile),
             (DeleteCache c) => c.run(),
-            (New c) => c.run(),
+            (New c) => c.run(cli.resourcePath),
         );
     }
     catch (Exception e)
