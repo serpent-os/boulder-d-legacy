@@ -19,6 +19,7 @@ import std.typecons : Nullable;
 import moss.format.source.source_definition;
 import std.regex;
 import std.string : format;
+import std.uni : toLower;
 
 /**
  * Github automatically generated downloads
@@ -67,7 +68,7 @@ public struct GithubMetadata
             auto sd = SourceDefinition();
             sd.homepage = format!"https://github.com/%s/%s"(m[GithubIndex.Owner],
                     m[GithubIndex.Project]);
-            sd.name = m[GithubIndex.Project];
+            sd.name = m[GithubIndex.Project].toLower;
             sd.versionIdentifier = m[GithubIndex.Version];
             return Nullable!(SourceDefinition, SourceDefinition.init)(sd);
         }
