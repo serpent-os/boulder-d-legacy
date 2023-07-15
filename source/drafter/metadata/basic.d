@@ -17,8 +17,9 @@ module drafter.metadata.basic;
 
 import std.typecons : Nullable;
 import moss.format.source.source_definition;
-import std.regex;
 import std.path : baseName, dirName;
+import std.regex;
+import std.uni : toLower;
 
 /**
  * Standard/basic version detection
@@ -51,7 +52,7 @@ public struct BasicMetadata
         }
 
         auto sd = SourceDefinition();
-        sd.name = m[BasicIndex.Name];
+        sd.name = m[BasicIndex.Name].toLower;
         sd.versionIdentifier = m[BasicIndex.Version];
         sd.homepage = uri.dirName;
         return Nullable!(SourceDefinition, SourceDefinition.init)(sd);
