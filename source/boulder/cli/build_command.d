@@ -89,6 +89,9 @@ public struct BuildControlCommand
             return ExitStatus.Failure;
         }
 
+        // Create a login1 inhibitor lock to prevent the system from going down during a build.
+        auto lock = inhibit("shutdown:sleep:idle", "boulder", "build in progress", "block");
+
         /* When no recipes are specified, build stone.yml recipe in current directory if it exists */
         if (argv == null && "stone.yml".exists)
         {

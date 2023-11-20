@@ -31,7 +31,7 @@ jobs:
 
     - name: Install deps
       run: |
-        sudo apt-get install git libcurl4-openssl-dev libgit2-dev liblmdb-dev libxxhash-dev libzstd-dev
+        sudo apt-get install git libcurl4-openssl-dev libgit2-dev liblmdb-dev libxxhash-dev libzstd-dev libdbus-1-dev
 
     - name: Build & Test
       run: |
