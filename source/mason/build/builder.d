@@ -453,9 +453,11 @@ private:
         oldPkg.runtimeDependencies = oldPkg.runtimeDependencies.chain(pkd.runtimeDependencies)
             .uniq.array;
         oldPkg.paths = oldPkg.paths.chain(pkd.paths).uniq.array;
+        oldPkg.conflicts = oldPkg.conflicts.chain(pkd.conflicts).uniq.array;
 
         sort(oldPkg.runtimeDependencies);
         sort(oldPkg.paths);
+        sort(oldPkg.conflicts);
 
         /* Merge details */
         if (oldPkg.summary is null)

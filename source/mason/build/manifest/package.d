@@ -106,6 +106,19 @@ public MetaPayload generateMetadata(scope AnalysisBucket bucket,
         }
     }
 
+    auto conflicts = pkg.pd.conflicts.map!((const n) => fromString!Dependency(n));
+    if (!conflicts.empty)
+    {
+        foreach (conflict; conflicts)
+        {
+            if (shouldLog)
+            {
+                info(format!"[%s] conflicts with %s"(pkg.pd.name, conflict));
+            }
+            met.addRecord(RecordType.Provider, RecordTag.Conflicts, conflict);
+        }
+    }
+
     return met;
 
 }
