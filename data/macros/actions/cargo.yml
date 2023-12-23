@@ -1,0 +1,17 @@
+actions:
+
+    # Fetch dependencies ensuring the Cargo.lock is up to date
+    - cargo_fetch:
+        command: |
+            test -e ./Cargo.toml || ( echo "%%cargo_fetch: The ./Cargo.toml file could not be found in the current directory" ; exit 1 )
+            cargo fetch --locked
+        dependencies:
+            - binary(cargo)
+
+    # Build the default build profile ensuring the Cargo.lock is up to date
+    - cargo_build:
+        command: |
+            test -e ./Cargo.toml || ( echo "%%cargo_build: The ./Cargo.toml file could not be found in the current directory" ; exit 1 )
+            cargo build --release --frozen
+        dependencies:
+            - binary(cargo)
