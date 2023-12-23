@@ -29,7 +29,7 @@ actions:
             - ninja
 
     # Run testsuite with ctest
-    - cmake_check:
+    - cmake_test:
         command: |
             ninja test -v -j "%(jobs)" -C "%(builddir)"
         dependencies:
