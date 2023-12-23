@@ -443,9 +443,13 @@ flags               :
 
     # Toggle debug-std optimisations (ON)
     - debug-std:
-        c         : "-g -feliminate-unused-debug-types -fasynchronous-unwind-tables"
-        cxx       : "-g -feliminate-unused-debug-types -fasynchronous-unwind-tables"
         d         : "-g -gc -d-debug"
+        gnu:
+            c         : "-g -feliminate-unused-debug-types -fasynchronous-unwind-tables"
+            cxx       : "-g -feliminate-unused-debug-types -fasynchronous-unwind-tables"
+        llvm:
+            c         : "-g -fasynchronous-unwind-tables"
+            cxx       : "-g -fasynchronous-unwind-tables"
 
     # Toggle fast math (OFF)
     - math:
