@@ -50,7 +50,7 @@ public struct CargoBuild
 
     string install()
     {
-        return null;
+        return "%cargo_install";
     }
 
     string check()
