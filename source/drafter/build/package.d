@@ -16,10 +16,10 @@
 module drafter.build;
 
 public import drafter.build.autotools;
+public import drafter.build.cargo;
 public import drafter.build.cmake;
 public import drafter.build.meson;
 public import drafter.build.python;
-public import drafter.build.rust;
 
 import std.traits : EnumMembers;
 import std.string : capitalize;

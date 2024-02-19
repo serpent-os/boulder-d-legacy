@@ -1,11 +1,11 @@
 libdrafter_sources = [
     'package.d',
     'build/autotools.d',
+    'build/cargo.d',
     'build/cmake.d',
     'build/meson.d',
     'build/package.d',
     'build/python.d',
-    'build/rust.d',
     'license/engine.d',
     'license/package.d',
     'metadata/basic.d',
