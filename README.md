@@ -13,7 +13,6 @@ and development headers, including (in fedora package names format):
 - `libzstd` and `libzstd-devel`
 - `xxhash-libs` and `xxhash-devel`
 - `moss` (build prior to building `boulder`)
-- `moss-container` (build after `moss` and prior to boulding `boulder`)
 
 ### Cloning
 
