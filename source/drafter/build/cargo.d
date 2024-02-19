@@ -7,7 +7,7 @@
  * License: Zlib
  */
 
-module drafter.build.rust;
+module drafter.build.cargo;
 
 import moss.deps.analysis;
 import drafter : Drafter;
