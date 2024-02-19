@@ -1,9 +1,15 @@
-/* SPDX-License-Identifier: Zlib */
+/*
+ * SPDX-FileCopyrightText: Copyright © 2020-2023 Serpent OS Developers
+ *
+ * SPDX-License-Identifier: Zlib
+ */
 
 /**
- * Drafter - Python integration
+ * drafter.build.cargo
  *
- * Authors: Â© 2020-2022 Serpent OS Developers
+ * Drafter - Cargo integration
+ *
+ * Authors: Copyright © 2020-2024 Serpent OS Developers
  * License: Zlib
  */
 
