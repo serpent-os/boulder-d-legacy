@@ -11,7 +11,7 @@ module drafter.build.rust;
 
 import moss.deps.analysis;
 import drafter : Drafter;
-import drafter.build : BuildType;
+import drafter.build : BuildType, Build;
 import std.path : baseName;
 
 /**
@@ -36,8 +36,10 @@ static private AnalysisReturn acceptCargo(scope Analyser an, ref FileInfo inpath
  */
 public static AnalysisChain cargoChain = AnalysisChain("cargo", [&acceptCargo], 20);
 
-public struct CargoBuild
+public final class CargoBuild : Build
 {
+override:
+
     string setup()
     {
         return "%cargo_fetch";
