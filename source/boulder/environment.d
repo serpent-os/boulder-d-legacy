@@ -36,6 +36,8 @@ string fullVersion()
 {
     immutable git = GIT_HASH == "" ? "" : format!" (%s)"(GIT_HASH);
 
+    pragma(msg, format!"--\n-- found (VERSION, GIT_HASH): (%s, %s)\n--"(VERSION, GIT_HASH));
+
     return format!"%s%s"(VERSION, git);
 }
 

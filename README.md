@@ -13,6 +13,7 @@ and development headers, including (in fedora package names format):
 - `libzstd` and `libzstd-devel`
 - `xxhash-libs` and `xxhash-devel`
 - `moss` (build prior to building `boulder`)
+- `moss-container` (build after `moss` and prior to boulding `boulder`)
 
 ### Cloning
 
@@ -27,3 +28,18 @@ Remember to add the `--recurse-submodule` argument (for serpent-style commit hoo
 ### Running
 
     sudo boulder build stone.yml
+
+### Bumping the version showed in `boulder version`
+
+Edit the `meson.build` project `version` property:
+
+    project(
+        'boulder',
+        ['d'],
+        version: '1.0.1', # <- this
+        license: [
+                'Zlib',
+        ]
+    )
+
+This will in turn get picked up by `source/boulder/environment.d`
