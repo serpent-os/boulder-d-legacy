@@ -160,7 +160,7 @@ public final class BuildJob
     auto joinPath(in string target) @safe nothrow const
     {
         return join([
-            _hostPaths.rootfs, target.startsWith("/") ? target[1 .. $]: target
+            _hostPaths.rootfs, target.startsWith("/") ? target[1 .. $] : target
         ], "/");
     }
 

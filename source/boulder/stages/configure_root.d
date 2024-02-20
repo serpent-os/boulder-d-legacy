@@ -69,8 +69,8 @@ public static immutable(Stage) stageConfigureRoot = Stage("configure-root", (Sta
         }
 
         auto result = executeCommand(context.mossBinary, [
-            "-y", "repo", "add", "-D", context.job.hostPaths.rootfs, collection.id,
-            collection.uri, "-p", to!string(collection.priority)
+            "-y", "repo", "add", "-D", context.job.hostPaths.rootfs,
+            collection.id, collection.uri, "-p", to!string(collection.priority)
         ], env);
         bool failed;
         result.match!((i) { failed = i != 0; }, (ExecutionError e) {

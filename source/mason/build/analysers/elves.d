@@ -54,6 +54,7 @@ public AnalysisReturn deferElfInclusion(scope Analyser analyser, ref FileInfo fi
 public void copyElfDebug(scope Analyser analyser, ref FileInfo fileInfo)
 {
     import std.file : exists;
+
     auto instance = analyser.userdata!Builder;
 
     bool useLLVM = buildContext.spec.options.toolchain == "llvm";
